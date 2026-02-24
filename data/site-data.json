@@ -1,0 +1,307 @@
+{
+  "serviceLabels": {
+    "meetup": "Ritiro",
+    "delivery": "Consegna",
+    "ship": "Spedizione"
+  },
+  "supportTelegramUrl": "https://t.me/ristoranti_italia_support",
+  "regions": [
+    {
+      "id": "lombardia",
+      "name": "Lombardia",
+      "hubs": "Milano, Bergamo, Brescia",
+      "activePoints": [
+        {
+          "id": "mi-duomo",
+          "name": "Milano Duomo Hub",
+          "address": "Via Torino 18, Milano",
+          "details": "",
+          "logo": "",
+          "stars": 3,
+          "services": [
+            "meetup",
+            "delivery",
+            "ship"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_milano"
+            },
+            {
+              "label": "Telegram",
+              "url": "https://t.me/ristoranti_italia_milano"
+            },
+            {
+              "label": "Sito",
+              "url": "https://example.com/milano-duomo"
+            }
+          ]
+        },
+        {
+          "id": "bg-stazione",
+          "name": "Bergamo Stazione Point",
+          "address": "Piazzale Marconi 6, Bergamo",
+          "details": "",
+          "logo": "",
+          "stars": 2,
+          "services": [
+            "meetup",
+            "delivery"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_bergamo"
+            },
+            {
+              "label": "Facebook",
+              "url": "https://facebook.com/ristoranti.italia.bergamo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lazio",
+      "name": "Lazio",
+      "hubs": "Roma, Latina",
+      "activePoints": [
+        {
+          "id": "roma-centro",
+          "name": "Roma Centro Lounge",
+          "address": "Via Cavour 51, Roma",
+          "details": "",
+          "logo": "",
+          "stars": 3,
+          "services": [
+            "meetup",
+            "delivery",
+            "ship"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_roma"
+            },
+            {
+              "label": "TikTok",
+              "url": "https://www.tiktok.com/@ristoranti.italia.roma"
+            },
+            {
+              "label": "Sito",
+              "url": "https://example.com/roma-centro"
+            }
+          ]
+        },
+        {
+          "id": "latina-nord",
+          "name": "Latina Nord Point",
+          "address": "Viale XXI Aprile 14, Latina",
+          "details": "",
+          "logo": "",
+          "stars": 1,
+          "services": [
+            "delivery"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_latina"
+            },
+            {
+              "label": "Telegram",
+              "url": "https://t.me/ristoranti_italia_latina"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "veneto",
+      "name": "Veneto",
+      "hubs": "Venezia, Verona",
+      "activePoints": [
+        {
+          "id": "venezia-mestre",
+          "name": "Venezia Mestre Dock",
+          "address": "Corso del Popolo 22, Mestre",
+          "details": "",
+          "logo": "",
+          "stars": 2,
+          "services": [
+            "meetup",
+            "ship"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_venezia"
+            },
+            {
+              "label": "Sito",
+              "url": "https://example.com/venezia-mestre"
+            }
+          ]
+        },
+        {
+          "id": "verona-arena",
+          "name": "Verona Arena Point",
+          "address": "Via Leoncino 29, Verona",
+          "details": "",
+          "logo": "",
+          "stars": 1,
+          "services": [
+            "meetup",
+            "delivery"
+          ],
+          "socials": [
+            {
+              "label": "Facebook",
+              "url": "https://facebook.com/ristoranti.italia.verona"
+            },
+            {
+              "label": "Telegram",
+              "url": "https://t.me/ristoranti_italia_verona"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "emilia-romagna",
+      "name": "Emilia-Romagna",
+      "hubs": "Bologna, Parma",
+      "activePoints": [
+        {
+          "id": "bologna-porta",
+          "name": "Bologna Porta Hub",
+          "address": "Via dell'Indipendenza 73, Bologna",
+          "details": "",
+          "logo": "",
+          "stars": 3,
+          "services": [
+            "meetup",
+            "delivery",
+            "ship"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_bologna"
+            },
+            {
+              "label": "TikTok",
+              "url": "https://www.tiktok.com/@ristoranti.italia.bologna"
+            }
+          ]
+        },
+        {
+          "id": "parma-centro",
+          "name": "Parma Centro Point",
+          "address": "Strada Garibaldi 10, Parma",
+          "details": "",
+          "logo": "",
+          "stars": 1,
+          "services": [
+            "delivery"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_parma"
+            },
+            {
+              "label": "Sito",
+              "url": "https://example.com/parma-centro"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "piemonte",
+      "name": "Piemonte",
+      "hubs": "Torino, Novara",
+      "activePoints": [
+        {
+          "id": "torino-sanpaolo",
+          "name": "Torino San Paolo Hub",
+          "address": "Corso Francia 44, Torino",
+          "details": "",
+          "logo": "",
+          "stars": 2,
+          "services": [
+            "meetup",
+            "delivery",
+            "ship"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_torino"
+            },
+            {
+              "label": "Telegram",
+              "url": "https://t.me/ristoranti_italia_torino"
+            },
+            {
+              "label": "Sito",
+              "url": "https://example.com/torino-sanpaolo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "toscana",
+      "name": "Toscana",
+      "hubs": "Firenze, Pisa",
+      "activePoints": [
+        {
+          "id": "firenze-santa-maria",
+          "name": "Firenze Santa Maria Point",
+          "address": "Via dei Cerretani 38, Firenze",
+          "details": "",
+          "logo": "",
+          "stars": 2,
+          "services": [
+            "meetup",
+            "delivery"
+          ],
+          "socials": [
+            {
+              "label": "Instagram",
+              "url": "https://instagram.com/ristoranti_italia_firenze"
+            },
+            {
+              "label": "Facebook",
+              "url": "https://facebook.com/ristoranti.italia.firenze"
+            }
+          ]
+        },
+        {
+          "id": "pisa-porto",
+          "name": "Pisa Porto Logistic",
+          "address": "Via Aurelia 12, Pisa",
+          "details": "",
+          "logo": "",
+          "stars": 1,
+          "services": [
+            "ship"
+          ],
+          "socials": [
+            {
+              "label": "Telegram",
+              "url": "https://t.me/ristoranti_italia_pisa"
+            },
+            {
+              "label": "Sito",
+              "url": "https://example.com/pisa-porto"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

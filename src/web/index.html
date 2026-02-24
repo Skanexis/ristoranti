@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Ristoranti d'Italia</title>
+    <link rel="preload" as="image" href="./assets/video-thumb.jpg" />
+    <link rel="preload" as="video" href="./assets/preload-3s.mp4" type="video/mp4" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body class="preload-pending">
+    <div id="mobilePreloader" class="mobile-preloader" aria-live="polite">
+      <div class="mobile-preloader-frame">
+        <img
+          id="preloadFallback"
+          class="mobile-preloader-fallback"
+          src="./assets/video-thumb.jpg"
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          fetchpriority="high"
+        />
+        <video
+          id="preloadVideo"
+          class="mobile-preloader-video"
+          autoplay
+          muted
+          playsinline
+          webkit-playsinline
+          preload="auto"
+          poster="./assets/video-thumb.jpg"
+          disablepictureinpicture
+        >
+          <source src="./assets/preload-3s.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <p class="mobile-preloader-title">Ristoranti d'Italia</p>
+      <p class="mobile-preloader-subtitle">Ingresso riservato</p>
+      <div class="mobile-preloader-bar" aria-hidden="true">
+        <span></span>
+      </div>
+    </div>
+    <main class="app">
+      <header class="hero card reveal">
+        <div class="hero-top">
+          <div class="logo" aria-hidden="true">
+            <img src="./assets/logo-ristoranti-italia.jpg" alt="Logo Ristoranti d'Italia" />
+          </div>
+          <div>
+            <p class="eyebrow">Mini App Telegram</p>
+            <h1>Ristoranti d'Italia</h1>
+          </div>
+        </div>
+        <div class="hero-body">
+          <p class="subtext">
+            Prima scegli il servizio, poi la regione o la rotta di spedizione. Un flusso unico e veloce.
+          </p>
+          <div class="hero-tags">
+            <span class="hero-tag">Ritiro</span>
+            <span class="hero-tag">Consegna</span>
+            <span class="hero-tag">Spedizione</span>
+          </div>
+          <div class="hero-highlights">
+            <p class="hero-note">Gestione operativa tra Italia e Unione Europea</p>
+            <div class="hero-stats">
+              <span class="hero-stat"><strong>Italia</strong> Regioni attive</span>
+              <span class="hero-stat"><strong>UE</strong> Tratte supportate</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="layout">
+        <div class="flow">
+          <section class="step card reveal" id="serviceStep">
+            <p class="step-label">Fase 01</p>
+            <h2>Seleziona il servizio</h2>
+            <p class="step-hint">Scegli il formato operativo migliore per il cliente.</p>
+            <div class="option-grid" id="serviceOptions">
+              <button type="button" class="option" data-service="meetup">
+                <span class="service-icon" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" role="img">
+                    <path
+                      d="M32 58s16-15 16-27a16 16 0 1 0-32 0c0 12 16 27 16 27zm0-20a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"
+                      fill="currentColor"
+                    ></path>
+                  </svg>
+                </span>
+                <span class="option-title">Meetup</span>
+                <span class="option-copy">Ritiro presso i punti attivi</span>
+              </button>
+              <button type="button" class="option" data-service="delivery">
+                <span class="service-icon" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" role="img">
+                    <path
+                      d="M8 18h32v18h8l8 8v6h-4a6 6 0 0 1-12 0H24a6 6 0 0 1-12 0H8V18zm36 6v12h10l-5-6v-6h-5zM18 50a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm28 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"
+                      fill="currentColor"
+                    ></path>
+                  </svg>
+                </span>
+                <span class="option-title">Delivery</span>
+                <span class="option-copy">Consegna nella regione selezionata</span>
+              </button>
+              <button type="button" class="option" data-service="ship">
+                <span class="service-icon" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" role="img">
+                    <path
+                      d="M52 12 12 30l16 4 4 16 20-38zm-20 26-3-3 13-13-10 16zM14 46h18v4H14zm4 8h12v4H18z"
+                      fill="currentColor"
+                    ></path>
+                  </svg>
+                </span>
+                <span class="option-title">Ship</span>
+                <span class="option-copy">Spedizione da Italia o altri paesi UE</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="step card reveal hidden" id="selectionStep">
+            <p class="step-label">Fase 02</p>
+            <h2 id="selectionTitle"></h2>
+            <p class="step-hint">Le regioni non attive vengono disabilitate automaticamente.</p>
+            <div id="selectionContent"></div>
+          </section>
+
+          <section class="step card reveal hidden" id="pointsStep">
+            <p class="step-label">Fase 03</p>
+            <h2 id="pointsTitle"></h2>
+            <p class="step-hint">Apri direttamente social e dettagli disponibili in ogni card.</p>
+            <div id="pointsContent"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <div class="floating-tools" aria-label="Azioni rapide">
+      <a
+        id="contactTelegramBtn"
+        class="floating-btn floating-btn-chat"
+        href="https://t.me/ristoranti_italia_support"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Contatta supporto su Telegram"
+      >
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path
+            d="M21 4.6a1 1 0 0 0-1.08-.15L3.7 11.2a1 1 0 0 0 .06 1.87l4.2 1.46 1.44 4.46a1 1 0 0 0 1.8.23l2.34-3.2 4.26 3.11a1 1 0 0 0 1.57-.57l2.64-12.9A1 1 0 0 0 21 4.6zm-9.7 10.1-.85 1.16-.65-2.01 6.3-5.66-4.8 6.51z"
+            fill="currentColor"
+          ></path>
+        </svg>
+      </a>
+      <button id="scrollTopBtn" class="floating-btn floating-btn-top" type="button" aria-label="Torna in alto">↑</button>
+    </div>
+    <script src="/shared/data-store.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Center | Ristoranti d'Italia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css?v=20260224d" />
+    <link rel="stylesheet" href="./admin.css?v=20260224d" />
+  </head>
+  <body>
+    <section id="adminAuthGate" class="admin-auth-gate" aria-live="polite">
+      <article class="admin-auth-card">
+        <p class="admin-eyebrow">Accesso protetto</p>
+        <h1>Admin Autorizzato</h1>
+        <p class="admin-copy">Inserisci credenziali valide per aprire il centro di controllo.</p>
+        <form id="adminAuthForm" class="admin-form">
+          <label>
+            Login
+            <input id="adminLogin" type="text" autocomplete="username" required />
+          </label>
+          <label>
+            Password
+            <input id="adminPassword" type="password" autocomplete="current-password" required />
+          </label>
+          <button id="adminAuthBtn" class="admin-btn" type="submit">Accedi</button>
+        </form>
+        <p id="adminAuthStatus" class="admin-auth-status" role="status" aria-live="polite"></p>
+      </article>
+    </section>
+
+    <main id="adminApp" class="admin-app" hidden>
+      <header class="panel admin-topbar">
+        <div class="admin-topbar-copy">
+          <p class="admin-eyebrow">Centro controllo</p>
+          <h1>Admin Center Enterprise</h1>
+          <p class="admin-copy">
+            Flusso chiaro per nuovi admin: configura servizi, regioni, punti e media senza perdere il contesto.
+          </p>
+        </div>
+        <div class="admin-topbar-actions">
+          <button id="quickExportBtn" class="admin-btn admin-btn-secondary" type="button">Backup rapido</button>
+          <a href="./index.html" class="admin-back-link">Apri sito</a>
+          <button id="logoutAdminBtn" class="admin-btn admin-btn-danger" type="button">Esci</button>
+        </div>
+      </header>
+
+      <section class="panel admin-guide" aria-label="Guida veloce">
+        <div class="admin-card-head">
+          <h2>Guida rapida</h2>
+          <p class="admin-hint">Sequenza consigliata per evitare errori operativi.</p>
+        </div>
+        <ol class="admin-guide-steps">
+          <li>
+            <strong>1. Servizi</strong>
+            <span>Imposta etichette operative e link Telegram supporto.</span>
+          </li>
+          <li>
+            <strong>2. Regioni</strong>
+            <span>Crea la regione e verifica hub principali.</span>
+          </li>
+          <li>
+            <strong>3. Punti</strong>
+            <span>Aggiungi punto, stelle, social e media (foto / GIF / video).</span>
+          </li>
+          <li>
+            <strong>4. Backup</strong>
+            <span>Esporta JSON prima di cambiamenti massivi.</span>
+          </li>
+        </ol>
+      </section>
+
+      <nav class="panel admin-section-nav" aria-label="Navigazione sezioni admin">
+        <a href="#servicesPanel" class="admin-nav-link">Servizi</a>
+        <a href="#regionsPanel" class="admin-nav-link">Regioni</a>
+        <a href="#pointsPanel" class="admin-nav-link">Punti</a>
+        <a href="#toolsPanel" class="admin-nav-link">Strumenti dati</a>
+      </nav>
+
+      <section class="admin-stats-grid" aria-label="Statistiche principali">
+        <article class="kpi-card">
+          <p class="kpi-label">Regioni</p>
+          <p id="kpiRegions" class="kpi-value">0</p>
+        </article>
+        <article class="kpi-card">
+          <p class="kpi-label">Punti totali</p>
+          <p id="kpiPoints" class="kpi-value">0</p>
+        </article>
+        <article class="kpi-card">
+          <p class="kpi-label">Media stelle</p>
+          <p id="kpiAverageStars" class="kpi-value">0.0 / 3</p>
+        </article>
+        <article class="kpi-card kpi-services">
+          <p class="kpi-label">Copertura servizi</p>
+          <div class="kpi-service-line">
+            <span>Meetup</span>
+            <strong id="kpiMeetup">0</strong>
+          </div>
+          <div class="kpi-service-line">
+            <span>Delivery</span>
+            <strong id="kpiDelivery">0</strong>
+          </div>
+          <div class="kpi-service-line">
+            <span>Ship</span>
+            <strong id="kpiShip">0</strong>
+          </div>
+        </article>
+      </section>
+
+      <section class="admin-workspace">
+        <aside class="admin-column admin-column-left">
+          <article class="panel" id="servicesPanel">
+            <div class="admin-card-head">
+              <h2>Etichette servizi</h2>
+              <p class="admin-hint">Testi e supporto visibili nella mini app.</p>
+            </div>
+            <form id="servicesForm" class="admin-form admin-form-compact">
+              <label>
+                Meetup
+                <input id="serviceMeetup" type="text" maxlength="32" required />
+              </label>
+              <label>
+                Delivery
+                <input id="serviceDelivery" type="text" maxlength="32" required />
+              </label>
+              <label>
+                Ship
+                <input id="serviceShip" type="text" maxlength="32" required />
+              </label>
+              <label>
+                Telegram supporto URL
+                <input id="serviceSupportTelegram" type="url" maxlength="200" placeholder="https://t.me/username" required />
+              </label>
+              <div class="admin-form-actions">
+                <button id="saveServicesBtn" type="submit" class="admin-btn">Salva etichette</button>
+                <button id="resetServicesBtn" type="button" class="admin-btn admin-btn-secondary">Ripristina default</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="panel panel-region" id="regionsPanel">
+            <div class="admin-card-head">
+              <h2>Regioni</h2>
+              <div class="admin-form-actions">
+                <button id="regionCreateNew" type="button" class="admin-btn">Nuova regione</button>
+              </div>
+            </div>
+            <div class="panel-region-layout">
+              <form id="regionForm" class="admin-form admin-form-region">
+                <input type="hidden" id="regionEditingId" />
+                <p id="regionFormTitle" class="form-mode">Nuova regione</p>
+                <label>
+                  ID regione
+                  <input id="regionId" type="text" placeholder="es. lombardia" required />
+                </label>
+                <label>
+                  Nome regione
+                  <input id="regionName" type="text" placeholder="Lombardia" required />
+                </label>
+                <label>
+                  Hub principali
+                  <input id="regionHubs" type="text" placeholder="Milano, Bergamo" />
+                </label>
+                <div class="admin-form-actions">
+                  <button id="regionSubmitBtn" type="submit" class="admin-btn">Aggiungi regione</button>
+                  <button type="button" id="regionCancelEdit" class="admin-btn admin-btn-secondary">Annulla</button>
+                </div>
+              </form>
+              <div class="region-list-wrap">
+                <label class="admin-inline-field" for="regionSearch">
+                  Cerca regione
+                  <input id="regionSearch" type="text" placeholder="Nome, ID, hub..." />
+                </label>
+                <div id="regionList" class="admin-list"></div>
+              </div>
+            </div>
+          </article>
+        </aside>
+
+        <section id="pointsPanel" class="admin-column admin-column-right">
+          <article class="panel panel-points">
+            <div class="admin-card-head">
+              <h2>Punti attivi</h2>
+              <div class="admin-form-actions">
+                <button id="pointCreateNew" type="button" class="admin-btn">Nuovo punto</button>
+              </div>
+            </div>
+
+            <div class="admin-toolbar">
+              <div class="admin-inline-field">
+                <label for="pointRegionSelect">Regione</label>
+                <select id="pointRegionSelect"></select>
+              </div>
+              <div class="admin-inline-field">
+                <label for="pointSearch">Cerca punto</label>
+                <input id="pointSearch" type="text" placeholder="Nome, ID, indirizzo..." />
+              </div>
+              <div class="admin-inline-field">
+                <label for="pointServiceFilter">Filtro servizio</label>
+                <select id="pointServiceFilter">
+                  <option value="all">Tutti</option>
+                  <option value="meetup">Meetup</option>
+                  <option value="delivery">Delivery</option>
+                  <option value="ship">Ship</option>
+                </select>
+              </div>
+              <div class="admin-inline-field">
+                <label for="pointStarFilter">Filtro stelle</label>
+                <select id="pointStarFilter">
+                  <option value="all">Tutte</option>
+                  <option value="3">3 stelle</option>
+                  <option value="2">2 stelle</option>
+                  <option value="1">1 stella</option>
+                  <option value="0">0 stelle</option>
+                </select>
+              </div>
+            </div>
+
+            <p id="pointsContextHint" class="admin-hint"></p>
+
+            <div class="panel-points-layout">
+              <div class="points-list-wrap">
+                <div class="admin-card-head admin-list-head">
+                  <h3>Elenco punti</h3>
+                  <p id="pointsListCount" class="admin-hint">0 punti</p>
+                </div>
+                <div id="pointsList" class="admin-list admin-list-points"></div>
+              </div>
+
+              <div class="points-editor-wrap">
+                <form id="pointForm" class="admin-form">
+                  <input type="hidden" id="pointEditingId" />
+                  <p id="pointFormTitle" class="form-mode">Nuovo punto</p>
+                  <section class="admin-form-block">
+                    <h3 class="admin-block-title">Identita punto</h3>
+                    <label>
+                      ID punto
+                      <input id="pointId" type="text" placeholder="es. mi-duomo" required />
+                    </label>
+                    <label>
+                      Nome punto
+                      <input id="pointName" type="text" placeholder="Milano Duomo Hub" required />
+                    </label>
+                    <label>
+                      Indirizzo
+                      <input id="pointAddress" type="text" placeholder="Via Torino 18, Milano" />
+                    </label>
+                  </section>
+
+                  <section class="admin-form-block">
+                    <h3 class="admin-block-title">Branding e media</h3>
+                    <label>
+                      URL logo punto
+                      <input id="pointLogo" type="text" placeholder="https://... oppure /assets/logo.png" />
+                    </label>
+                    <label>
+                      Tipo media card
+                      <select id="pointMediaType">
+                        <option value="none">Nessuna media</option>
+                        <option value="photo">Foto</option>
+                        <option value="gif">GIF</option>
+                        <option value="video">Video</option>
+                      </select>
+                    </label>
+                    <label>
+                      URL media (foto / GIF / video)
+                      <input id="pointMediaUrl" type="text" placeholder="https://... oppure data:..." />
+                    </label>
+                    <div class="admin-media-actions">
+                      <button type="button" id="pointMediaUploadBtn" class="admin-btn admin-btn-secondary">
+                        Carica file
+                      </button>
+                      <button type="button" id="pointMediaClearBtn" class="admin-btn admin-btn-secondary">
+                        Rimuovi media
+                      </button>
+                      <input
+                        id="pointMediaFileInput"
+                        type="file"
+                        accept="image/*,image/gif,video/mp4,video/webm,video/quicktime"
+                        hidden
+                      />
+                    </div>
+                    <p class="admin-hint">Upload diretto consigliato: max 8 MB per file.</p>
+                    <p id="pointMediaStatus" class="admin-hint admin-media-status" role="status" aria-live="polite"></p>
+                  </section>
+
+                  <section class="admin-form-block">
+                    <h3 class="admin-block-title">Operativita</h3>
+                    <label>
+                      Stelle (0-3)
+                      <select id="pointStars">
+                        <option value="0">0 stelle</option>
+                        <option value="1">1 stella</option>
+                        <option value="2">2 stelle</option>
+                        <option value="3">3 stelle</option>
+                      </select>
+                    </label>
+                    <label>
+                      Dettagli card
+                      <textarea id="pointDetails" rows="4" placeholder="Dettagli extra visibili nella card punto."></textarea>
+                    </label>
+                    <fieldset class="admin-services">
+                      <legend>Servizi disponibili</legend>
+                      <label><input type="checkbox" name="services" value="meetup" checked /> Meetup</label>
+                      <label><input type="checkbox" name="services" value="delivery" /> Delivery</label>
+                      <label><input type="checkbox" name="services" value="ship" /> Ship</label>
+                    </fieldset>
+                  </section>
+
+                  <section class="admin-form-block admin-socials">
+                    <div class="admin-socials-head">
+                      <h3>Social links</h3>
+                      <div class="admin-form-actions">
+                        <button type="button" id="addSocialBtn" class="admin-btn admin-btn-secondary">Aggiungi link</button>
+                        <button type="button" id="clearSocialsBtn" class="admin-btn admin-btn-secondary">Pulisci</button>
+                      </div>
+                    </div>
+                    <div id="socialRows" class="social-rows"></div>
+                  </section>
+
+                  <div class="admin-form-actions">
+                    <button id="pointSubmitBtn" type="submit" class="admin-btn">Aggiungi punto</button>
+                    <button type="button" id="pointCancelEdit" class="admin-btn admin-btn-secondary">Annulla</button>
+                  </div>
+                </form>
+
+                <div class="point-preview-wrap">
+                  <h3>Anteprima live</h3>
+                  <div id="pointPreview" class="point-preview"></div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <article class="panel panel-tools" id="toolsPanel">
+        <div class="admin-card-head">
+          <h2>Controllo dati</h2>
+          <p class="admin-hint">Backup, import e reset sicuro.</p>
+        </div>
+        <details class="data-tools-toggle">
+          <summary>Apri strumenti dati</summary>
+          <div class="admin-form-actions">
+            <button id="exportDataBtn" class="admin-btn" type="button">Esporta JSON</button>
+            <button id="importDataBtn" class="admin-btn admin-btn-secondary" type="button">Importa da testo</button>
+            <button id="importFileBtn" class="admin-btn admin-btn-secondary" type="button">Importa da file</button>
+            <button id="resetDataBtn" class="admin-btn admin-btn-danger" type="button">Reset completo</button>
+          </div>
+          <textarea id="dataJson" rows="11" placeholder="JSON dei dati sito"></textarea>
+          <input id="importFileInput" type="file" accept=".json,application/json" hidden />
+        </details>
+        <p id="adminStatus" class="admin-status" role="status" aria-live="polite"></p>
+      </article>
+    </main>
+
+    <datalist id="socialLabelOptions">
+      <option value="Instagram"></option>
+      <option value="Telegram"></option>
+      <option value="Facebook"></option>
+      <option value="TikTok"></option>
+      <option value="Sito"></option>
+      <option value="WhatsApp"></option>
+    </datalist>
+
+    <script src="/shared/data-store.js?v=20260224d"></script>
+    <script src="./admin.js?v=20260224d"></script>
+  </body>
+</html>
