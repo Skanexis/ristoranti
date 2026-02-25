@@ -676,14 +676,16 @@ function buildPointMediaMarkup(mediaType, mediaUrl, pointName) {
 }
 
 function buildStarMeter(stars) {
-  const slots = Array.from({ length: 3 }, (_, index) => {
-    const filled = index < stars;
-    return `<span class="point-star ${filled ? "is-filled" : ""}" aria-hidden="true">★</span>`;
-  }).join("");
+  const hasStar = clampStars(stars) === 1;
+  if (!hasStar) {
+    return "";
+  }
+  const starIcon = `<span class="point-star ${hasStar ? "is-filled" : ""}" aria-hidden="true">★</span>`;
+  const label = hasStar ? `<span class="point-star-label">Platinum</span>` : "";
 
   return `
-    <div class="point-stars" aria-label="${stars} stelle su 3">
-      <div class="point-stars-row">${slots}</div>
+    <div class="point-stars ${hasStar ? "is-starred" : ""}" aria-label="${hasStar ? "Punto premium" : "Punto standard"}">
+      <div class="point-stars-row">${starIcon}${label}</div>
     </div>
   `;
 }
@@ -691,7 +693,7 @@ function buildStarMeter(stars) {
 function clampStars(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return 0;
-  return Math.max(0, Math.min(3, Math.round(num)));
+  return Math.max(0, Math.min(1, Math.round(num)));
 }
 
 function getInitials(name) {

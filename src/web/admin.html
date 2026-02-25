@@ -85,7 +85,7 @@
                 </li>
                 <li>
                   <strong>3. Punti</strong>
-                  <span>Aggiungi punto, stelle, social e media (foto / GIF / video).</span>
+                  <span>Aggiungi punto, stella premium, social e media (foto / GIF / video).</span>
                 </li>
                 <li>
                   <strong>4. Backup</strong>
@@ -104,8 +104,8 @@
                 <p id="kpiPoints" class="kpi-value">0</p>
               </article>
               <article class="kpi-card">
-                <p class="kpi-label">Media stelle</p>
-                <p id="kpiAverageStars" class="kpi-value">0.0 / 3</p>
+                <p class="kpi-label">Punti con stella</p>
+                <p id="kpiAverageStars" class="kpi-value">0</p>
               </article>
               <article class="kpi-card kpi-services">
                 <p class="kpi-label">Copertura servizi</p>
@@ -257,13 +257,11 @@
                       </select>
                     </div>
                     <div class="admin-inline-field">
-                      <label for="pointStarFilter">Filtro stelle</label>
+                      <label for="pointStarFilter">Filtro stella</label>
                       <select id="pointStarFilter">
                         <option value="all">Tutte</option>
-                        <option value="3">3 stelle</option>
-                        <option value="2">2 stelle</option>
-                        <option value="1">1 stella</option>
-                        <option value="0">0 stelle</option>
+                        <option value="1">Con stella</option>
+                        <option value="0">Senza stella</option>
                       </select>
                     </div>
                   </div>
@@ -376,12 +374,10 @@
                             <span class="admin-block-title">Operativita</span>
                           </summary>
                           <label>
-                            Stelle (0-3)
+                            Stella premium
                             <select id="pointStars">
-                              <option value="0">0 stelle</option>
-                              <option value="1">1 stella</option>
-                              <option value="2">2 stelle</option>
-                              <option value="3">3 stelle</option>
+                              <option value="0">Senza stella</option>
+                              <option value="1">Con stella</option>
                             </select>
                           </label>
                           <label>

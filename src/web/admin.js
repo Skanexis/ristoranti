@@ -787,10 +787,10 @@ function renderKpi() {
     delivery: 0,
     ship: 0,
   };
-  let starsTotal = 0;
+  let starredPoints = 0;
 
   allPoints.forEach((point) => {
-    starsTotal += clampStars(point.stars);
+    starredPoints += clampStars(point.stars);
     (point.services || []).forEach((service) => {
       if (serviceCoverage[service] !== undefined) {
         serviceCoverage[service] += 1;
@@ -798,10 +798,9 @@ function renderKpi() {
     });
   });
 
-  const averageStars = allPoints.length > 0 ? (starsTotal / allPoints.length).toFixed(1) : "0.0";
   els.kpiRegions.textContent = String(data.regions.length);
   els.kpiPoints.textContent = String(allPoints.length);
-  els.kpiAverageStars.textContent = `${averageStars} / 3`;
+  els.kpiAverageStars.textContent = String(starredPoints);
   els.kpiMeetup.textContent = String(serviceCoverage.meetup);
   els.kpiDelivery.textContent = String(serviceCoverage.delivery);
   els.kpiShip.textContent = String(serviceCoverage.ship);
@@ -1283,7 +1282,7 @@ function renderPointsList() {
       const mediaType = resolvePointMediaType(point.mediaType, point.mediaUrl);
       const mediaLabel = mediaType === "none" ? "NO" : mediaType.toUpperCase();
       const starsValue = clampStars(point.stars);
-      const starsText = starsValue > 0 ? "★".repeat(starsValue) : "—";
+      const starsChip = starsValue === 1 ? `<span class="mini-chip">Stella ★ Platinum</span>` : "";
       const isEditing = point.id === editingPointId;
       const isSelected = selectedPointIds.has(point.id);
       const hasShip = Array.isArray(point.services) && point.services.includes("ship");
@@ -1301,7 +1300,7 @@ function renderPointsList() {
             <p class="admin-item-id">${escapeHtml(point.id || "n/a")}</p>
           </div>
           <div class="admin-item-tags">
-            <span class="mini-chip">Stelle ${starsText}</span>
+            ${starsChip}
             <span class="mini-chip">Social ${socialsCount}</span>
             <span class="mini-chip">Retro ${hasDetails ? "OK" : "NO"}</span>
             <span class="mini-chip">Media ${mediaLabel}</span>
@@ -2302,7 +2301,7 @@ function renderPointPreview() {
     ? `<img src="${escapeHtmlAttr(logo)}" alt="Logo preview" loading="lazy" />`
     : `<span>${escapeHtml(getInitials(name || "Punto"))}</span>`;
   const mediaHtml = buildMediaPreviewMarkup(resolvedMediaType, mediaUrl, name || "Punto");
-  const starsHtml = stars > 0 ? "★".repeat(stars) : "Nessuna stella";
+  const starsHtml = stars === 1 ? "★ Platinum" : "";
   const servicesHtml = services
     .map((service) => `<span class="mini-chip">${escapeHtml(getServiceLabel(service))}</span>`)
     .join("");
@@ -2326,7 +2325,7 @@ function renderPointPreview() {
       </header>
       ${mediaHtml ? `<div class="preview-media">${mediaHtml}</div>` : ""}
       <p class="preview-meta">${escapeHtml(details || "Dettagli retro card non impostati.")}</p>
-      <p class="preview-stars">${starsHtml}</p>
+      ${starsHtml ? `<p class="preview-stars">${starsHtml}</p>` : ""}
       <div class="preview-chips">${servicesHtml || `<span class="mini-chip">Nessun servizio</span>`}</div>
       <div class="preview-chips">${socialsHtml || `<span class="mini-chip">Nessun social</span>`}</div>
     </article>
@@ -2836,7 +2835,7 @@ function clonePoint(point) {
 function clampStars(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return 0;
-  return Math.max(0, Math.min(3, Math.round(num)));
+  return Math.max(0, Math.min(1, Math.round(num)));
 }
 
 function slugify(value) {

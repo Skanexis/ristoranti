@@ -203,7 +203,7 @@
   function clampStars(value) {
     const num = Number(value);
     if (!Number.isFinite(num)) return 0;
-    return Math.max(0, Math.min(3, Math.round(num)));
+    return Math.max(0, Math.min(1, Math.round(num)));
   }
 
   function sanitizeString(value) {
