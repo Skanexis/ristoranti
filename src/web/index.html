@@ -4,49 +4,53 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Ristoranti d'Italia</title>
-    <link rel="preload" as="image" href="./assets/video-thumb.jpg" />
-    <link rel="preload" as="video" href="./assets/preload-3s.mp4" type="video/mp4" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260225-5" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body class="preload-pending">
     <div id="mobilePreloader" class="mobile-preloader" aria-live="polite">
-      <div class="mobile-preloader-frame">
-        <img
-          id="preloadFallback"
-          class="mobile-preloader-fallback"
-          src="./assets/video-thumb.jpg"
-          alt=""
-          aria-hidden="true"
-          decoding="async"
-          fetchpriority="high"
-        />
-        <video
-          id="preloadVideo"
-          class="mobile-preloader-video"
-          autoplay
-          muted
-          playsinline
-          webkit-playsinline
-          preload="metadata"
-          poster="./assets/video-thumb.jpg"
-          data-preload-primary="./assets/Video%20Project%202%20%281%29.mp4"
-          data-preload-fallback="./assets/preload-3s.mp4"
-          disablepictureinpicture
-          ></video>  
+      <div class="mobile-preloader-frame" aria-hidden="true">
+        <div class="mobile-preloader-glow"></div>
+        <div class="mobile-preloader-ring"></div>
+        <div class="mobile-preloader-dot"></div>
       </div>
-      <p class="mobile-preloader-title">Ristoranti d'Italia</p>
-      <p class="mobile-preloader-subtitle">Ingresso riservato</p>
+      <p class="mobile-preloader-title">LegitCheckItaly x Scammerhunter</p>
+      <p class="mobile-preloader-subtitle">Caricamento in corso</p>
       <div class="mobile-preloader-bar" aria-hidden="true">
         <span></span>
       </div>
     </div>
+    <script>
+      (function () {
+        var unlockDelayMs = 2500;
+
+        function forceUnlockPreloader() {
+          var body = document.body;
+          if (!body) return;
+
+          body.classList.remove(
+            "preload-pending",
+            "preload-exit"
+          );
+
+          var preloader = document.getElementById("mobilePreloader");
+          if (preloader && preloader.parentNode) {
+            preloader.parentNode.removeChild(preloader);
+          }
+        }
+
+        window.setTimeout(forceUnlockPreloader, unlockDelayMs);
+        window.addEventListener("pageshow", function () {
+          window.setTimeout(forceUnlockPreloader, 180);
+        });
+      })();
+    </script>
     <main class="app">
       <header class="hero card reveal">
         <div class="hero-top">
@@ -185,6 +189,6 @@
       <button id="scrollTopBtn" class="floating-btn floating-btn-top" type="button" aria-label="Torna in alto">↑</button>
     </div>
     <script src="/shared/data-store.js"></script>
-    <script src="./script.js"></script>
+    <script src="./script.js?v=20260225-4"></script>
   </body>
 </html>

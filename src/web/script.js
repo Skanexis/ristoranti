@@ -6,8 +6,6 @@ const state = {
 const VALID_SERVICES = ["meetup", "delivery", "ship"];
 const DEFAULT_SUPPORT_TELEGRAM_URL = "https://t.me/SHLC26";
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
-const PRELOADER_PRIMARY_VIDEO_SRC = "./assets/Video%20Project%202%20%281%29.mp4";
-const PRELOADER_FALLBACK_VIDEO_SRC = "./assets/preload-3s.mp4";
 
 let appData = fallbackData();
 
@@ -549,23 +547,18 @@ function cssEscape(value) {
 function setupMobilePreloader() {
   const body = document.body;
   const preloader = document.getElementById("mobilePreloader");
-  const preloaderFallback = document.getElementById("preloadFallback");
-  const preloaderVideo = document.getElementById("preloadVideo");
 
   const revealImmediately = () => {
     body?.classList.remove(
       "preload-pending",
-      "preload-exit",
-      "preload-video-ready",
-      "preload-video-slow",
-      "preload-video-fallback"
+      "preload-exit"
     );
     if (preloader && preloader.isConnected) {
       preloader.remove();
     }
   };
 
-  if (!body || !preloader || !preloaderVideo) {
+  if (!body || !preloader) {
     revealImmediately();
     return;
   }
@@ -573,294 +566,58 @@ function setupMobilePreloader() {
   const isMobileViewport = window.matchMedia("(max-width: 760px)").matches;
   const hasCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isTelegramClient = isTelegramWebView();
 
   if ((!isMobileViewport && !hasCoarsePointer) || prefersReducedMotion) {
     revealImmediately();
     return;
   }
 
-  const configuredPrimarySource = normalizeAssetPath(preloaderVideo.dataset.preloadPrimary);
-  const configuredFallbackSource = normalizeAssetPath(preloaderVideo.dataset.preloadFallback);
-  const primarySource = configuredPrimarySource || PRELOADER_PRIMARY_VIDEO_SRC;
-  const fallbackSource = configuredFallbackSource || PRELOADER_FALLBACK_VIDEO_SRC;
-  const isIosTelegramWebView = isTelegramIosWebView();
-  const preferLightVideo = isIosTelegramWebView || shouldPreferLightPreloadVideo();
-
-  const sourceCandidates = getOrderedPreloaderSources(primarySource, fallbackSource, {
-    preferLightVideo,
-    forceFallbackOnly: isIosTelegramWebView,
-  });
-  if (sourceCandidates.length === 0) {
-    revealImmediately();
-    return;
-  }
-
-  const preloadSeconds = 3.6;
-  const exitAnimationMs = 900;
-  const maxBootstrapWaitMs = 5200;
-  const firstFrameWatchdogMs = preferLightVideo ? 1800 : 2600;
-  let startedAt = performance.now();
-  let isFinished = false;
-  let hasFirstFrame = false;
-  let wasHidden = false;
-  let activeSourceIndex = -1;
-  let forceFinishTimer = 0;
-  let hardFallbackTimer = 0;
-  let sourceWatchdogTimer = 0;
-  let playRetryTimer = 0;
-  let slowVideoTimer = 0;
-
-  preloaderVideo.muted = true;
-  preloaderVideo.defaultMuted = true;
-  preloaderVideo.playsInline = true;
-
-  const forceRevealNow = () => {
-    if (isFinished) return;
-    isFinished = true;
-    clearTimeout(forceFinishTimer);
-    clearTimeout(hardFallbackTimer);
-    clearTimeout(sourceWatchdogTimer);
-    clearTimeout(playRetryTimer);
-    clearTimeout(slowVideoTimer);
-    preloaderVideo.pause();
-    revealImmediately();
-  };
+  const preloaderVisibleMs = isTelegramClient ? 850 : 1200;
+  const preloaderExitMs = 300;
+  let preloaderDone = false;
 
   const finishPreloader = () => {
-    if (isFinished) return;
-    isFinished = true;
-    clearTimeout(forceFinishTimer);
-    clearTimeout(hardFallbackTimer);
-    clearTimeout(sourceWatchdogTimer);
-    clearTimeout(playRetryTimer);
-    clearTimeout(slowVideoTimer);
-    preloaderVideo.pause();
+    if (preloaderDone) return;
+    preloaderDone = true;
     body.classList.add("preload-exit");
-
     window.setTimeout(() => {
       revealImmediately();
-    }, exitAnimationMs);
+    }, preloaderExitMs);
   };
 
-  forceFinishTimer = window.setTimeout(finishPreloader, preloadSeconds * 1000 + 480);
-
-  const markFirstFrameReady = () => {
-    if (hasFirstFrame || isFinished) return;
-    hasFirstFrame = true;
-    clearTimeout(sourceWatchdogTimer);
-    clearTimeout(slowVideoTimer);
-    body.classList.add("preload-video-ready");
-    body.classList.remove("preload-video-slow");
-  };
-
-  const finishWhenAllowed = () => {
-    if (isFinished) return;
-
-    const elapsed = performance.now() - startedAt;
-    const remaining = Math.max(0, preloadSeconds * 1000 - elapsed);
-    if (remaining > 0) {
-      window.setTimeout(finishPreloader, remaining);
-      return;
-    }
-    finishPreloader();
-  };
-
-  const retryVideoPlayback = () => {
-    if (isFinished) return;
-    const playPromise = preloaderVideo.play();
-    if (!playPromise || typeof playPromise.catch !== "function") return;
-
-    playPromise.catch(() => {
-      clearTimeout(playRetryTimer);
-      playRetryTimer = window.setTimeout(retryVideoPlayback, 220);
-    });
-  };
-
-  const armSourceWatchdog = () => {
-    clearTimeout(sourceWatchdogTimer);
-    if (hasFirstFrame || isFinished) return;
-    sourceWatchdogTimer = window.setTimeout(() => {
-      if (hasFirstFrame || isFinished) return;
-      const switched = loadSourceByIndex(activeSourceIndex + 1);
-      if (!switched) {
-        body.classList.add("preload-video-slow");
-      }
-    }, firstFrameWatchdogMs);
-  };
-
-  const loadSourceByIndex = (index) => {
-    if (isFinished) return false;
-    if (!Number.isInteger(index) || index < 0 || index >= sourceCandidates.length) {
-      return false;
-    }
-
-    activeSourceIndex = index;
-    const source = sourceCandidates[index];
-    const usingFallback = source === fallbackSource || index > 0;
-    body.classList.toggle("preload-video-fallback", usingFallback);
-    body.classList.remove("preload-video-ready");
-    preloaderVideo.pause();
-    preloaderVideo.removeAttribute("src");
-    preloaderVideo.src = source;
-    preloaderVideo.load();
-    retryVideoPlayback();
-    armSourceWatchdog();
-    return true;
-  };
-
-  const recoverFromVideoIssue = () => {
-    if (isFinished || hasFirstFrame) return;
-    const switched = loadSourceByIndex(activeSourceIndex + 1);
-    if (!switched) {
-      body.classList.add("preload-video-slow");
-    }
-  };
-
-  preloaderVideo.addEventListener("loadedmetadata", () => {
-    if (preloaderVideo.duration && Number.isFinite(preloaderVideo.duration)) {
-      const desiredRate = preloaderVideo.duration / preloadSeconds;
-      preloaderVideo.playbackRate = Math.max(0.82, Math.min(1, desiredRate));
-    }
-  });
-
-  preloaderVideo.addEventListener("loadeddata", () => {
-    markFirstFrameReady();
-    retryVideoPlayback();
-  });
-
-  preloaderVideo.addEventListener("canplay", markFirstFrameReady);
-  preloaderVideo.addEventListener("error", recoverFromVideoIssue);
-  preloaderVideo.addEventListener("stalled", recoverFromVideoIssue);
-  preloaderVideo.addEventListener("waiting", recoverFromVideoIssue);
-
-  preloaderVideo.addEventListener("timeupdate", () => {
-    if (!hasFirstFrame && preloaderVideo.currentTime > 0) {
-      markFirstFrameReady();
-    }
-    if (preloaderVideo.currentTime >= preloadSeconds - 0.05) {
-      finishWhenAllowed();
-    }
-  });
-  preloaderVideo.addEventListener("ended", finishWhenAllowed, { once: true });
-
-  if (typeof preloaderVideo.requestVideoFrameCallback === "function") {
-    preloaderVideo.requestVideoFrameCallback(() => {
-      markFirstFrameReady();
-    });
-  }
-
-  hardFallbackTimer = window.setTimeout(() => {
-    if (!isFinished) {
-      finishPreloader();
-    }
-  }, maxBootstrapWaitMs);
-
-  slowVideoTimer = window.setTimeout(() => {
-    if (!isFinished && !hasFirstFrame) {
-      body.classList.add("preload-video-slow");
-    }
-  }, 700);
-
-  if (!loadSourceByIndex(0)) {
-    revealImmediately();
-    return;
-  }
-
-  window.addEventListener("pointerdown", retryVideoPlayback, { once: true, passive: true });
-  window.addEventListener("touchstart", retryVideoPlayback, { once: true, passive: true });
+  window.setTimeout(finishPreloader, preloaderVisibleMs);
 
   window.addEventListener("pageshow", (event) => {
     if (event.persisted && body.classList.contains("preload-pending")) {
-      forceRevealNow();
+      finishPreloader();
     }
   });
 
   document.addEventListener("visibilitychange", () => {
     if (!body.classList.contains("preload-pending")) return;
-
-    if (document.visibilityState === "hidden") {
-      wasHidden = true;
-      return;
+    if (document.visibilityState === "visible") {
+      finishPreloader();
     }
-
-    retryVideoPlayback();
-
-    // Only force-exit if user already left and returned to the same page state.
-    if (!wasHidden) return;
-    const elapsed = performance.now() - startedAt;
-    if (elapsed > 380 && hasFirstFrame) {
-      forceRevealNow();
-    }
-    wasHidden = false;
   });
-
-  if (preloaderFallback && preloaderFallback.complete) {
-    preloaderFallback.decoding = "async";
-  }
-
-  if (preloaderVideo.readyState >= 2) {
-    markFirstFrameReady();
-  }
 }
 
-function getOrderedPreloaderSources(primarySource, fallbackSource, options = {}) {
-  const preferLightVideo = Boolean(options?.preferLightVideo);
-  const forceFallbackOnly = Boolean(options?.forceFallbackOnly);
-  const ordered = forceFallbackOnly
-    ? [fallbackSource]
-    : preferLightVideo
-      ? [fallbackSource, primarySource]
-      : [primarySource, fallbackSource];
-  const result = [];
-
-  for (const candidate of ordered) {
-    const normalized = normalizeAssetPath(candidate);
-    if (!normalized || result.includes(normalized)) continue;
-    result.push(normalized);
-  }
-
-  return result;
-}
-
-function isTelegramIosWebView() {
+function isTelegramWebView() {
   const ua = String(navigator.userAgent || "");
-  const isTelegram = /Telegram/i.test(ua) || Boolean(window.Telegram?.WebApp);
-  if (!isTelegram) return false;
-
-  const isIosDevice =
-    /iPhone|iPad|iPod/i.test(ua) ||
-    (navigator.platform === "MacIntel" && Number(navigator.maxTouchPoints || 0) > 1);
-  return isIosDevice;
-}
-
-function shouldPreferLightPreloadVideo() {
-  try {
-    const connection =
-      navigator.connection ||
-      navigator.mozConnection ||
-      navigator.webkitConnection;
-
-    if (!connection) return false;
-    if (connection.saveData) return true;
-
-    const effectiveType = String(connection.effectiveType || "").toLowerCase();
-    if (effectiveType === "slow-2g" || effectiveType === "2g" || effectiveType === "3g") {
-      return true;
-    }
-
-    const downlink = Number(connection.downlink);
-    if (Number.isFinite(downlink) && downlink > 0 && downlink < 1.6) {
-      return true;
-    }
-
-    return false;
-  } catch {
-    return false;
+  if (/Telegram/i.test(ua) || Boolean(window.Telegram?.WebApp)) {
+    return true;
   }
-}
 
-function normalizeAssetPath(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return "";
-  return raw.replace(/\s/g, "%20");
+  try {
+    const params = new URLSearchParams(window.location.search || "");
+    for (const key of params.keys()) {
+      if (key.indexOf("tgWebApp") === 0) {
+        return true;
+      }
+    }
+  } catch {
+    // Ignore malformed URL state.
+  }
+
+  return false;
 }
