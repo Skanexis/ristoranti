@@ -39,6 +39,43 @@ let inlineHintCounter = 0;
 let draggedRegionId = "";
 let draggedPointId = "";
 let selectedPointIds = new Set();
+let activeAdminPage = "dashboard";
+
+const ADMIN_PAGE_META = {
+  dashboard: {
+    title: "Dashboard",
+    subtitle: "Panoramica KPI e scorciatoie operative.",
+  },
+  services: {
+    title: "Servizi",
+    subtitle: "Gestione etichette operative e link di supporto.",
+  },
+  regions: {
+    title: "Regioni",
+    subtitle: "Creazione e ordinamento delle regioni disponibili.",
+  },
+  points: {
+    title: "Punti",
+    subtitle: "Workflow completo per punti, media, ship e social.",
+  },
+  data: {
+    title: "Strumenti dati",
+    subtitle: "Backup, import e reset in sicurezza.",
+  },
+};
+
+const ADMIN_PAGE_ALIAS = {
+  dashboard: "dashboard",
+  services: "services",
+  regions: "regions",
+  points: "points",
+  data: "data",
+  servicespanel: "services",
+  regionspanel: "regions",
+  pointspanel: "points",
+  toolspanel: "data",
+  tools: "data",
+};
 
 const els = {
   adminAuthGate: document.getElementById("adminAuthGate"),
@@ -47,7 +84,9 @@ const els = {
   adminPassword: document.getElementById("adminPassword"),
   adminAuthStatus: document.getElementById("adminAuthStatus"),
   adminApp: document.getElementById("adminApp"),
-  adminSectionNav: document.querySelector(".admin-section-nav"),
+  adminSidebarNav: document.getElementById("adminSidebarNav"),
+  adminPageTitle: document.getElementById("adminPageTitle"),
+  adminPageSubtitle: document.getElementById("adminPageSubtitle"),
   servicesPanelFold: document.querySelector("#servicesPanel .admin-panel-fold"),
   regionsPanelFold: document.querySelector("#regionsPanel .admin-panel-fold"),
   pointsPanelFold: document.querySelector("#pointsPanel .admin-panel-fold"),
@@ -175,11 +214,13 @@ function bootAdmin() {
   isAdminBooted = true;
 
   bindAdminEvents();
+  initAdminPageRouting();
   collapseAdminPanels();
   resetRegionForm();
   resetPointForm();
   setupPointFormCollapsibles();
   refreshAdminUI();
+  setAdminPage(resolveAdminPageFromHash(), { updateHash: true, focus: false });
   setStatus("Admin center pronto.", "success");
 }
 
@@ -269,7 +310,7 @@ function setAdminVisibility(isUnlocked) {
 function collapseAdminPanels() {
   [els.servicesPanelFold, els.regionsPanelFold, els.pointsPanelFold, els.toolsPanelFold].forEach((panel) => {
     if (panel) {
-      panel.open = false;
+      panel.open = true;
     }
   });
 }
@@ -280,7 +321,132 @@ function openAdminPanel(panelElement) {
   }
 }
 
+function normalizeAdminPageId(value) {
+  const key = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^#/, "")
+    .replace(/^\//, "");
+  return ADMIN_PAGE_ALIAS[key] || null;
+}
+
+function resolveAdminPageFromHash() {
+  const fromHash = normalizeAdminPageId(window.location.hash);
+  return fromHash || "dashboard";
+}
+
+function updateAdminPageHeader(pageId) {
+  const meta = ADMIN_PAGE_META[pageId] || ADMIN_PAGE_META.dashboard;
+  if (els.adminPageTitle) {
+    els.adminPageTitle.textContent = meta.title;
+  }
+  if (els.adminPageSubtitle) {
+    els.adminPageSubtitle.textContent = meta.subtitle;
+  }
+}
+
+function focusAdminPage(pageId, preferredTarget = null) {
+  if (preferredTarget) {
+    safeFocus(preferredTarget);
+    return;
+  }
+
+  if (pageId === "dashboard") {
+    safeFocus(els.quickExportBtn);
+    return;
+  }
+
+  if (pageId === "services") {
+    safeFocus(els.serviceMeetup);
+    return;
+  }
+
+  if (pageId === "regions") {
+    safeFocus(els.regionName || els.regionCreateNew);
+    return;
+  }
+
+  if (pageId === "points") {
+    if (editingPointId) {
+      safeFocus(els.pointName);
+      return;
+    }
+    safeFocus(els.pointCreateNew || els.pointName);
+    return;
+  }
+
+  if (pageId === "data") {
+    safeFocus(els.exportDataBtn);
+  }
+}
+
+function setAdminPage(pageId, options = {}) {
+  const resolved = normalizeAdminPageId(pageId) || "dashboard";
+  const updateHash = options.updateHash !== false;
+  const focus = options.focus !== false;
+  const focusTarget = options.focusTarget || null;
+
+  const pages = Array.from(document.querySelectorAll(".admin-page[data-admin-page]"));
+  pages.forEach((page) => {
+    const pageKey = normalizeAdminPageId(page.dataset.adminPage);
+    const isActive = pageKey === resolved;
+    page.hidden = !isActive;
+    page.classList.toggle("is-active", isActive);
+  });
+
+  if (els.adminSidebarNav) {
+    els.adminSidebarNav.querySelectorAll("[data-admin-page]").forEach((link) => {
+      const linkKey = normalizeAdminPageId(link.dataset.adminPage);
+      const isActive = linkKey === resolved;
+      link.classList.toggle("is-active", isActive);
+      if (isActive) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  if (resolved === "services") openAdminPanel(els.servicesPanelFold);
+  if (resolved === "regions") openAdminPanel(els.regionsPanelFold);
+  if (resolved === "points") openAdminPanel(els.pointsPanelFold);
+  if (resolved === "data") openAdminPanel(els.toolsPanelFold);
+
+  activeAdminPage = resolved;
+  updateAdminPageHeader(resolved);
+
+  if (updateHash) {
+    const targetHash = `#${resolved}`;
+    if (window.location.hash !== targetHash) {
+      window.history.replaceState(null, "", targetHash);
+    }
+  }
+
+  if (focus) {
+    window.requestAnimationFrame(() => {
+      focusAdminPage(resolved, focusTarget);
+    });
+  }
+}
+
+function initAdminPageRouting() {
+  if (els.adminSidebarNav) {
+    els.adminSidebarNav.addEventListener("click", (event) => {
+      const link = event.target.closest("[data-admin-page]");
+      if (!link) return;
+      event.preventDefault();
+      const targetPage = normalizeAdminPageId(link.dataset.adminPage) || "dashboard";
+      setAdminPage(targetPage, { updateHash: true, focus: true });
+    });
+  }
+
+  window.addEventListener("hashchange", () => {
+    setAdminPage(resolveAdminPageFromHash(), { updateHash: false, focus: true });
+  });
+}
+
 function focusPointEditorForm(field = els.pointName) {
+  setAdminPage("points", { updateHash: true, focus: false });
   openAdminPanel(els.pointsPanelFold);
   if (els.pointBlockIdentity) {
     els.pointBlockIdentity.open = true;
@@ -300,14 +466,6 @@ function focusPointEditorForm(field = els.pointName) {
   }, 180);
 }
 
-function getPanelFoldBySectionId(sectionId) {
-  if (sectionId === "servicesPanel") return els.servicesPanelFold;
-  if (sectionId === "regionsPanel") return els.regionsPanelFold;
-  if (sectionId === "pointsPanel") return els.pointsPanelFold;
-  if (sectionId === "toolsPanel") return els.toolsPanelFold;
-  return null;
-}
-
 function bindAdminEvents() {
   els.quickExportBtn.addEventListener("click", () => exportJson(true));
   els.logoutAdminBtn.addEventListener("click", async () => {
@@ -318,16 +476,6 @@ function bindAdminEvents() {
     }
     window.location.reload();
   });
-  if (els.adminSectionNav) {
-    els.adminSectionNav.addEventListener("click", (event) => {
-      const link = event.target.closest(".admin-nav-link[href^='#']");
-      if (!link) return;
-      const sectionId = String(link.getAttribute("href") || "").replace(/^#/, "");
-      const panel = getPanelFoldBySectionId(sectionId);
-      openAdminPanel(panel);
-    });
-  }
-
   els.servicesForm.addEventListener("submit", handleServicesSubmit);
   els.resetServicesBtn.addEventListener("click", handleServicesReset);
   els.serviceSupportTelegram.addEventListener("input", () => {
@@ -356,7 +504,7 @@ function bindAdminEvents() {
 
   if (els.regionCreateNew) {
     els.regionCreateNew.addEventListener("click", () => {
-      openAdminPanel(els.regionsPanelFold);
+      setAdminPage("regions", { updateHash: true, focus: false });
       resetRegionForm();
       safeFocus(els.regionName);
     });
@@ -367,7 +515,7 @@ function bindAdminEvents() {
   }
 
   els.pointRegionSelect.addEventListener("change", () => {
-    openAdminPanel(els.pointsPanelFold);
+    setAdminPage("points", { updateHash: true, focus: false });
     editingPointId = null;
     selectedPointIds.clear();
     resetPointForm();
@@ -583,6 +731,9 @@ function refreshAdminUI(preferredRegionId = "") {
   renderPointsList();
   renderKpi();
   renderPointsContext();
+  if (isAdminBooted) {
+    setAdminPage(activeAdminPage || resolveAdminPageFromHash(), { updateHash: false, focus: false });
+  }
 }
 
 function renderServicesForm() {
@@ -764,7 +915,7 @@ function handleRegionActions(event) {
   const region = data.regions[index];
 
   if (action === "edit") {
-    openAdminPanel(els.regionsPanelFold);
+    setAdminPage("regions", { updateHash: true, focus: false });
     editingRegionId = region.id;
     regionIdTouched = true;
     els.regionEditingId.value = region.id;
@@ -782,7 +933,7 @@ function handleRegionActions(event) {
   }
 
   if (action === "manage-points") {
-    openAdminPanel(els.pointsPanelFold);
+    setAdminPage("points", { updateHash: true, focus: false });
     els.pointRegionSelect.value = region.id;
     editingPointId = null;
     selectedPointIds.clear();
@@ -1813,7 +1964,7 @@ function clearPointFormErrors() {
 
 function revealPointFieldError(target, message) {
   setStatus(message, "error");
-  openAdminPanel(els.pointsPanelFold);
+  setAdminPage("points", { updateHash: true, focus: false });
   if (!target || !(target instanceof HTMLElement)) return;
 
   const collapsible = target.closest(".admin-collapsible");

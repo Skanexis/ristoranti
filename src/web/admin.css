@@ -1638,3 +1638,135 @@ body::before {
 .preview-stars {
   color: #ffd888;
 }
+
+/* Enterprise Shell Layout */
+.admin-shell {
+  display: grid;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-sidebar {
+  position: sticky;
+  top: 10px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.admin-sidebar-brand h1 {
+  margin: 0;
+  font-size: 1.16rem;
+  letter-spacing: 0.02em;
+}
+
+.admin-sidebar-nav {
+  position: static;
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.admin-side-link {
+  justify-content: flex-start;
+  width: 100%;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 10px 12px;
+}
+
+.admin-side-link[aria-current="page"] {
+  border-color: rgba(99, 91, 255, 0.64);
+  color: #f2f5ff;
+  background: linear-gradient(180deg, rgba(99, 91, 255, 0.2), rgba(79, 70, 229, 0.16));
+  box-shadow: inset 0 0 0 1px rgba(99, 91, 255, 0.22);
+}
+
+.admin-sidebar-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-sidebar-actions .admin-btn,
+.admin-sidebar-actions .admin-back-link {
+  width: 100%;
+}
+
+.admin-main {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.admin-main-header {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-main-headline h2 {
+  margin: 2px 0 0;
+}
+
+.admin-page {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-page[hidden] {
+  display: none !important;
+}
+
+#adminPageRegions .panel-region-layout {
+  grid-template-columns: minmax(300px, 0.86fr) minmax(0, 1.14fr);
+}
+
+#adminPagePoints .panel-points-layout {
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+}
+
+#adminPagePoints .points-list-wrap,
+#adminPagePoints .points-editor-wrap,
+#adminPageRegions .region-list-wrap {
+  min-height: 420px;
+}
+
+@media (max-width: 1180px) {
+  .admin-shell {
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: static;
+  }
+
+  .admin-sidebar-nav {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(130px, 1fr);
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .admin-side-link {
+    justify-content: center;
+  }
+
+  #adminPageRegions .panel-region-layout,
+  #adminPagePoints .panel-points-layout {
+    grid-template-columns: 1fr;
+  }
+
+  #adminPagePoints .points-list-wrap,
+  #adminPagePoints .points-editor-wrap,
+  #adminPageRegions .region-list-wrap {
+    min-height: 0;
+  }
+}
