@@ -14,7 +14,7 @@
       delivery: "Consegna",
       ship: "Spedizione",
     },
-    supportTelegramUrl: "https://t.me/ristoranti_italia_support",
+    supportTelegramUrl: "https://t.me/SHLC26",
     regions: [
       {
         id: "lombardia",

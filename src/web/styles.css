@@ -300,6 +300,30 @@ h1 {
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
+.hero-title {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(1.08rem, 4.1vw, 1.9rem);
+  line-height: 1.14;
+  letter-spacing: 0.03em;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.32);
+  text-wrap: balance;
+}
+
+.hero-title-separator {
+  color: var(--gold-soft);
+  padding: 0 0.12em;
+}
+
+@media (max-width: 460px) {
+  .hero-title {
+    font-size: clamp(0.98rem, 5vw, 1.45rem);
+    line-height: 1.16;
+  }
+}
+
 .subtext {
   margin: 0;
   max-width: 58ch;
@@ -308,69 +332,91 @@ h1 {
   font-size: 0.9rem;
 }
 
-.hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.hero-tag {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-soft);
-  border: 1px solid rgba(242, 197, 109, 0.34);
-  background: rgba(34, 29, 23, 0.54);
-}
-
-.hero-highlights {
-  margin-top: 8px;
+.hero-socials {
+  margin-top: 10px;
   display: grid;
-  gap: 9px;
+  gap: 10px;
 }
 
-.hero-note {
+.hero-social-note {
   margin: 0;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.11em;
   color: rgba(241, 207, 159, 0.84);
 }
 
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.hero-social-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.hero-stat {
-  border: 1px solid rgba(217, 161, 88, 0.28);
+.hero-social-link {
+  text-decoration: none;
+  border: 1px solid rgba(217, 161, 88, 0.34);
   border-radius: 12px;
-  padding: 8px 10px;
-  background: linear-gradient(145deg, rgba(38, 31, 22, 0.64), rgba(17, 14, 11, 0.72));
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(241, 207, 159, 0.78);
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: linear-gradient(145deg, rgba(36, 28, 19, 0.68), rgba(15, 12, 10, 0.76));
+  color: var(--gold-soft);
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, border-color 0.2s ease, filter 0.2s ease;
 }
 
-.hero-stat strong {
-  display: block;
-  font-family: "Bebas Neue", sans-serif;
-  font-size: 1.12rem;
-  letter-spacing: 0.08em;
-  line-height: 0.95;
-  color: var(--gold-soft);
+.hero-social-link svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.hero-social-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242, 197, 109, 0.66);
+  filter: brightness(1.04);
+}
+
+.hero-social-link:focus-visible {
+  outline: 2px solid rgba(217, 161, 88, 0.72);
+  outline-offset: 2px;
+}
+
+@media (max-width: 430px) {
+  .hero-social-link {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hero-social-link svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .layout {
   display: grid;
   gap: 14px;
+}
+
+.site-footer {
+  margin-top: 2px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 5px;
+  text-align: center;
+}
+
+.site-footer-line {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.42;
+  letter-spacing: 0.05em;
+  color: rgba(241, 207, 159, 0.86);
 }
 
 .ux-hub {

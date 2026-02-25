@@ -18,7 +18,7 @@ const MEDIA_TYPES = ["none", "photo", "gif", "video"];
 
 const defaultServiceLabels = store?.getDefaultData?.()?.serviceLabels ?? FALLBACK_SERVICE_LABELS;
 const defaultSupportTelegramUrl =
-  store?.getDefaultData?.()?.supportTelegramUrl ?? "https://t.me/ristoranti_italia_support";
+  store?.getDefaultData?.()?.supportTelegramUrl ?? "https://t.me/SHLC26";
 
 let data = store?.getData?.() ?? {
   serviceLabels: defaultServiceLabels,

@@ -4,9 +4,10 @@ const state = {
   region: null,
 };
 const VALID_SERVICES = ["meetup", "delivery", "ship"];
-const DEFAULT_SUPPORT_TELEGRAM_URL = "https://t.me/ristoranti_italia_support";
+const DEFAULT_SUPPORT_TELEGRAM_URL = "https://t.me/SHLC26";
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
-const PRELOADER_SESSION_KEY = "ri_preloader_seen_v2";
+const PRELOADER_PRIMARY_VIDEO_SRC = "./assets/Video%20Project%202%20%281%29.mp4";
+const PRELOADER_FALLBACK_VIDEO_SRC = "./assets/preload-3s.mp4";
 
 let appData = fallbackData();
 
@@ -552,7 +553,13 @@ function setupMobilePreloader() {
   const preloaderVideo = document.getElementById("preloadVideo");
 
   const revealImmediately = () => {
-    body?.classList.remove("preload-pending", "preload-exit", "preload-video-ready", "preload-video-slow");
+    body?.classList.remove(
+      "preload-pending",
+      "preload-exit",
+      "preload-video-ready",
+      "preload-video-slow",
+      "preload-video-fallback"
+    );
     if (preloader && preloader.isConnected) {
       preloader.remove();
     }
@@ -563,34 +570,39 @@ function setupMobilePreloader() {
     return;
   }
 
-  const preloaderAlreadySeen = readSessionFlag(PRELOADER_SESSION_KEY);
-  if (preloaderAlreadySeen) {
-    revealImmediately();
-    return;
-  }
-
   const isMobileViewport = window.matchMedia("(max-width: 760px)").matches;
   const hasCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if ((!isMobileViewport && !hasCoarsePointer) || prefersReducedMotion) {
-    writeSessionFlag(PRELOADER_SESSION_KEY);
     revealImmediately();
     return;
   }
 
-  // Prevent stuck black screen after returning from external app in same session.
-  writeSessionFlag(PRELOADER_SESSION_KEY);
+  const configuredPrimarySource = normalizeAssetPath(preloaderVideo.dataset.preloadPrimary);
+  const configuredFallbackSource = normalizeAssetPath(preloaderVideo.dataset.preloadFallback);
+  const primarySource = configuredPrimarySource || PRELOADER_PRIMARY_VIDEO_SRC;
+  const fallbackSource = configuredFallbackSource || PRELOADER_FALLBACK_VIDEO_SRC;
+  const preferLightVideo = shouldPreferLightPreloadVideo();
+
+  const sourceCandidates = getOrderedPreloaderSources(primarySource, fallbackSource, preferLightVideo);
+  if (sourceCandidates.length === 0) {
+    revealImmediately();
+    return;
+  }
 
   const preloadSeconds = 3.6;
   const exitAnimationMs = 900;
   const maxBootstrapWaitMs = 5200;
+  const firstFrameWatchdogMs = preferLightVideo ? 1800 : 2600;
   let startedAt = performance.now();
   let isFinished = false;
   let hasFirstFrame = false;
   let wasHidden = false;
+  let activeSourceIndex = -1;
   let forceFinishTimer = 0;
   let hardFallbackTimer = 0;
+  let sourceWatchdogTimer = 0;
   let playRetryTimer = 0;
   let slowVideoTimer = 0;
 
@@ -603,6 +615,7 @@ function setupMobilePreloader() {
     isFinished = true;
     clearTimeout(forceFinishTimer);
     clearTimeout(hardFallbackTimer);
+    clearTimeout(sourceWatchdogTimer);
     clearTimeout(playRetryTimer);
     clearTimeout(slowVideoTimer);
     preloaderVideo.pause();
@@ -614,6 +627,7 @@ function setupMobilePreloader() {
     isFinished = true;
     clearTimeout(forceFinishTimer);
     clearTimeout(hardFallbackTimer);
+    clearTimeout(sourceWatchdogTimer);
     clearTimeout(playRetryTimer);
     clearTimeout(slowVideoTimer);
     preloaderVideo.pause();
@@ -629,6 +643,7 @@ function setupMobilePreloader() {
   const markFirstFrameReady = () => {
     if (hasFirstFrame || isFinished) return;
     hasFirstFrame = true;
+    clearTimeout(sourceWatchdogTimer);
     clearTimeout(slowVideoTimer);
     body.classList.add("preload-video-ready");
     body.classList.remove("preload-video-slow");
@@ -657,27 +672,62 @@ function setupMobilePreloader() {
     });
   };
 
-  preloaderVideo.addEventListener(
-    "loadedmetadata",
-    () => {
-      if (preloaderVideo.duration && Number.isFinite(preloaderVideo.duration)) {
-        const desiredRate = preloaderVideo.duration / preloadSeconds;
-        preloaderVideo.playbackRate = Math.max(0.82, Math.min(1, desiredRate));
+  const armSourceWatchdog = () => {
+    clearTimeout(sourceWatchdogTimer);
+    if (hasFirstFrame || isFinished) return;
+    sourceWatchdogTimer = window.setTimeout(() => {
+      if (hasFirstFrame || isFinished) return;
+      const switched = loadSourceByIndex(activeSourceIndex + 1);
+      if (!switched) {
+        body.classList.add("preload-video-slow");
       }
-    },
-    { once: true }
-  );
+    }, firstFrameWatchdogMs);
+  };
 
-  preloaderVideo.addEventListener(
-    "loadeddata",
-    () => {
-      markFirstFrameReady();
-      retryVideoPlayback();
-    },
-    { once: true }
-  );
+  const loadSourceByIndex = (index) => {
+    if (isFinished) return false;
+    if (!Number.isInteger(index) || index < 0 || index >= sourceCandidates.length) {
+      return false;
+    }
+
+    activeSourceIndex = index;
+    const source = sourceCandidates[index];
+    const usingFallback = source === fallbackSource || index > 0;
+    body.classList.toggle("preload-video-fallback", usingFallback);
+    body.classList.remove("preload-video-ready");
+    preloaderVideo.pause();
+    preloaderVideo.removeAttribute("src");
+    preloaderVideo.src = source;
+    preloaderVideo.load();
+    retryVideoPlayback();
+    armSourceWatchdog();
+    return true;
+  };
+
+  const recoverFromVideoIssue = () => {
+    if (isFinished || hasFirstFrame) return;
+    const switched = loadSourceByIndex(activeSourceIndex + 1);
+    if (!switched) {
+      body.classList.add("preload-video-slow");
+    }
+  };
+
+  preloaderVideo.addEventListener("loadedmetadata", () => {
+    if (preloaderVideo.duration && Number.isFinite(preloaderVideo.duration)) {
+      const desiredRate = preloaderVideo.duration / preloadSeconds;
+      preloaderVideo.playbackRate = Math.max(0.82, Math.min(1, desiredRate));
+    }
+  });
+
+  preloaderVideo.addEventListener("loadeddata", () => {
+    markFirstFrameReady();
+    retryVideoPlayback();
+  });
 
   preloaderVideo.addEventListener("canplay", markFirstFrameReady);
+  preloaderVideo.addEventListener("error", recoverFromVideoIssue);
+  preloaderVideo.addEventListener("stalled", recoverFromVideoIssue);
+  preloaderVideo.addEventListener("waiting", recoverFromVideoIssue);
 
   preloaderVideo.addEventListener("timeupdate", () => {
     if (!hasFirstFrame && preloaderVideo.currentTime > 0) {
@@ -707,8 +757,10 @@ function setupMobilePreloader() {
     }
   }, 700);
 
-  preloaderVideo.load();
-  retryVideoPlayback();
+  if (!loadSourceByIndex(0)) {
+    revealImmediately();
+    return;
+  }
 
   window.addEventListener("pointerdown", retryVideoPlayback, { once: true, passive: true });
   window.addEventListener("touchstart", retryVideoPlayback, { once: true, passive: true });
@@ -747,18 +799,47 @@ function setupMobilePreloader() {
   }
 }
 
-function readSessionFlag(key) {
+function getOrderedPreloaderSources(primarySource, fallbackSource, preferLightVideo = false) {
+  const ordered = preferLightVideo ? [fallbackSource, primarySource] : [primarySource, fallbackSource];
+  const result = [];
+
+  for (const candidate of ordered) {
+    const normalized = normalizeAssetPath(candidate);
+    if (!normalized || result.includes(normalized)) continue;
+    result.push(normalized);
+  }
+
+  return result;
+}
+
+function shouldPreferLightPreloadVideo() {
   try {
-    return window.sessionStorage?.getItem(key) === "1";
+    const connection =
+      navigator.connection ||
+      navigator.mozConnection ||
+      navigator.webkitConnection;
+
+    if (!connection) return false;
+    if (connection.saveData) return true;
+
+    const effectiveType = String(connection.effectiveType || "").toLowerCase();
+    if (effectiveType === "slow-2g" || effectiveType === "2g" || effectiveType === "3g") {
+      return true;
+    }
+
+    const downlink = Number(connection.downlink);
+    if (Number.isFinite(downlink) && downlink > 0 && downlink < 1.6) {
+      return true;
+    }
+
+    return false;
   } catch {
     return false;
   }
 }
 
-function writeSessionFlag(key) {
-  try {
-    window.sessionStorage?.setItem(key, "1");
-  } catch {
-    // Ignore private-mode/session storage errors.
-  }
+function normalizeAssetPath(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  return raw.replace(/\s/g, "%20");
 }
