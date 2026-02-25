@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css?v=20260225-6" />
-    <link rel="stylesheet" href="./admin.css?v=20260225-7" />
+    <link rel="stylesheet" href="./admin.css?v=20260225-8" />
   </head>
   <body>
     <section id="adminAuthGate" class="admin-auth-gate" aria-live="polite">
@@ -114,124 +114,148 @@
 
       <section class="admin-workspace">
         <aside class="admin-column admin-column-left">
-          <article class="panel" id="servicesPanel">
-            <div class="admin-card-head">
-              <h2>Etichette servizi</h2>
-              <p class="admin-hint">Testi e supporto visibili nella mini app.</p>
-            </div>
-            <form id="servicesForm" class="admin-form admin-form-compact">
-              <label>
-                Meetup
-                <input id="serviceMeetup" type="text" maxlength="32" required />
-              </label>
-              <label>
-                Delivery
-                <input id="serviceDelivery" type="text" maxlength="32" required />
-              </label>
-              <label>
-                Ship
-                <input id="serviceShip" type="text" maxlength="32" required />
-              </label>
-              <label>
-                Telegram supporto URL
-                <input id="serviceSupportTelegram" type="url" maxlength="200" placeholder="https://t.me/username" required />
-              </label>
-              <div class="admin-form-actions">
-                <button id="saveServicesBtn" type="submit" class="admin-btn">Salva etichette</button>
-                <button id="resetServicesBtn" type="button" class="admin-btn admin-btn-secondary">Ripristina default</button>
+          <article class="panel admin-panel" id="servicesPanel">
+            <details class="admin-panel-fold">
+              <summary class="admin-panel-fold-summary">
+                <span class="admin-panel-fold-title">Servizi</span>
+                <span class="admin-panel-fold-hint">Etichette visibili nella mini app.</span>
+              </summary>
+              <div class="admin-panel-fold-body">
+                <form id="servicesForm" class="admin-form admin-form-compact">
+                  <label>
+                    Meetup
+                    <input id="serviceMeetup" type="text" maxlength="32" required />
+                  </label>
+                  <label>
+                    Delivery
+                    <input id="serviceDelivery" type="text" maxlength="32" required />
+                  </label>
+                  <label>
+                    Ship
+                    <input id="serviceShip" type="text" maxlength="32" required />
+                  </label>
+                  <label>
+                    Telegram supporto URL
+                    <input
+                      id="serviceSupportTelegram"
+                      type="url"
+                      maxlength="200"
+                      placeholder="https://t.me/username"
+                      required
+                    />
+                  </label>
+                  <div class="admin-form-actions">
+                    <button id="saveServicesBtn" type="submit" class="admin-btn">Salva etichette</button>
+                    <button id="resetServicesBtn" type="button" class="admin-btn admin-btn-secondary">Ripristina default</button>
+                  </div>
+                </form>
               </div>
-            </form>
+            </details>
           </article>
 
-          <article class="panel panel-region" id="regionsPanel">
-            <div class="admin-card-head">
-              <h2>Regioni</h2>
-              <div class="admin-form-actions">
-                <button id="regionCreateNew" type="button" class="admin-btn">Nuova regione</button>
-              </div>
-            </div>
-            <div class="panel-region-layout">
-              <form id="regionForm" class="admin-form admin-form-region">
-                <input type="hidden" id="regionEditingId" />
-                <p id="regionFormTitle" class="form-mode">Nuova regione</p>
-                <label>
-                  ID regione
-                  <input id="regionId" type="text" placeholder="es. lombardia" required />
-                </label>
-                <label>
-                  Nome regione
-                  <input id="regionName" type="text" placeholder="Lombardia" required />
-                </label>
-                <label>
-                  Hub principali
-                  <input id="regionHubs" type="text" placeholder="Milano, Bergamo" />
-                </label>
-                <label>
-                  Origine Ship
-                  <select id="regionShipOrigin">
-                    <option value="italy">Italia</option>
-                    <option value="eu">Altri paesi UE</option>
-                  </select>
-                </label>
-                <div class="admin-form-actions">
-                  <button id="regionSubmitBtn" type="submit" class="admin-btn">Aggiungi regione</button>
-                  <button type="button" id="regionCancelEdit" class="admin-btn admin-btn-secondary">Annulla</button>
+          <article class="panel panel-region admin-panel" id="regionsPanel">
+            <details class="admin-panel-fold">
+              <summary class="admin-panel-fold-summary">
+                <span class="admin-panel-fold-title">Regioni</span>
+                <span class="admin-panel-fold-hint">Crea e ordina regioni.</span>
+              </summary>
+              <div class="admin-panel-fold-body">
+                <div class="admin-card-head">
+                  <h2>Gestione regioni</h2>
+                  <div class="admin-form-actions">
+                    <button id="regionCreateNew" type="button" class="admin-btn">Nuova regione</button>
+                  </div>
                 </div>
-              </form>
-              <div class="region-list-wrap">
-                <label class="admin-inline-field" for="regionSearch">
-                  Cerca regione
-                  <input id="regionSearch" type="text" placeholder="Nome, ID, hub..." />
-                </label>
-                <div id="regionList" class="admin-list"></div>
+                <div class="panel-region-layout">
+                  <form id="regionForm" class="admin-form admin-form-region">
+                    <input type="hidden" id="regionEditingId" />
+                    <p id="regionFormTitle" class="form-mode">Nuova regione</p>
+                    <label>
+                      ID regione
+                      <input id="regionId" type="text" placeholder="es. lombardia" required />
+                    </label>
+                    <label>
+                      Nome regione
+                      <input id="regionName" type="text" placeholder="Lombardia" required />
+                    </label>
+                    <label>
+                      Hub principali
+                      <input id="regionHubs" type="text" placeholder="Milano, Bergamo" />
+                    </label>
+                    <label>
+                      Origine Ship default regione (fallback)
+                      <select id="regionShipOrigin">
+                        <option value="italy">Italia</option>
+                        <option value="eu">Altri paesi UE</option>
+                      </select>
+                    </label>
+                    <div class="admin-form-actions">
+                      <button id="regionSubmitBtn" type="submit" class="admin-btn">Aggiungi regione</button>
+                      <button type="button" id="regionCancelEdit" class="admin-btn admin-btn-secondary">Annulla</button>
+                    </div>
+                  </form>
+                  <div class="region-list-wrap">
+                    <label class="admin-inline-field" for="regionSearch">
+                      Cerca regione
+                      <input id="regionSearch" type="text" placeholder="Nome, ID, hub..." />
+                    </label>
+                    <div id="regionList" class="admin-list"></div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </details>
           </article>
         </aside>
 
         <section id="pointsPanel" class="admin-column admin-column-right">
-          <article class="panel panel-points">
-            <div class="admin-card-head">
-              <h2>Punti attivi</h2>
-              <div class="admin-form-actions">
-                <button id="pointCreateNew" type="button" class="admin-btn">Nuovo punto</button>
-              </div>
-            </div>
+          <article class="panel panel-points admin-panel">
+            <details class="admin-panel-fold">
+              <summary class="admin-panel-fold-summary">
+                <span class="admin-panel-fold-title">Punti</span>
+                <span class="admin-panel-fold-hint">Gestione completa punti, ship, media e social.</span>
+              </summary>
+              <div class="admin-panel-fold-body">
+                <div class="admin-card-head">
+                  <h2>Punti attivi</h2>
+                  <div class="admin-form-actions">
+                    <button id="pointCreateNew" type="button" class="admin-btn">Nuovo punto</button>
+                  </div>
+                </div>
 
-            <div class="admin-toolbar">
-              <div class="admin-inline-field">
-                <label for="pointRegionSelect">Regione</label>
-                <select id="pointRegionSelect"></select>
-              </div>
-              <div class="admin-inline-field">
-                <label for="pointSearch">Cerca punto</label>
-                <input id="pointSearch" type="text" placeholder="Nome, ID, indirizzo..." />
-              </div>
-              <div class="admin-inline-field">
-                <label for="pointServiceFilter">Filtro servizio</label>
-                <select id="pointServiceFilter">
-                  <option value="all">Tutti</option>
-                  <option value="meetup">Meetup</option>
-                  <option value="delivery">Delivery</option>
-                  <option value="ship">Ship</option>
-                </select>
-              </div>
-              <div class="admin-inline-field">
-                <label for="pointStarFilter">Filtro stelle</label>
-                <select id="pointStarFilter">
-                  <option value="all">Tutte</option>
-                  <option value="3">3 stelle</option>
-                  <option value="2">2 stelle</option>
-                  <option value="1">1 stella</option>
-                  <option value="0">0 stelle</option>
-                </select>
-              </div>
-            </div>
+                <div class="admin-toolbar">
+                  <div class="admin-inline-field">
+                    <label for="pointRegionSelect">Regione</label>
+                    <select id="pointRegionSelect"></select>
+                  </div>
+                  <div class="admin-inline-field">
+                    <label for="pointSearch">Cerca punto</label>
+                    <input id="pointSearch" type="text" placeholder="Nome, ID, indirizzo..." />
+                  </div>
+                  <div class="admin-inline-field">
+                    <label for="pointServiceFilter">Filtro servizio</label>
+                    <select id="pointServiceFilter">
+                      <option value="all">Tutti</option>
+                      <option value="meetup">Meetup</option>
+                      <option value="delivery">Delivery</option>
+                      <option value="ship">Ship</option>
+                    </select>
+                  </div>
+                  <div class="admin-inline-field">
+                    <label for="pointStarFilter">Filtro stelle</label>
+                    <select id="pointStarFilter">
+                      <option value="all">Tutte</option>
+                      <option value="3">3 stelle</option>
+                      <option value="2">2 stelle</option>
+                      <option value="1">1 stella</option>
+                      <option value="0">0 stelle</option>
+                    </select>
+                  </div>
+                </div>
 
-            <p id="pointsContextHint" class="admin-hint"></p>
+                <p id="pointsContextHint" class="admin-hint"></p>
 
-            <div class="panel-points-layout">
-              <div class="points-list-wrap">
+                <div class="panel-points-layout">
+                  <div class="points-list-wrap">
                 <div class="admin-card-head admin-list-head">
                   <h3>Elenco punti</h3>
                   <p id="pointsListCount" class="admin-hint">0 punti</p>
@@ -268,11 +292,11 @@
                 <div id="pointsList" class="admin-list admin-list-points"></div>
               </div>
 
-              <div class="points-editor-wrap">
-                <form id="pointForm" class="admin-form">
+                  <div class="points-editor-wrap">
+                    <form id="pointForm" class="admin-form">
                   <input type="hidden" id="pointEditingId" />
                   <p id="pointFormTitle" class="form-mode">Nuovo punto</p>
-                  <details class="admin-form-block admin-collapsible" open>
+                  <details class="admin-form-block admin-collapsible">
                     <summary class="admin-collapsible-summary">
                       <span class="admin-block-title">Identita punto</span>
                     </summary>
@@ -290,7 +314,7 @@
                     </label>
                   </details>
 
-                  <details class="admin-form-block admin-collapsible" open>
+                  <details class="admin-form-block admin-collapsible">
                     <summary class="admin-collapsible-summary">
                       <span class="admin-block-title">Branding e media</span>
                     </summary>
@@ -298,6 +322,16 @@
                       URL logo punto
                       <input id="pointLogo" type="text" placeholder="https://... oppure /assets/logo.png" />
                     </label>
+                    <div class="admin-media-actions">
+                      <button type="button" id="pointLogoUploadBtn" class="admin-btn admin-btn-secondary">
+                        Carica logo
+                      </button>
+                      <button type="button" id="pointLogoClearBtn" class="admin-btn admin-btn-secondary">
+                        Rimuovi logo
+                      </button>
+                      <input id="pointLogoFileInput" type="file" accept="image/*" hidden />
+                    </div>
+                    <p id="pointLogoStatus" class="admin-hint admin-media-status" role="status" aria-live="polite"></p>
                     <label>
                       Tipo media card
                       <select id="pointMediaType">
@@ -329,7 +363,7 @@
                     <p id="pointMediaStatus" class="admin-hint admin-media-status" role="status" aria-live="polite"></p>
                   </details>
 
-                  <details class="admin-form-block admin-collapsible" open>
+                  <details class="admin-form-block admin-collapsible">
                     <summary class="admin-collapsible-summary">
                       <span class="admin-block-title">Operativita</span>
                     </summary>
@@ -353,7 +387,14 @@
                       <label><input type="checkbox" name="services" value="ship" /> Ship</label>
                     </fieldset>
                     <label>
-                      Paese spedizione (solo Ship da UE)
+                      Origine Ship (questo punto)
+                      <select id="pointShipOrigin">
+                        <option value="italy">Italia</option>
+                        <option value="eu">Altri paesi UE</option>
+                      </select>
+                    </label>
+                    <label>
+                      Paese spedizione (solo se Ship da UE)
                       <input id="pointShipCountry" type="text" placeholder="Es. Spagna, Germania, Francia" />
                     </label>
                   </details>
@@ -381,33 +422,36 @@
                       <button type="button" id="pointCancelEdit" class="admin-btn admin-btn-secondary">Annulla</button>
                     </div>
                   </div>
-                </form>
+                    </form>
 
-                <div class="point-preview-wrap">
-                  <h3>Anteprima live</h3>
-                  <div id="pointPreview" class="point-preview"></div>
+                    <div class="point-preview-wrap">
+                      <h3>Anteprima live</h3>
+                      <div id="pointPreview" class="point-preview"></div>
+                    </div>
                 </div>
               </div>
-            </div>
+                </div>
+            </details>
           </article>
         </section>
       </section>
 
-      <article class="panel panel-tools" id="toolsPanel">
-        <div class="admin-card-head">
-          <h2>Controllo dati</h2>
-          <p class="admin-hint">Backup, import e reset sicuro.</p>
-        </div>
-        <details class="data-tools-toggle">
-          <summary>Apri strumenti dati</summary>
-          <div class="admin-form-actions">
-            <button id="exportDataBtn" class="admin-btn" type="button">Esporta JSON</button>
-            <button id="importDataBtn" class="admin-btn admin-btn-secondary" type="button">Importa da testo</button>
-            <button id="importFileBtn" class="admin-btn admin-btn-secondary" type="button">Importa da file</button>
-            <button id="resetDataBtn" class="admin-btn admin-btn-danger" type="button">Reset completo</button>
+      <article class="panel panel-tools admin-panel" id="toolsPanel">
+        <details class="admin-panel-fold">
+          <summary class="admin-panel-fold-summary">
+            <span class="admin-panel-fold-title">Strumenti dati</span>
+            <span class="admin-panel-fold-hint">Backup, import e reset sicuro.</span>
+          </summary>
+          <div class="admin-panel-fold-body">
+            <div class="admin-form-actions">
+              <button id="exportDataBtn" class="admin-btn" type="button">Esporta JSON</button>
+              <button id="importDataBtn" class="admin-btn admin-btn-secondary" type="button">Importa da testo</button>
+              <button id="importFileBtn" class="admin-btn admin-btn-secondary" type="button">Importa da file</button>
+              <button id="resetDataBtn" class="admin-btn admin-btn-danger" type="button">Reset completo</button>
+            </div>
+            <textarea id="dataJson" rows="11" placeholder="JSON dei dati sito"></textarea>
+            <input id="importFileInput" type="file" accept=".json,application/json" hidden />
           </div>
-          <textarea id="dataJson" rows="11" placeholder="JSON dei dati sito"></textarea>
-          <input id="importFileInput" type="file" accept=".json,application/json" hidden />
         </details>
         <p id="adminStatus" class="admin-status" role="status" aria-live="polite"></p>
       </article>
@@ -422,7 +466,7 @@
       <option value="WhatsApp"></option>
     </datalist>
 
-    <script src="/shared/data-store.js?v=20260225-3"></script>
-    <script src="./admin.js?v=20260225-6"></script>
+    <script src="/shared/data-store.js?v=20260225-4"></script>
+    <script src="./admin.js?v=20260225-8"></script>
   </body>
 </html>

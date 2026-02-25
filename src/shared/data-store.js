@@ -302,6 +302,7 @@
                   id: sanitizeString(point?.id) || `${regionId}-point-${pointIndex + 1}`,
                   name: sanitizeString(point?.name) || "Nuovo punto",
                   address: sanitizeString(point?.address),
+                  shipOrigin: normalizeShipOrigin(point?.shipOrigin || region?.shipOrigin),
                   shipCountry: normalizeShipCountry(point?.shipCountry),
                   details: sanitizeString(point?.details),
                   logo: sanitizeString(point?.logo),

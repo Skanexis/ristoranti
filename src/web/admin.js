@@ -47,6 +47,11 @@ const els = {
   adminPassword: document.getElementById("adminPassword"),
   adminAuthStatus: document.getElementById("adminAuthStatus"),
   adminApp: document.getElementById("adminApp"),
+  adminSectionNav: document.querySelector(".admin-section-nav"),
+  servicesPanelFold: document.querySelector("#servicesPanel .admin-panel-fold"),
+  regionsPanelFold: document.querySelector("#regionsPanel .admin-panel-fold"),
+  pointsPanelFold: document.querySelector("#pointsPanel .admin-panel-fold"),
+  toolsPanelFold: document.querySelector("#toolsPanel .admin-panel-fold"),
 
   kpiRegions: document.getElementById("kpiRegions"),
   kpiPoints: document.getElementById("kpiPoints"),
@@ -89,9 +94,14 @@ const els = {
   pointId: document.getElementById("pointId"),
   pointName: document.getElementById("pointName"),
   pointAddress: document.getElementById("pointAddress"),
+  pointShipOrigin: document.getElementById("pointShipOrigin"),
   pointShipCountry: document.getElementById("pointShipCountry"),
   pointDetails: document.getElementById("pointDetails"),
   pointLogo: document.getElementById("pointLogo"),
+  pointLogoUploadBtn: document.getElementById("pointLogoUploadBtn"),
+  pointLogoFileInput: document.getElementById("pointLogoFileInput"),
+  pointLogoClearBtn: document.getElementById("pointLogoClearBtn"),
+  pointLogoStatus: document.getElementById("pointLogoStatus"),
   pointMediaType: document.getElementById("pointMediaType"),
   pointMediaUrl: document.getElementById("pointMediaUrl"),
   pointMediaUploadBtn: document.getElementById("pointMediaUploadBtn"),
@@ -163,6 +173,7 @@ function bootAdmin() {
   isAdminBooted = true;
 
   bindAdminEvents();
+  collapseAdminPanels();
   resetRegionForm();
   resetPointForm();
   setupPointFormCollapsibles();
@@ -252,6 +263,29 @@ function setAdminVisibility(isUnlocked) {
     els.adminApp.setAttribute("aria-hidden", isUnlocked ? "false" : "true");
   }
 }
+
+function collapseAdminPanels() {
+  [els.servicesPanelFold, els.regionsPanelFold, els.pointsPanelFold, els.toolsPanelFold].forEach((panel) => {
+    if (panel) {
+      panel.open = false;
+    }
+  });
+}
+
+function openAdminPanel(panelElement) {
+  if (panelElement) {
+    panelElement.open = true;
+  }
+}
+
+function getPanelFoldBySectionId(sectionId) {
+  if (sectionId === "servicesPanel") return els.servicesPanelFold;
+  if (sectionId === "regionsPanel") return els.regionsPanelFold;
+  if (sectionId === "pointsPanel") return els.pointsPanelFold;
+  if (sectionId === "toolsPanel") return els.toolsPanelFold;
+  return null;
+}
+
 function bindAdminEvents() {
   els.quickExportBtn.addEventListener("click", () => exportJson(true));
   els.logoutAdminBtn.addEventListener("click", async () => {
@@ -262,6 +296,15 @@ function bindAdminEvents() {
     }
     window.location.reload();
   });
+  if (els.adminSectionNav) {
+    els.adminSectionNav.addEventListener("click", (event) => {
+      const link = event.target.closest(".admin-nav-link[href^='#']");
+      if (!link) return;
+      const sectionId = String(link.getAttribute("href") || "").replace(/^#/, "");
+      const panel = getPanelFoldBySectionId(sectionId);
+      openAdminPanel(panel);
+    });
+  }
 
   els.servicesForm.addEventListener("submit", handleServicesSubmit);
   els.resetServicesBtn.addEventListener("click", handleServicesReset);
@@ -291,6 +334,7 @@ function bindAdminEvents() {
 
   if (els.regionCreateNew) {
     els.regionCreateNew.addEventListener("click", () => {
+      openAdminPanel(els.regionsPanelFold);
       resetRegionForm();
       safeFocus(els.regionName);
     });
@@ -301,6 +345,7 @@ function bindAdminEvents() {
   }
 
   els.pointRegionSelect.addEventListener("change", () => {
+    openAdminPanel(els.pointsPanelFold);
     editingPointId = null;
     selectedPointIds.clear();
     resetPointForm();
@@ -321,6 +366,7 @@ function bindAdminEvents() {
         setStatus("Crea o seleziona una regione prima di aggiungere un punto.", "error");
         return;
       }
+      openAdminPanel(els.pointsPanelFold);
       resetPointForm();
       safeFocus(els.pointName);
     });
@@ -364,6 +410,14 @@ function bindAdminEvents() {
     renderPointPreview();
     updatePointFormDirtyState();
   });
+  if (els.pointShipOrigin) {
+    els.pointShipOrigin.addEventListener("change", () => {
+      syncShipCountryFieldState();
+      validatePointShipCountryInline();
+      renderPointPreview();
+      updatePointFormDirtyState();
+    });
+  }
   if (els.pointShipCountry) {
     els.pointShipCountry.addEventListener("input", () => {
       renderPointPreview();
@@ -380,6 +434,26 @@ function bindAdminEvents() {
     validatePointLogoInline();
     updatePointFormDirtyState();
   });
+  if (els.pointLogoUploadBtn && els.pointLogoFileInput) {
+    els.pointLogoUploadBtn.addEventListener("click", () => {
+      els.pointLogoFileInput.click();
+    });
+    els.pointLogoFileInput.addEventListener("change", () => {
+      void handlePointLogoUpload();
+    });
+  }
+  if (els.pointLogoClearBtn) {
+    els.pointLogoClearBtn.addEventListener("click", () => {
+      els.pointLogo.value = "";
+      if (els.pointLogoFileInput) {
+        els.pointLogoFileInput.value = "";
+      }
+      setPointLogoStatus("Logo rimosso.");
+      validatePointLogoInline();
+      renderPointPreview();
+      updatePointFormDirtyState();
+    });
+  }
   els.pointMediaType.addEventListener("change", () => {
     renderPointPreview();
     validatePointMediaUrlInline();
@@ -618,7 +692,6 @@ function renderRegionList() {
       const pointsCount = Array.isArray(region.activePoints) ? region.activePoints.length : 0;
       const isActive = region.id === selectedRegionId;
       const isEditing = region.id === editingRegionId;
-      const shipOriginLabel = getShipOriginLabel(region.shipOrigin);
 
       return `
         <article class="admin-item admin-item-sortable ${isActive ? "is-active" : ""} ${isEditing ? "is-editing" : ""}" data-region-id="${escapeHtmlAttr(
@@ -629,7 +702,6 @@ function renderRegionList() {
             <p class="admin-item-id">${escapeHtml(region.id)}</p>
           </div>
           <p class="admin-item-meta">Hub: ${escapeHtml(region.hubs || "Non impostati")}</p>
-          <p class="admin-item-meta">Ship origin: ${escapeHtml(shipOriginLabel)}</p>
           <div class="admin-item-tags">
             <span class="mini-chip">${formatPointCount(pointsCount)}</span>
             ${isActive ? `<span class="mini-chip">Regione attiva</span>` : ""}
@@ -671,6 +743,7 @@ function handleRegionActions(event) {
   const region = data.regions[index];
 
   if (action === "edit") {
+    openAdminPanel(els.regionsPanelFold);
     editingRegionId = region.id;
     regionIdTouched = true;
     els.regionEditingId.value = region.id;
@@ -688,6 +761,7 @@ function handleRegionActions(event) {
   }
 
   if (action === "manage-points") {
+    openAdminPanel(els.pointsPanelFold);
     els.pointRegionSelect.value = region.id;
     editingPointId = null;
     selectedPointIds.clear();
@@ -838,7 +912,10 @@ function handleRegionSubmit(event) {
   const id = slugify(els.regionId.value);
   const name = els.regionName.value.trim();
   const hubs = els.regionHubs.value.trim();
-  const shipOrigin = normalizeShipOrigin(els.regionShipOrigin?.value);
+  const editingRegion = editingRegionId ? data.regions.find((item) => item.id === editingRegionId) : null;
+  const shipOrigin = els.regionShipOrigin
+    ? normalizeShipOrigin(els.regionShipOrigin.value)
+    : getRegionShipOrigin(editingRegion);
 
   if (!id || !name) {
     setStatus("Compila ID e nome regione.", "error");
@@ -928,8 +1005,7 @@ function renderPointsContext() {
 
   const pointsCount = Array.isArray(region.activePoints) ? region.activePoints.length : 0;
   const label = formatPointCount(pointsCount);
-  const shipOriginLabel = getShipOriginLabel(region.shipOrigin);
-  els.pointsContextHint.textContent = `Regione attiva: ${region.name}. ${label} configurati. Ship: ${shipOriginLabel}.`;
+  els.pointsContextHint.textContent = `Regione attiva: ${region.name}. ${label} configurati.`;
 
   if (els.pointCreateNew) {
     els.pointCreateNew.disabled = false;
@@ -1045,8 +1121,10 @@ function renderPointsList() {
       const isEditing = point.id === editingPointId;
       const isSelected = selectedPointIds.has(point.id);
       const hasShip = Array.isArray(point.services) && point.services.includes("ship");
+      const shipOrigin = resolvePointShipOrigin(point, region);
+      const shipOriginLabel = getShipOriginLabel(shipOrigin);
       const shipCountry = String(point.shipCountry || "").trim();
-      const showShipCountry = hasShip && getRegionShipOrigin(region) === "eu";
+      const showShipCountry = hasShip && shipOrigin === "eu";
 
       return `
         <article class="admin-item admin-item-sortable ${isEditing ? "is-editing" : ""} ${isSelected ? "is-selected" : ""}" data-point-id="${escapeHtmlAttr(
@@ -1062,6 +1140,7 @@ function renderPointsList() {
             <span class="mini-chip">Social ${socialsCount}</span>
             <span class="mini-chip">Retro ${hasDetails ? "OK" : "NO"}</span>
             <span class="mini-chip">Media ${mediaLabel}</span>
+            ${hasShip ? `<span class="mini-chip">Ship ${escapeHtml(shipOriginLabel)}</span>` : ""}
             ${showShipCountry ? `<span class="mini-chip">Paese Ship ${escapeHtml(shipCountry || "Non impostato")}</span>` : ""}
           </div>
           <div class="admin-item-tags">${services || `<span class="mini-chip">Nessun servizio</span>`}</div>
@@ -1117,6 +1196,7 @@ function handlePointActions(event) {
   const point = region.activePoints[pointIndex];
 
   if (action === "edit") {
+    openAdminPanel(els.pointsPanelFold);
     fillPointForm(point);
     safeFocus(els.pointName);
     setStatus(`Modifica punto: ${point.name}`, "warn");
@@ -1245,6 +1325,9 @@ function handleBulkApplyService() {
         return;
       }
       point.services = [...safeCurrentServices, service];
+      if (service === "ship") {
+        point.shipOrigin = resolvePointShipOrigin(point, region);
+      }
       updated += 1;
       return;
     }
@@ -1262,6 +1345,7 @@ function handleBulkApplyService() {
 
     point.services = safeCurrentServices.filter((item) => item !== service);
     if (service === "ship") {
+      point.shipOrigin = "italy";
       point.shipCountry = "";
     }
     updated += 1;
@@ -1420,6 +1504,7 @@ function handlePointSubmit(event) {
   const id = slugify(els.pointId.value);
   const name = els.pointName.value.trim();
   const address = els.pointAddress.value.trim();
+  const selectedShipOrigin = normalizeShipOrigin(els.pointShipOrigin?.value);
   const shipCountry = String(els.pointShipCountry?.value || "").trim();
   const details = els.pointDetails.value.trim();
   const logo = els.pointLogo.value.trim();
@@ -1458,10 +1543,16 @@ function handlePointSubmit(event) {
   );
   const services = selectedServices.length > 0 ? selectedServices : ["meetup"];
   const isShipEnabled = services.includes("ship");
-  const needsShipCountry = isShipEnabled && getRegionShipOrigin(region) === "eu";
+  const pointShipOrigin = isShipEnabled ? selectedShipOrigin : "italy";
+  const needsShipCountry = isShipEnabled && pointShipOrigin === "eu";
 
   if (needsShipCountry && !shipCountry) {
     revealPointFieldError(els.pointShipCountry, "Per punti Ship da UE inserisci il paese di spedizione.");
+    return;
+  }
+
+  if (needsShipCountry && !isValidShipCountryName(shipCountry)) {
+    revealPointFieldError(els.pointShipCountry, "Inserisci un paese valido (solo lettere, spazi o trattini).");
     return;
   }
 
@@ -1488,7 +1579,8 @@ function handlePointSubmit(event) {
     point.id = id;
     point.name = name;
     point.address = address;
-    point.shipCountry = isShipEnabled ? shipCountry : "";
+    point.shipOrigin = pointShipOrigin;
+    point.shipCountry = needsShipCountry ? shipCountry : "";
     point.details = details;
     point.logo = logo;
     point.mediaType = resolvedMediaType;
@@ -1517,7 +1609,8 @@ function handlePointSubmit(event) {
     id,
     name,
     address,
-    shipCountry: isShipEnabled ? shipCountry : "",
+    shipOrigin: pointShipOrigin,
+    shipCountry: needsShipCountry ? shipCountry : "",
     details,
     logo,
     mediaType: resolvedMediaType,
@@ -1531,12 +1624,16 @@ function handlePointSubmit(event) {
 }
 
 function fillPointForm(point) {
+  const region = getSelectedRegion();
   editingPointId = point.id;
   pointIdTouched = true;
   els.pointEditingId.value = point.id;
   els.pointId.value = point.id || "";
   els.pointName.value = point.name || "";
   els.pointAddress.value = point.address || "";
+  if (els.pointShipOrigin) {
+    els.pointShipOrigin.value = resolvePointShipOrigin(point, region);
+  }
   if (els.pointShipCountry) {
     els.pointShipCountry.value = point.shipCountry || "";
   }
@@ -1545,6 +1642,7 @@ function fillPointForm(point) {
   els.pointMediaType.value = resolvePointMediaType(point.mediaType, point.mediaUrl);
   els.pointMediaUrl.value = point.mediaUrl || "";
   els.pointStars.value = String(clampStars(point.stars));
+  setPointLogoStatus("");
   setPointMediaStatus("");
 
   els.pointForm.querySelectorAll("input[name='services']").forEach((checkbox) => {
@@ -1568,20 +1666,28 @@ function fillPointForm(point) {
 }
 
 function resetPointForm() {
+  const region = getSelectedRegion();
   editingPointId = null;
   pointIdTouched = false;
   els.pointEditingId.value = "";
   els.pointForm.reset();
   els.pointMediaType.value = "none";
   els.pointMediaUrl.value = "";
+  if (els.pointLogoFileInput) {
+    els.pointLogoFileInput.value = "";
+  }
   if (els.pointMediaFileInput) {
     els.pointMediaFileInput.value = "";
   }
+  setPointLogoStatus("");
   setPointMediaStatus("");
   els.pointStars.value = "0";
   els.pointForm
     .querySelectorAll("input[name='services']")
     .forEach((checkbox) => (checkbox.checked = checkbox.value === "meetup"));
+  if (els.pointShipOrigin) {
+    els.pointShipOrigin.value = getRegionShipOrigin(region);
+  }
   if (els.pointShipCountry) {
     els.pointShipCountry.value = "";
   }
@@ -1636,6 +1742,7 @@ function serializePointFormState() {
     id: els.pointId.value.trim(),
     name: els.pointName.value.trim(),
     address: els.pointAddress.value.trim(),
+    shipOrigin: normalizeShipOrigin(els.pointShipOrigin?.value),
     shipCountry: String(els.pointShipCountry?.value || "").trim(),
     details: els.pointDetails.value.trim(),
     logo: els.pointLogo.value.trim(),
@@ -1686,6 +1793,7 @@ function clearPointFormErrors() {
 
 function revealPointFieldError(target, message) {
   setStatus(message, "error");
+  openAdminPanel(els.pointsPanelFold);
   if (!target || !(target instanceof HTMLElement)) return;
 
   const collapsible = target.closest(".admin-collapsible");
@@ -1860,8 +1968,14 @@ function validatePointShipCountryInline() {
   if (!field) return { valid: true, message: "" };
 
   const region = getSelectedRegion();
-  const isRequired = Boolean(region) && hasShipServiceSelected() && getRegionShipOrigin(region) === "eu";
+  const shipSelected = hasShipServiceSelected();
+  const pointShipOrigin = normalizeShipOrigin(els.pointShipOrigin?.value);
+  const isRequired = Boolean(region) && shipSelected && pointShipOrigin === "eu";
   const value = String(field.value || "").trim();
+
+  if (!region || !shipSelected) {
+    return setInlineFieldValidation(field, "neutral", "Attiva il servizio Ship per scegliere il paese.");
+  }
 
   if (!isRequired) {
     return setInlineFieldValidation(field, "neutral", "Richiesto solo per punti Ship da altri paesi UE.");
@@ -2012,8 +2126,10 @@ function renderPointPreview() {
   const services = Array.from(els.pointForm.querySelectorAll("input[name='services']:checked")).map(
     (input) => input.value
   );
-  const regionShipOrigin = getRegionShipOrigin(region);
-  const showShipCountry = services.includes("ship") && regionShipOrigin === "eu";
+  const pointShipOrigin = getPointShipOriginValue();
+  const hasShipService = services.includes("ship");
+  const shipOriginLabel = getShipOriginLabel(pointShipOrigin);
+  const showShipCountry = hasShipService && pointShipOrigin === "eu";
   const socials = Array.from(els.socialRows.querySelectorAll(".social-row"))
     .map((row) => row.querySelector(".social-label")?.value.trim() || "")
     .filter(Boolean);
@@ -2042,6 +2158,7 @@ function renderPointPreview() {
         <div>
           <p class="preview-name">${escapeHtml(name || "Nuovo punto")}</p>
           <p class="preview-meta">${escapeHtml(address || "Indirizzo non specificato")}</p>
+          ${hasShipService ? `<p class="preview-meta">Origine Ship: ${escapeHtml(shipOriginLabel)}</p>` : ""}
           ${
             showShipCountry
               ? `<p class="preview-meta">Paese Ship: ${escapeHtml(shipCountry || "Non impostato")}</p>`
@@ -2109,6 +2226,68 @@ async function handlePointMediaUpload() {
     setPointMediaStatus(error?.message || "Caricamento fallito. Riprova con un altro file.", "error");
   } finally {
     els.pointMediaFileInput.value = "";
+  }
+}
+
+async function handlePointLogoUpload() {
+  const file = els.pointLogoFileInput?.files?.[0];
+  if (!file) return;
+
+  const mimeType = resolveUploadMimeType(file);
+  if (!mimeType.startsWith("image/")) {
+    setPointLogoStatus("Formato non supportato. Usa un'immagine (JPG, PNG, WEBP, GIF).", "error");
+    els.pointLogoFileInput.value = "";
+    return;
+  }
+
+  if (file.size > MEDIA_FILE_LIMIT_BYTES) {
+    setPointLogoStatus(`File troppo grande (${formatBytes(file.size)}). Limite: ${formatBytes(MEDIA_FILE_LIMIT_BYTES)}.`, "error");
+    els.pointLogoFileInput.value = "";
+    return;
+  }
+
+  try {
+    setPointLogoStatus("Caricamento logo in corso...");
+    const dataUrl = await readFileAsDataUrl(file);
+    const base64 = extractBase64Payload(dataUrl);
+    const payload = await apiRequest(API.uploadMedia, {
+      method: "POST",
+      requiresCsrf: true,
+      body: {
+        fileName: file.name,
+        mimeType,
+        base64,
+      },
+    });
+
+    if (payload?.csrfToken) {
+      csrfToken = payload.csrfToken;
+    }
+
+    const uploadedUrl = String(payload?.url || "").trim();
+    if (!uploadedUrl) {
+      throw new Error("URL logo non ricevuto dal server.");
+    }
+
+    els.pointLogo.value = uploadedUrl;
+    setPointLogoStatus(`Logo caricato: ${file.name} (${formatBytes(file.size)})`, "success");
+    validatePointLogoInline();
+    renderPointPreview();
+    updatePointFormDirtyState();
+  } catch (error) {
+    setPointLogoStatus(error?.message || "Caricamento logo fallito. Riprova con un altro file.", "error");
+  } finally {
+    els.pointLogoFileInput.value = "";
+  }
+}
+
+function setPointLogoStatus(message, tone = "") {
+  if (!els.pointLogoStatus) return;
+  els.pointLogoStatus.textContent = message || "";
+  if (tone) {
+    els.pointLogoStatus.dataset.tone = tone;
+  } else {
+    delete els.pointLogoStatus.dataset.tone;
   }
 }
 
@@ -2409,6 +2588,18 @@ function getShipOriginLabel(originValue) {
   return normalizeShipOrigin(originValue) === "eu" ? "UE" : "Italia";
 }
 
+function resolvePointShipOrigin(point, region = getSelectedRegion()) {
+  return normalizeShipOrigin(point?.shipOrigin || region?.shipOrigin);
+}
+
+function getPointShipOriginLabel(point, region = getSelectedRegion()) {
+  return getShipOriginLabel(resolvePointShipOrigin(point, region));
+}
+
+function getPointShipOriginValue() {
+  return normalizeShipOrigin(els.pointShipOrigin?.value);
+}
+
 function hasShipServiceSelected() {
   return Array.from(els.pointForm.querySelectorAll("input[name='services']:checked")).some(
     (input) => input.value === "ship"
@@ -2416,19 +2607,35 @@ function hasShipServiceSelected() {
 }
 
 function syncShipCountryFieldState() {
+  const hasRegion = Boolean(getSelectedRegion());
+  const shipSelected = hasRegion && hasShipServiceSelected();
+
+  if (els.pointShipOrigin) {
+    els.pointShipOrigin.disabled = !shipSelected;
+    els.pointShipOrigin.required = shipSelected;
+
+    const originWrapper = els.pointShipOrigin.closest("label");
+    if (originWrapper) {
+      originWrapper.classList.toggle("admin-field-disabled", !shipSelected);
+    }
+
+    if (!shipSelected) {
+      els.pointShipOrigin.value = "italy";
+    }
+  }
+
   if (!els.pointShipCountry) return;
 
-  const region = getSelectedRegion();
-  const shouldEnable = Boolean(region) && hasShipServiceSelected() && getRegionShipOrigin(region) === "eu";
-  els.pointShipCountry.disabled = !shouldEnable;
-  els.pointShipCountry.required = shouldEnable;
+  const shouldEnableCountry = shipSelected && getPointShipOriginValue() === "eu";
+  els.pointShipCountry.disabled = !shouldEnableCountry;
+  els.pointShipCountry.required = shouldEnableCountry;
 
   const wrapper = els.pointShipCountry.closest("label");
   if (wrapper) {
-    wrapper.classList.toggle("admin-field-disabled", !shouldEnable);
+    wrapper.classList.toggle("admin-field-disabled", !shouldEnableCountry);
   }
 
-  if (!shouldEnable) {
+  if (!shouldEnableCountry) {
     els.pointShipCountry.value = "";
   }
 }

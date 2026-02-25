@@ -260,6 +260,84 @@ body {
   margin: 0;
 }
 
+.admin-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-panel-fold {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.admin-panel-fold-summary {
+  list-style: none;
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+  padding: 14px 16px;
+  background: linear-gradient(145deg, rgba(29, 23, 16, 0.85), rgba(13, 12, 10, 0.9));
+  border-bottom: 1px solid rgba(217, 161, 88, 0.22);
+  position: relative;
+}
+
+.admin-panel-fold-summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-panel-fold-summary::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid rgba(241, 207, 159, 0.86);
+  border-bottom: 2px solid rgba(241, 207, 159, 0.86);
+  transform: translateY(-60%) rotate(45deg);
+  transition: transform 180ms ease;
+}
+
+.admin-panel-fold:not([open]) .admin-panel-fold-summary::after {
+  transform: translateY(-42%) rotate(-45deg);
+}
+
+.admin-panel-fold-summary:focus-visible {
+  outline: 2px solid rgba(217, 161, 88, 0.76);
+  outline-offset: -2px;
+}
+
+.admin-panel-fold-title {
+  display: block;
+  margin-right: 28px;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.16rem;
+  letter-spacing: 0.06em;
+  color: rgba(241, 207, 159, 0.95);
+  line-height: 1;
+}
+
+.admin-panel-fold-hint {
+  display: block;
+  margin-right: 28px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.admin-panel-fold-body {
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.admin-panel-fold-body > .admin-card-head {
+  margin-bottom: 2px;
+}
+
 .admin-hint {
   margin: 0;
   font-size: 0.82rem;
@@ -571,6 +649,10 @@ body {
   display: grid;
   gap: 10px;
   align-content: start;
+  border: 1px solid rgba(217, 161, 88, 0.22);
+  border-radius: 12px;
+  background: rgba(16, 13, 11, 0.52);
+  padding: 10px;
 }
 
 .admin-toolbar {
@@ -1165,6 +1247,18 @@ body {
   .panel,
   .admin-auth-card {
     padding: 14px;
+  }
+
+  .admin-panel {
+    padding: 0;
+  }
+
+  .admin-panel-fold-summary {
+    padding: 12px 13px;
+  }
+
+  .admin-panel-fold-body {
+    padding: 12px;
   }
 
   .admin-app {

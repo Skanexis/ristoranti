@@ -465,10 +465,9 @@ function getActiveShipPointsByZone(zoneId) {
 
   const result = [];
   for (const region of appData.regions || []) {
-    if (resolveShipZoneForRegion(region) !== normalizedZone) continue;
-
     const regionPoints = getActivePointsByRegion(region.id, "ship");
     for (const point of regionPoints) {
+      if (resolveShipZoneForPoint(point, region) !== normalizedZone) continue;
       result.push({
         ...point,
         regionName: region.name,
@@ -479,9 +478,12 @@ function getActiveShipPointsByZone(zoneId) {
   return result;
 }
 
-function resolveShipZoneForRegion(region) {
-  const explicitZone = normalizeShipZoneId(region?.shipOrigin);
+function resolveShipZoneForPoint(point, region) {
+  const explicitZone = normalizeShipZoneId(point?.shipOrigin);
   if (explicitZone) return explicitZone;
+
+  const regionZone = normalizeShipZoneId(region?.shipOrigin);
+  if (regionZone) return regionZone;
 
   const probe = `${region?.id || ""} ${region?.name || ""} ${region?.hubs || ""}`.toLowerCase();
   if (/\b(ue|eu|unione europea|european union)\b/.test(probe)) {
