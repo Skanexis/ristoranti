@@ -90,6 +90,7 @@ const els = {
   pointCreateNew: document.getElementById("pointCreateNew"),
   pointsContextHint: document.getElementById("pointsContextHint"),
   pointForm: document.getElementById("pointForm"),
+  pointsEditorWrap: document.querySelector("#pointsPanel .points-editor-wrap"),
   pointEditingId: document.getElementById("pointEditingId"),
   pointId: document.getElementById("pointId"),
   pointName: document.getElementById("pointName"),
@@ -114,6 +115,7 @@ const els = {
   pointSubmitBtn: document.getElementById("pointSubmitBtn"),
   pointFormStickyBar: document.getElementById("pointFormStickyBar"),
   pointFormDirtyState: document.getElementById("pointFormDirtyState"),
+  pointBlockIdentity: document.getElementById("pointBlockIdentity"),
   socialRows: document.getElementById("socialRows"),
   addSocialBtn: document.getElementById("addSocialBtn"),
   clearSocialsBtn: document.getElementById("clearSocialsBtn"),
@@ -278,6 +280,26 @@ function openAdminPanel(panelElement) {
   }
 }
 
+function focusPointEditorForm(field = els.pointName) {
+  openAdminPanel(els.pointsPanelFold);
+  if (els.pointBlockIdentity) {
+    els.pointBlockIdentity.open = true;
+  }
+
+  const editorTarget = els.pointsEditorWrap || els.pointForm;
+  if (editorTarget && typeof editorTarget.scrollIntoView === "function") {
+    editorTarget.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "nearest",
+    });
+  }
+
+  window.setTimeout(() => {
+    safeFocus(field);
+  }, 180);
+}
+
 function getPanelFoldBySectionId(sectionId) {
   if (sectionId === "servicesPanel") return els.servicesPanelFold;
   if (sectionId === "regionsPanel") return els.regionsPanelFold;
@@ -366,9 +388,8 @@ function bindAdminEvents() {
         setStatus("Crea o seleziona una regione prima di aggiungere un punto.", "error");
         return;
       }
-      openAdminPanel(els.pointsPanelFold);
       resetPointForm();
-      safeFocus(els.pointName);
+      focusPointEditorForm(els.pointName);
     });
   }
 
@@ -1196,9 +1217,8 @@ function handlePointActions(event) {
   const point = region.activePoints[pointIndex];
 
   if (action === "edit") {
-    openAdminPanel(els.pointsPanelFold);
     fillPointForm(point);
-    safeFocus(els.pointName);
+    focusPointEditorForm(els.pointName);
     setStatus(`Modifica punto: ${point.name}`, "warn");
     return;
   }

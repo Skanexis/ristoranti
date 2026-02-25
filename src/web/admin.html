@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css?v=20260225-6" />
-    <link rel="stylesheet" href="./admin.css?v=20260225-8" />
+    <link rel="stylesheet" href="./admin.css?v=20260225-10" />
   </head>
   <body>
     <section id="adminAuthGate" class="admin-auth-gate" aria-live="polite">
@@ -296,7 +296,7 @@
                     <form id="pointForm" class="admin-form">
                   <input type="hidden" id="pointEditingId" />
                   <p id="pointFormTitle" class="form-mode">Nuovo punto</p>
-                  <details class="admin-form-block admin-collapsible">
+                  <details id="pointBlockIdentity" class="admin-form-block admin-collapsible">
                     <summary class="admin-collapsible-summary">
                       <span class="admin-block-title">Identita punto</span>
                     </summary>
@@ -314,7 +314,7 @@
                     </label>
                   </details>
 
-                  <details class="admin-form-block admin-collapsible">
+                  <details id="pointBlockBranding" class="admin-form-block admin-collapsible">
                     <summary class="admin-collapsible-summary">
                       <span class="admin-block-title">Branding e media</span>
                     </summary>
@@ -363,7 +363,7 @@
                     <p id="pointMediaStatus" class="admin-hint admin-media-status" role="status" aria-live="polite"></p>
                   </details>
 
-                  <details class="admin-form-block admin-collapsible">
+                  <details id="pointBlockOperations" class="admin-form-block admin-collapsible">
                     <summary class="admin-collapsible-summary">
                       <span class="admin-block-title">Operativita</span>
                     </summary>
@@ -399,7 +399,7 @@
                     </label>
                   </details>
 
-                  <details class="admin-form-block admin-socials admin-collapsible">
+                  <details id="pointBlockSocials" class="admin-form-block admin-socials admin-collapsible">
                     <summary class="admin-collapsible-summary">
                       <span class="admin-block-title">Social links</span>
                     </summary>
