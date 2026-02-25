@@ -969,6 +969,7 @@ h2 {
 }
 
 .point-logo {
+  position: relative;
   width: 96px;
   height: 96px;
   border-radius: 16px;
@@ -978,6 +979,23 @@ h2 {
   display: grid;
   place-items: center;
   justify-self: center;
+  isolation: isolate;
+}
+
+.point-logo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, rgba(255, 221, 159, 0.03) 20%, rgba(255, 221, 159, 0.2) 46%, rgba(255, 221, 159, 0.03) 72%);
+  transform: translateX(-120%);
+  transition: opacity 140ms ease;
+}
+
+.point-logo.is-loading::after {
+  opacity: 1;
+  animation: logoShimmer 1.08s linear infinite;
 }
 
 .point-logo img {
@@ -986,6 +1004,12 @@ h2 {
   object-fit: cover;
   object-position: center center;
   display: block;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.point-logo img.is-ready {
+  opacity: 1;
 }
 
 .point-logo img.point-logo-img--contain {
@@ -995,11 +1019,24 @@ h2 {
   background: radial-gradient(circle at 50% 28%, rgba(255, 224, 160, 0.1), rgba(14, 11, 9, 0.66));
 }
 
+.point-logo img.point-logo-img--boost {
+  object-fit: cover;
+  object-position: var(--logo-focus-x, 50%) var(--logo-focus-y, 50%);
+  transform: scale(var(--logo-zoom, 1));
+  transform-origin: center center;
+}
+
 .point-logo-fallback {
   font-family: "Bebas Neue", sans-serif;
   font-size: 1.3rem;
   letter-spacing: 0.08em;
   color: var(--gold-soft);
+}
+
+@keyframes logoShimmer {
+  to {
+    transform: translateX(120%);
+  }
 }
 
 .point-name {

@@ -18,6 +18,9 @@ const SHIP_ZONES = [
   },
 ];
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
+const LOGO_PREFETCH_LIMIT = 6;
+const warmedLogoOrigins = new Set();
+const prefetchedLogoUrls = new Set();
 
 let appData = fallbackData();
 
@@ -400,6 +403,7 @@ function renderPointsStep() {
   }
 
   activePoints = sortPointsByStarsPriority(activePoints);
+  prefetchPointLogos(activePoints);
 
   if (activePoints.length === 0) {
     els.pointsContent.innerHTML = `
@@ -412,7 +416,7 @@ function renderPointsStep() {
   }
 
   const cards = activePoints
-    .map((point) => {
+    .map((point, index) => {
       const socials = Array.isArray(point.socials)
         ? point.socials
             .map(
@@ -425,9 +429,15 @@ function renderPointsStep() {
             .join("")
         : "";
 
+      const fallbackInitials = getInitials(point.name);
+      const priorityLogo = index < 4;
       const logoHtml = point.logo
-        ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" loading="lazy" />`
-        : `<span class="point-logo-fallback">${escapeHtml(getInitials(point.name))}</span>`;
+        ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" loading="${
+            priorityLogo ? "eager" : "lazy"
+          }" decoding="async" fetchpriority="${priorityLogo ? "high" : "auto"}" data-logo-fallback="${escapeHtmlAttr(
+            fallbackInitials
+          )}" />`
+        : `<span class="point-logo-fallback">${escapeHtml(fallbackInitials)}</span>`;
       const mediaType = resolvePointMediaType(point.mediaType, point.mediaUrl);
       const mediaHtml = buildPointMediaMarkup(mediaType, point.mediaUrl, point.name);
       const shipCountryText = getPointShipCountryText(point);
@@ -608,6 +618,7 @@ function focusStepIfNeeded(stepElement, options = {}) {
   if (!stepElement || stepElement.classList.contains("hidden")) return;
 
   const focusSelector = options.focusSelector || "";
+  const shouldProgrammaticFocus = !isCoarsePointerDevice();
 
   const applyFocus = () => {
     const target = focusSelector ? stepElement.querySelector(focusSelector) : stepElement;
@@ -631,11 +642,15 @@ function focusStepIfNeeded(stepElement, options = {}) {
       block: "start",
       inline: "nearest",
     });
-    window.setTimeout(applyFocus, 280);
+    if (shouldProgrammaticFocus) {
+      window.setTimeout(applyFocus, 280);
+    }
     return;
   }
 
-  applyFocus();
+  if (shouldProgrammaticFocus) {
+    applyFocus();
+  }
 }
 
 function triggerSelectionHaptic() {
@@ -695,16 +710,70 @@ function buildPointMediaMarkup(mediaType, mediaUrl, pointName) {
   return `<img src="${escapeHtmlAttr(safeUrl)}" alt="Media ${escapeHtmlAttr(pointName || "punto")}" loading="lazy" />`;
 }
 
+function prefetchPointLogos(points) {
+  if (!Array.isArray(points) || points.length === 0) return;
+
+  points
+    .map((point) => String(point?.logo || "").trim())
+    .filter(isHttpUrl)
+    .slice(0, LOGO_PREFETCH_LIMIT)
+    .forEach((url) => {
+      if (prefetchedLogoUrls.has(url)) return;
+      prefetchedLogoUrls.add(url);
+      warmLogoOrigin(url);
+
+      const probe = new Image();
+      probe.decoding = "async";
+      probe.src = url;
+    });
+}
+
+function warmLogoOrigin(url) {
+  try {
+    const parsed = new URL(url);
+    const origin = parsed.origin;
+    if (!origin || warmedLogoOrigins.has(origin)) return;
+
+    warmedLogoOrigins.add(origin);
+    const preconnect = document.createElement("link");
+    preconnect.rel = "preconnect";
+    preconnect.href = origin;
+    preconnect.crossOrigin = "anonymous";
+    document.head.appendChild(preconnect);
+  } catch {
+    // Ignore malformed URL.
+  }
+}
+
 function applySmartLogoFit(scope = document) {
   const host = scope instanceof HTMLElement ? scope : document;
   const logos = host.querySelectorAll(".point-logo img");
 
   logos.forEach((img) => {
     if (!(img instanceof HTMLImageElement)) return;
+    const wrap = img.closest(".point-logo");
+    wrap?.classList.add("is-loading");
+    img.classList.remove("is-ready");
 
     const apply = () => {
-      const mode = resolveLogoFitMode(img);
+      const frame = analyzeLogoContentFrame(img);
+      const boost = shouldBoostLogoFrame(frame);
+      const mode = boost ? "cover" : resolveLogoFitMode(img);
+
       img.classList.toggle("point-logo-img--contain", mode === "contain");
+      img.classList.toggle("point-logo-img--boost", boost);
+      if (boost && frame) {
+        img.style.setProperty("--logo-focus-x", `${(frame.centerX * 100).toFixed(2)}%`);
+        img.style.setProperty("--logo-focus-y", `${(frame.centerY * 100).toFixed(2)}%`);
+        img.style.setProperty("--logo-zoom", calculateLogoBoostScale(frame).toFixed(2));
+      } else {
+        img.style.removeProperty("--logo-focus-x");
+        img.style.removeProperty("--logo-focus-y");
+        img.style.removeProperty("--logo-zoom");
+      }
+
+      img.classList.add("is-ready");
+      wrap?.classList.remove("is-loading");
     };
 
     if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
@@ -716,7 +785,13 @@ function applySmartLogoFit(scope = document) {
     img.addEventListener(
       "error",
       () => {
-        img.classList.remove("point-logo-img--contain");
+        const fallback = String(img.dataset.logoFallback || "PT")
+          .slice(0, 2)
+          .toUpperCase();
+        if (wrap) {
+          wrap.innerHTML = `<span class="point-logo-fallback">${escapeHtml(fallback)}</span>`;
+          wrap.classList.remove("is-loading");
+        }
       },
       { once: true }
     );
@@ -738,6 +813,83 @@ function resolveLogoFitMode(image) {
   return "cover";
 }
 
+function analyzeLogoContentFrame(image) {
+  const width = Number(image?.naturalWidth || 0);
+  const height = Number(image?.naturalHeight || 0);
+  if (!width || !height) return null;
+
+  const sampleSize = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = sampleSize;
+  canvas.height = sampleSize;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+
+  let data;
+  try {
+    ctx.drawImage(image, 0, 0, sampleSize, sampleSize);
+    data = ctx.getImageData(0, 0, sampleSize, sampleSize).data;
+  } catch {
+    return null;
+  }
+
+  let minX = sampleSize;
+  let minY = sampleSize;
+  let maxX = -1;
+  let maxY = -1;
+  let detected = 0;
+
+  for (let y = 0; y < sampleSize; y += 1) {
+    for (let x = 0; x < sampleSize; x += 1) {
+      const idx = (y * sampleSize + x) * 4;
+      const alpha = data[idx + 3];
+      if (alpha < 18) continue;
+
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      const brightness = (r + g + b) / 3;
+      const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+      const isContentPixel = brightness > 26 || saturation > 16;
+      if (!isContentPixel) continue;
+
+      detected += 1;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    }
+  }
+
+  if (detected < sampleSize) return null;
+
+  const boxWidth = maxX - minX + 1;
+  const boxHeight = maxY - minY + 1;
+  const coverageX = boxWidth / sampleSize;
+  const coverageY = boxHeight / sampleSize;
+
+  return {
+    coverageX,
+    coverageY,
+    area: coverageX * coverageY,
+    centerX: (minX + maxX + 1) / (2 * sampleSize),
+    centerY: (minY + maxY + 1) / (2 * sampleSize),
+  };
+}
+
+function shouldBoostLogoFrame(frame) {
+  if (!frame) return false;
+  return frame.area < 0.46 || frame.coverageX < 0.62 || frame.coverageY < 0.62;
+}
+
+function calculateLogoBoostScale(frame) {
+  if (!frame) return 1;
+  const targetCoverage = 0.86;
+  const dominantCoverage = Math.max(frame.coverageX, frame.coverageY, 0.01);
+  const rawScale = targetCoverage / dominantCoverage;
+  return clampNumber(rawScale, 1.08, 2.05);
+}
+
 function buildStarMeter(stars) {
   const hasStar = clampStars(stars) === 1;
   if (!hasStar) {
@@ -757,6 +909,23 @@ function clampStars(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return 0;
   return Math.max(0, Math.min(1, Math.round(num)));
+}
+
+function clampNumber(value, minValue, maxValue) {
+  return Math.max(minValue, Math.min(maxValue, value));
+}
+
+function isCoarsePointerDevice() {
+  return Boolean(window.matchMedia?.("(pointer: coarse)").matches);
+}
+
+function isHttpUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
 }
 
 function normalizeTelegramChannelUrl(value) {
