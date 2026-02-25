@@ -583,9 +583,13 @@ function setupMobilePreloader() {
   const configuredFallbackSource = normalizeAssetPath(preloaderVideo.dataset.preloadFallback);
   const primarySource = configuredPrimarySource || PRELOADER_PRIMARY_VIDEO_SRC;
   const fallbackSource = configuredFallbackSource || PRELOADER_FALLBACK_VIDEO_SRC;
-  const preferLightVideo = shouldPreferLightPreloadVideo();
+  const isIosTelegramWebView = isTelegramIosWebView();
+  const preferLightVideo = isIosTelegramWebView || shouldPreferLightPreloadVideo();
 
-  const sourceCandidates = getOrderedPreloaderSources(primarySource, fallbackSource, preferLightVideo);
+  const sourceCandidates = getOrderedPreloaderSources(primarySource, fallbackSource, {
+    preferLightVideo,
+    forceFallbackOnly: isIosTelegramWebView,
+  });
   if (sourceCandidates.length === 0) {
     revealImmediately();
     return;
@@ -799,8 +803,14 @@ function setupMobilePreloader() {
   }
 }
 
-function getOrderedPreloaderSources(primarySource, fallbackSource, preferLightVideo = false) {
-  const ordered = preferLightVideo ? [fallbackSource, primarySource] : [primarySource, fallbackSource];
+function getOrderedPreloaderSources(primarySource, fallbackSource, options = {}) {
+  const preferLightVideo = Boolean(options?.preferLightVideo);
+  const forceFallbackOnly = Boolean(options?.forceFallbackOnly);
+  const ordered = forceFallbackOnly
+    ? [fallbackSource]
+    : preferLightVideo
+      ? [fallbackSource, primarySource]
+      : [primarySource, fallbackSource];
   const result = [];
 
   for (const candidate of ordered) {
@@ -810,6 +820,17 @@ function getOrderedPreloaderSources(primarySource, fallbackSource, preferLightVi
   }
 
   return result;
+}
+
+function isTelegramIosWebView() {
+  const ua = String(navigator.userAgent || "");
+  const isTelegram = /Telegram/i.test(ua) || Boolean(window.Telegram?.WebApp);
+  if (!isTelegram) return false;
+
+  const isIosDevice =
+    /iPhone|iPad|iPod/i.test(ua) ||
+    (navigator.platform === "MacIntel" && Number(navigator.maxTouchPoints || 0) > 1);
+  return isIosDevice;
 }
 
 function shouldPreferLightPreloadVideo() {
