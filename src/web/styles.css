@@ -1010,6 +1010,15 @@ h2 {
   line-height: 1.28;
 }
 
+.point-ship-country {
+  margin: 4px 0 0;
+  color: var(--gold-soft);
+  font-size: 0.68rem;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .point-media {
   height: 58px;
   border-radius: 12px;
@@ -1298,17 +1307,15 @@ select:focus-visible,
   pointer-events: none;
   --float-right: max(10px, env(safe-area-inset-right));
   --float-bottom: calc(12px + env(safe-area-inset-bottom));
-  --chat-size: 52px;
-  --top-size: 36px;
-  --float-gap: 9px;
+  --float-size: 40px;
 }
 
 .floating-btn {
   position: fixed;
   right: var(--float-right);
-  width: var(--chat-size);
-  height: var(--chat-size);
-  border-radius: 14px;
+  width: var(--float-size);
+  height: var(--float-size);
+  border-radius: 999px;
   border: 1px solid rgba(217, 161, 88, 0.44);
   background: linear-gradient(145deg, rgba(47, 34, 22, 0.9), rgba(17, 13, 10, 0.92));
   color: var(--gold-soft);
@@ -1332,21 +1339,9 @@ select:focus-visible,
   outline-offset: 2px;
 }
 
-.floating-btn-chat svg {
-  width: 23px;
-  height: 23px;
-}
-
-.floating-btn-chat {
-  bottom: var(--float-bottom);
-}
-
 .floating-btn-top {
-  width: var(--top-size);
-  height: var(--top-size);
-  right: calc(var(--float-right) + (var(--chat-size) - var(--top-size)) / 2);
-  bottom: calc(var(--float-bottom) + var(--chat-size) + var(--float-gap));
-  border-radius: 999px;
+  right: var(--float-right);
+  bottom: var(--float-bottom);
   font-family: "Bebas Neue", sans-serif;
   font-size: 1.18rem;
   box-shadow: 0 10px 18px rgba(5, 2, 8, 0.34);
@@ -1587,27 +1582,14 @@ select:focus-visible,
     pointer-events: none;
     --float-right: max(8px, env(safe-area-inset-right));
     --float-bottom: calc(10px + env(safe-area-inset-bottom));
-    --chat-size: 58px;
-    --top-size: 40px;
-    --float-gap: 10px;
-  }
-
-  .floating-btn:not(.floating-btn-top) {
-    width: var(--chat-size);
-    height: var(--chat-size);
-    border-radius: 16px;
-  }
-
-  .floating-btn-chat svg {
-    width: 25px;
-    height: 25px;
+    --float-size: 42px;
   }
 
   .floating-btn-top {
-    width: var(--top-size);
-    height: var(--top-size);
-    right: calc(var(--float-right) + (var(--chat-size) - var(--top-size)) / 2);
-    bottom: calc(var(--float-bottom) + var(--chat-size) + var(--float-gap));
+    width: var(--float-size);
+    height: var(--float-size);
+    right: var(--float-right);
+    bottom: var(--float-bottom);
     border-radius: 999px;
     font-size: 1.16rem;
   }

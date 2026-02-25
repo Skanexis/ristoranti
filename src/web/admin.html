@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260224d" />
-    <link rel="stylesheet" href="./admin.css?v=20260224d" />
+    <link rel="stylesheet" href="./styles.css?v=20260225-6" />
+    <link rel="stylesheet" href="./admin.css?v=20260225-7" />
   </head>
   <body>
     <section id="adminAuthGate" class="admin-auth-gate" aria-live="polite">
@@ -166,6 +166,13 @@
                   Hub principali
                   <input id="regionHubs" type="text" placeholder="Milano, Bergamo" />
                 </label>
+                <label>
+                  Origine Ship
+                  <select id="regionShipOrigin">
+                    <option value="italy">Italia</option>
+                    <option value="eu">Altri paesi UE</option>
+                  </select>
+                </label>
                 <div class="admin-form-actions">
                   <button id="regionSubmitBtn" type="submit" class="admin-btn">Aggiungi regione</button>
                   <button type="button" id="regionCancelEdit" class="admin-btn admin-btn-secondary">Annulla</button>
@@ -229,6 +236,35 @@
                   <h3>Elenco punti</h3>
                   <p id="pointsListCount" class="admin-hint">0 punti</p>
                 </div>
+                <div class="admin-bulk-bar" aria-label="Azioni massive punti">
+                  <p id="bulkSelectionCount" class="admin-hint">Nessun punto selezionato</p>
+                  <div class="admin-bulk-actions">
+                    <button id="bulkSelectVisibleBtn" type="button" class="admin-btn admin-btn-secondary">
+                      Seleziona visibili
+                    </button>
+                    <button id="bulkClearSelectionBtn" type="button" class="admin-btn admin-btn-secondary" disabled>
+                      Pulisci selezione
+                    </button>
+                  </div>
+                  <div class="admin-bulk-service-row">
+                    <label>
+                      Servizio
+                      <select id="bulkServiceSelect">
+                        <option value="meetup">Meetup</option>
+                        <option value="delivery">Delivery</option>
+                        <option value="ship">Ship</option>
+                      </select>
+                    </label>
+                    <label>
+                      Azione
+                      <select id="bulkServiceAction">
+                        <option value="enable">Abilita</option>
+                        <option value="disable">Disabilita</option>
+                      </select>
+                    </label>
+                    <button id="bulkApplyServiceBtn" type="button" class="admin-btn" disabled>Applica ai selezionati</button>
+                  </div>
+                </div>
                 <div id="pointsList" class="admin-list admin-list-points"></div>
               </div>
 
@@ -236,8 +272,10 @@
                 <form id="pointForm" class="admin-form">
                   <input type="hidden" id="pointEditingId" />
                   <p id="pointFormTitle" class="form-mode">Nuovo punto</p>
-                  <section class="admin-form-block">
-                    <h3 class="admin-block-title">Identita punto</h3>
+                  <details class="admin-form-block admin-collapsible" open>
+                    <summary class="admin-collapsible-summary">
+                      <span class="admin-block-title">Identita punto</span>
+                    </summary>
                     <label>
                       ID punto
                       <input id="pointId" type="text" placeholder="es. mi-duomo" required />
@@ -250,10 +288,12 @@
                       Indirizzo
                       <input id="pointAddress" type="text" placeholder="Via Torino 18, Milano" />
                     </label>
-                  </section>
+                  </details>
 
-                  <section class="admin-form-block">
-                    <h3 class="admin-block-title">Branding e media</h3>
+                  <details class="admin-form-block admin-collapsible" open>
+                    <summary class="admin-collapsible-summary">
+                      <span class="admin-block-title">Branding e media</span>
+                    </summary>
                     <label>
                       URL logo punto
                       <input id="pointLogo" type="text" placeholder="https://... oppure /assets/logo.png" />
@@ -287,10 +327,12 @@
                     </div>
                     <p class="admin-hint">Upload diretto consigliato: max 8 MB per file.</p>
                     <p id="pointMediaStatus" class="admin-hint admin-media-status" role="status" aria-live="polite"></p>
-                  </section>
+                  </details>
 
-                  <section class="admin-form-block">
-                    <h3 class="admin-block-title">Operativita</h3>
+                  <details class="admin-form-block admin-collapsible" open>
+                    <summary class="admin-collapsible-summary">
+                      <span class="admin-block-title">Operativita</span>
+                    </summary>
                     <label>
                       Stelle (0-3)
                       <select id="pointStars">
@@ -310,22 +352,34 @@
                       <label><input type="checkbox" name="services" value="delivery" /> Delivery</label>
                       <label><input type="checkbox" name="services" value="ship" /> Ship</label>
                     </fieldset>
-                  </section>
+                    <label>
+                      Paese spedizione (solo Ship da UE)
+                      <input id="pointShipCountry" type="text" placeholder="Es. Spagna, Germania, Francia" />
+                    </label>
+                  </details>
 
-                  <section class="admin-form-block admin-socials">
+                  <details class="admin-form-block admin-socials admin-collapsible">
+                    <summary class="admin-collapsible-summary">
+                      <span class="admin-block-title">Social links</span>
+                    </summary>
                     <div class="admin-socials-head">
-                      <h3>Social links</h3>
                       <div class="admin-form-actions">
                         <button type="button" id="addSocialBtn" class="admin-btn admin-btn-secondary">Aggiungi link</button>
                         <button type="button" id="clearSocialsBtn" class="admin-btn admin-btn-secondary">Pulisci</button>
                       </div>
                     </div>
                     <div id="socialRows" class="social-rows"></div>
-                  </section>
+                  </details>
 
-                  <div class="admin-form-actions">
-                    <button id="pointSubmitBtn" type="submit" class="admin-btn">Aggiungi punto</button>
-                    <button type="button" id="pointCancelEdit" class="admin-btn admin-btn-secondary">Annulla</button>
+                  <div id="pointFormStickyBar" class="point-form-sticky" role="status" aria-live="polite">
+                    <div class="point-form-sticky-main">
+                      <p class="point-form-sticky-label">Stato form</p>
+                      <p id="pointFormDirtyState" class="point-form-dirty-state">Nessuna modifica</p>
+                    </div>
+                    <div class="point-form-sticky-actions">
+                      <button id="pointSubmitBtn" type="submit" class="admin-btn">Aggiungi punto</button>
+                      <button type="button" id="pointCancelEdit" class="admin-btn admin-btn-secondary">Annulla</button>
+                    </div>
                   </div>
                 </form>
 
@@ -368,7 +422,7 @@
       <option value="WhatsApp"></option>
     </datalist>
 
-    <script src="/shared/data-store.js?v=20260224d"></script>
-    <script src="./admin.js?v=20260224d"></script>
+    <script src="/shared/data-store.js?v=20260225-3"></script>
+    <script src="./admin.js?v=20260225-6"></script>
   </body>
 </html>

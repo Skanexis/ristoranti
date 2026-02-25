@@ -210,6 +210,16 @@
     return typeof value === "string" ? value.trim() : "";
   }
 
+  function normalizeShipOrigin(value) {
+    const candidate = sanitizeString(value).toLowerCase();
+    if (candidate === "eu" || candidate === "ue") return "eu";
+    return "italy";
+  }
+
+  function normalizeShipCountry(value) {
+    return sanitizeString(value).slice(0, 64);
+  }
+
   function normalizeMediaType(value) {
     const candidate = sanitizeString(value).toLowerCase();
     if (candidate === "photo" || candidate === "gif" || candidate === "video" || candidate === "none") {
@@ -292,6 +302,7 @@
                   id: sanitizeString(point?.id) || `${regionId}-point-${pointIndex + 1}`,
                   name: sanitizeString(point?.name) || "Nuovo punto",
                   address: sanitizeString(point?.address),
+                  shipCountry: normalizeShipCountry(point?.shipCountry),
                   details: sanitizeString(point?.details),
                   logo: sanitizeString(point?.logo),
                   mediaType,
@@ -307,6 +318,7 @@
             id: regionId,
             name: sanitizeString(region?.name) || `Regione ${index + 1}`,
             hubs: sanitizeString(region?.hubs),
+            shipOrigin: normalizeShipOrigin(region?.shipOrigin),
             activePoints,
           };
         })

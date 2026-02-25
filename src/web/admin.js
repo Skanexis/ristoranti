@@ -15,6 +15,8 @@ const API = {
 };
 const MEDIA_FILE_LIMIT_BYTES = 8 * 1024 * 1024;
 const MEDIA_TYPES = ["none", "photo", "gif", "video"];
+const SHIP_ORIGINS = ["italy", "eu"];
+const POINT_SERVICES = ["meetup", "delivery", "ship"];
 
 const defaultServiceLabels = store?.getDefaultData?.()?.serviceLabels ?? FALLBACK_SERVICE_LABELS;
 const defaultSupportTelegramUrl =
@@ -32,6 +34,11 @@ let pointIdTouched = false;
 let statusTimer = null;
 let isAdminBooted = false;
 let csrfToken = "";
+let pointFormSnapshot = "";
+let inlineHintCounter = 0;
+let draggedRegionId = "";
+let draggedPointId = "";
+let selectedPointIds = new Set();
 
 const els = {
   adminAuthGate: document.getElementById("adminAuthGate"),
@@ -62,6 +69,7 @@ const els = {
   regionId: document.getElementById("regionId"),
   regionName: document.getElementById("regionName"),
   regionHubs: document.getElementById("regionHubs"),
+  regionShipOrigin: document.getElementById("regionShipOrigin"),
   regionCancelEdit: document.getElementById("regionCancelEdit"),
   regionList: document.getElementById("regionList"),
   regionSearch: document.getElementById("regionSearch"),
@@ -81,6 +89,7 @@ const els = {
   pointId: document.getElementById("pointId"),
   pointName: document.getElementById("pointName"),
   pointAddress: document.getElementById("pointAddress"),
+  pointShipCountry: document.getElementById("pointShipCountry"),
   pointDetails: document.getElementById("pointDetails"),
   pointLogo: document.getElementById("pointLogo"),
   pointMediaType: document.getElementById("pointMediaType"),
@@ -93,9 +102,17 @@ const els = {
   pointCancelEdit: document.getElementById("pointCancelEdit"),
   pointFormTitle: document.getElementById("pointFormTitle"),
   pointSubmitBtn: document.getElementById("pointSubmitBtn"),
+  pointFormStickyBar: document.getElementById("pointFormStickyBar"),
+  pointFormDirtyState: document.getElementById("pointFormDirtyState"),
   socialRows: document.getElementById("socialRows"),
   addSocialBtn: document.getElementById("addSocialBtn"),
   clearSocialsBtn: document.getElementById("clearSocialsBtn"),
+  bulkSelectionCount: document.getElementById("bulkSelectionCount"),
+  bulkSelectVisibleBtn: document.getElementById("bulkSelectVisibleBtn"),
+  bulkClearSelectionBtn: document.getElementById("bulkClearSelectionBtn"),
+  bulkServiceSelect: document.getElementById("bulkServiceSelect"),
+  bulkServiceAction: document.getElementById("bulkServiceAction"),
+  bulkApplyServiceBtn: document.getElementById("bulkApplyServiceBtn"),
   pointsList: document.getElementById("pointsList"),
   pointsListCount: document.getElementById("pointsListCount"),
   pointPreview: document.getElementById("pointPreview"),
@@ -148,6 +165,7 @@ function bootAdmin() {
   bindAdminEvents();
   resetRegionForm();
   resetPointForm();
+  setupPointFormCollapsibles();
   refreshAdminUI();
   setStatus("Admin center pronto.", "success");
 }
@@ -247,10 +265,21 @@ function bindAdminEvents() {
 
   els.servicesForm.addEventListener("submit", handleServicesSubmit);
   els.resetServicesBtn.addEventListener("click", handleServicesReset);
+  els.serviceSupportTelegram.addEventListener("input", () => {
+    validateSupportTelegramInline();
+  });
+  els.serviceSupportTelegram.addEventListener("blur", () => {
+    validateSupportTelegramInline();
+  });
 
   els.regionForm.addEventListener("submit", handleRegionSubmit);
   els.regionCancelEdit.addEventListener("click", resetRegionForm);
   els.regionList.addEventListener("click", handleRegionActions);
+  els.regionList.addEventListener("dragstart", handleRegionDragStart);
+  els.regionList.addEventListener("dragover", handleRegionDragOver);
+  els.regionList.addEventListener("drop", handleRegionDrop);
+  els.regionList.addEventListener("dragend", clearRegionDragState);
+  els.regionList.addEventListener("dragleave", handleRegionDragLeave);
   els.regionId.addEventListener("input", () => {
     regionIdTouched = true;
   });
@@ -273,7 +302,10 @@ function bindAdminEvents() {
 
   els.pointRegionSelect.addEventListener("change", () => {
     editingPointId = null;
+    selectedPointIds.clear();
     resetPointForm();
+    syncShipCountryFieldState();
+    validatePointShipCountryInline();
     renderRegionList();
     renderPointsList();
     renderPointsContext();
@@ -295,28 +327,83 @@ function bindAdminEvents() {
   }
 
   els.pointForm.addEventListener("submit", handlePointSubmit);
-  els.pointCancelEdit.addEventListener("click", resetPointForm);
+  els.pointCancelEdit.addEventListener("click", handlePointCancelEdit);
   els.pointsList.addEventListener("click", handlePointActions);
+  els.pointsList.addEventListener("change", handlePointSelectionChange);
+  els.pointsList.addEventListener("dragstart", handlePointDragStart);
+  els.pointsList.addEventListener("dragover", handlePointDragOver);
+  els.pointsList.addEventListener("drop", handlePointDrop);
+  els.pointsList.addEventListener("dragend", clearPointDragState);
+  els.pointsList.addEventListener("dragleave", handlePointDragLeave);
+  els.pointForm.addEventListener("input", clearPointFormErrors);
+  els.pointForm.addEventListener("change", clearPointFormErrors);
+
+  if (els.bulkSelectVisibleBtn) {
+    els.bulkSelectVisibleBtn.addEventListener("click", handleBulkSelectVisible);
+  }
+  if (els.bulkClearSelectionBtn) {
+    els.bulkClearSelectionBtn.addEventListener("click", handleBulkClearSelection);
+  }
+  if (els.bulkApplyServiceBtn) {
+    els.bulkApplyServiceBtn.addEventListener("click", handleBulkApplyService);
+  }
 
   els.pointId.addEventListener("input", () => {
     pointIdTouched = true;
     renderPointPreview();
+    updatePointFormDirtyState();
   });
   els.pointName.addEventListener("input", () => {
     if (!pointIdTouched) {
       els.pointId.value = slugify(els.pointName.value);
     }
     renderPointPreview();
+    updatePointFormDirtyState();
   });
-  els.pointAddress.addEventListener("input", renderPointPreview);
-  els.pointDetails.addEventListener("input", renderPointPreview);
-  els.pointLogo.addEventListener("input", renderPointPreview);
-  els.pointMediaType.addEventListener("change", renderPointPreview);
-  els.pointMediaUrl.addEventListener("input", renderPointPreview);
-  els.pointStars.addEventListener("change", renderPointPreview);
+  els.pointAddress.addEventListener("input", () => {
+    renderPointPreview();
+    updatePointFormDirtyState();
+  });
+  if (els.pointShipCountry) {
+    els.pointShipCountry.addEventListener("input", () => {
+      renderPointPreview();
+      validatePointShipCountryInline();
+      updatePointFormDirtyState();
+    });
+  }
+  els.pointDetails.addEventListener("input", () => {
+    renderPointPreview();
+    updatePointFormDirtyState();
+  });
+  els.pointLogo.addEventListener("input", () => {
+    renderPointPreview();
+    validatePointLogoInline();
+    updatePointFormDirtyState();
+  });
+  els.pointMediaType.addEventListener("change", () => {
+    renderPointPreview();
+    validatePointMediaUrlInline();
+    updatePointFormDirtyState();
+  });
+  els.pointMediaUrl.addEventListener("input", () => {
+    renderPointPreview();
+    validatePointMediaUrlInline();
+    updatePointFormDirtyState();
+  });
+  els.pointStars.addEventListener("change", () => {
+    renderPointPreview();
+    updatePointFormDirtyState();
+  });
   els.pointForm
     .querySelectorAll("input[name='services']")
-    .forEach((checkbox) => checkbox.addEventListener("change", renderPointPreview));
+    .forEach((checkbox) =>
+      checkbox.addEventListener("change", () => {
+        syncShipCountryFieldState();
+        validatePointShipCountryInline();
+        renderPointPreview();
+        updatePointFormDirtyState();
+      })
+    );
 
   els.pointMediaUploadBtn.addEventListener("click", () => {
     els.pointMediaFileInput.click();
@@ -331,14 +418,22 @@ function bindAdminEvents() {
       els.pointMediaFileInput.value = "";
     }
     setPointMediaStatus("Media rimossa.");
+    validatePointMediaUrlInline();
     renderPointPreview();
+    updatePointFormDirtyState();
   });
 
-  els.addSocialBtn.addEventListener("click", () => addSocialRow());
+  els.addSocialBtn.addEventListener("click", () => {
+    addSocialRow();
+    validateAllSocialRowsInline();
+    updatePointFormDirtyState();
+  });
   els.clearSocialsBtn.addEventListener("click", () => {
     els.socialRows.innerHTML = "";
     addSocialRow();
+    validateAllSocialRowsInline();
     renderPointPreview();
+    updatePointFormDirtyState();
   });
   els.socialRows.addEventListener("click", (event) => {
     const btn = event.target.closest(".social-remove");
@@ -347,9 +442,18 @@ function bindAdminEvents() {
     if (els.socialRows.children.length === 0) {
       addSocialRow();
     }
+    validateAllSocialRowsInline();
     renderPointPreview();
+    updatePointFormDirtyState();
   });
-  els.socialRows.addEventListener("input", renderPointPreview);
+  els.socialRows.addEventListener("input", (event) => {
+    const row = event.target?.closest?.(".social-row");
+    if (row) {
+      validateSocialRowInline(row);
+    }
+    renderPointPreview();
+    updatePointFormDirtyState();
+  });
 
   els.exportDataBtn.addEventListener("click", () => exportJson(true));
   els.importDataBtn.addEventListener("click", () => {
@@ -391,6 +495,7 @@ function renderServicesForm() {
   els.serviceDelivery.value = data.serviceLabels?.delivery || defaultServiceLabels.delivery;
   els.serviceShip.value = data.serviceLabels?.ship || defaultServiceLabels.ship;
   els.serviceSupportTelegram.value = data.supportTelegramUrl || defaultSupportTelegramUrl;
+  validateSupportTelegramInline();
 }
 
 function handleServicesSubmit(event) {
@@ -402,11 +507,13 @@ function handleServicesSubmit(event) {
 
   if (!meetup || !delivery || !ship || !supportTelegram) {
     setStatus("Le etichette servizi non possono essere vuote.", "error");
+    validateSupportTelegramInline();
     return;
   }
 
-  if (!isValidTelegramUrl(supportTelegram)) {
-    setStatus("URL supporto Telegram non valido. Usa formato https://t.me/username.", "error");
+  const telegramValidation = validateSupportTelegramInline();
+  if (!telegramValidation.valid) {
+    setStatus(telegramValidation.message || "URL supporto Telegram non valido. Usa formato https://t.me/username.", "error");
     return;
   }
 
@@ -428,6 +535,7 @@ function handleServicesReset() {
     ...defaultServiceLabels,
   };
   data.supportTelegramUrl = defaultSupportTelegramUrl;
+  validateSupportTelegramInline();
   persistData("Etichette servizi ripristinate.");
 }
 
@@ -507,25 +615,27 @@ function renderRegionList() {
 
   els.regionList.innerHTML = filteredRegions
     .map((region) => {
-      const listIndex = data.regions.findIndex((item) => item.id === region.id);
       const pointsCount = Array.isArray(region.activePoints) ? region.activePoints.length : 0;
       const isActive = region.id === selectedRegionId;
       const isEditing = region.id === editingRegionId;
+      const shipOriginLabel = getShipOriginLabel(region.shipOrigin);
 
       return `
-        <article class="admin-item ${isActive ? "is-active" : ""} ${isEditing ? "is-editing" : ""}" data-region-id="${escapeHtmlAttr(
+        <article class="admin-item admin-item-sortable ${isActive ? "is-active" : ""} ${isEditing ? "is-editing" : ""}" data-region-id="${escapeHtmlAttr(
           region.id
-        )}">
+        )}" draggable="true">
           <div class="admin-item-top">
             <p class="admin-item-title">${escapeHtml(region.name)}</p>
             <p class="admin-item-id">${escapeHtml(region.id)}</p>
           </div>
           <p class="admin-item-meta">Hub: ${escapeHtml(region.hubs || "Non impostati")}</p>
+          <p class="admin-item-meta">Ship origin: ${escapeHtml(shipOriginLabel)}</p>
           <div class="admin-item-tags">
-            <span class="mini-chip">${pointsCount} punti</span>
+            <span class="mini-chip">${formatPointCount(pointsCount)}</span>
             ${isActive ? `<span class="mini-chip">Regione attiva</span>` : ""}
             ${isEditing ? `<span class="mini-chip">In modifica</span>` : ""}
           </div>
+          <p class="admin-item-drag-hint">Trascina la card per ordinare.</p>
           <div class="admin-item-actions">
             <button class="admin-btn" data-region-action="manage-points" data-region-id="${escapeHtmlAttr(
               region.id
@@ -533,12 +643,6 @@ function renderRegionList() {
             <button class="admin-btn admin-btn-secondary" data-region-action="edit" data-region-id="${escapeHtmlAttr(
               region.id
             )}">Modifica</button>
-            <button class="admin-btn admin-btn-secondary" data-region-action="up" data-region-id="${escapeHtmlAttr(region.id)}" ${
-              listIndex === 0 ? "disabled" : ""
-            }>Su</button>
-            <button class="admin-btn admin-btn-secondary" data-region-action="down" data-region-id="${escapeHtmlAttr(region.id)}" ${
-              listIndex === data.regions.length - 1 ? "disabled" : ""
-            }>Giu</button>
             <button class="admin-btn admin-btn-danger" data-region-action="delete" data-region-id="${escapeHtmlAttr(
               region.id
             )}">Elimina</button>
@@ -573,6 +677,9 @@ function handleRegionActions(event) {
     els.regionId.value = region.id;
     els.regionName.value = region.name;
     els.regionHubs.value = region.hubs || "";
+    if (els.regionShipOrigin) {
+      els.regionShipOrigin.value = getRegionShipOrigin(region);
+    }
     updateRegionFormUi();
     safeFocus(els.regionName);
     renderRegionList();
@@ -583,24 +690,13 @@ function handleRegionActions(event) {
   if (action === "manage-points") {
     els.pointRegionSelect.value = region.id;
     editingPointId = null;
+    selectedPointIds.clear();
     resetPointForm();
     renderRegionList();
     renderPointsList();
     renderPointsContext();
     scrollToPointsPanel();
     setStatus(`Gestione punti per ${region.name}`);
-    return;
-  }
-
-  if (action === "up" && index > 0) {
-    moveArrayItem(data.regions, index, index - 1);
-    persistData(`Regione spostata: ${region.name}`);
-    return;
-  }
-
-  if (action === "down" && index < data.regions.length - 1) {
-    moveArrayItem(data.regions, index, index + 1);
-    persistData(`Regione spostata: ${region.name}`);
     return;
   }
 
@@ -618,12 +714,131 @@ function handleRegionActions(event) {
   }
 }
 
+function handleRegionDragStart(event) {
+  const regionCard = event.target.closest(".admin-item-sortable[data-region-id]");
+  if (!regionCard || event.target.closest(".admin-item-actions")) {
+    event.preventDefault();
+    return;
+  }
+
+  draggedRegionId = regionCard.dataset.regionId || "";
+  if (!draggedRegionId) {
+    event.preventDefault();
+    return;
+  }
+
+  regionCard.classList.add("is-dragging");
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedRegionId);
+  }
+}
+
+function handleRegionDragOver(event) {
+  if (!draggedRegionId) return;
+  event.preventDefault();
+
+  const targetCard = event.target.closest(".admin-item-sortable[data-region-id]");
+  clearRegionDropMarkers();
+
+  if (!targetCard || targetCard.dataset.regionId === draggedRegionId) {
+    const sortableCards = Array.from(els.regionList.querySelectorAll(".admin-item-sortable[data-region-id]")).filter(
+      (card) => card.dataset.regionId !== draggedRegionId
+    );
+    const lastCard = sortableCards[sortableCards.length - 1];
+    if (lastCard) {
+      lastCard.classList.add("drop-after");
+    }
+    return;
+  }
+
+  const dropPosition = getDropPosition(event, targetCard);
+  targetCard.classList.add(dropPosition === "before" ? "drop-before" : "drop-after");
+}
+
+function handleRegionDrop(event) {
+  if (!draggedRegionId) return;
+  event.preventDefault();
+
+  const targetCard = event.target.closest(".admin-item-sortable[data-region-id]");
+  const sourceIndex = data.regions.findIndex((region) => region.id === draggedRegionId);
+  if (sourceIndex < 0) {
+    clearRegionDragState();
+    return;
+  }
+
+  const draggedRegion = data.regions[sourceIndex];
+  let targetId = targetCard?.dataset.regionId || "";
+  let dropPosition = "after";
+
+  if (targetCard) {
+    dropPosition = getDropPosition(event, targetCard);
+  } else {
+    const sortableCards = Array.from(els.regionList.querySelectorAll(".admin-item-sortable[data-region-id]")).filter(
+      (card) => card.dataset.regionId !== draggedRegionId
+    );
+    const lastCard = sortableCards[sortableCards.length - 1];
+    if (lastCard) {
+      targetId = lastCard.dataset.regionId || "";
+      dropPosition = "after";
+    }
+  }
+
+  if (!targetId || targetId === draggedRegionId) {
+    clearRegionDragState();
+    return;
+  }
+
+  const targetIndex = data.regions.findIndex((region) => region.id === targetId);
+  if (targetIndex < 0) {
+    clearRegionDragState();
+    return;
+  }
+
+  let destinationIndex = targetIndex + (dropPosition === "after" ? 1 : 0);
+  if (sourceIndex < destinationIndex) {
+    destinationIndex -= 1;
+  }
+
+  if (destinationIndex === sourceIndex) {
+    clearRegionDragState();
+    return;
+  }
+
+  moveArrayItem(data.regions, sourceIndex, destinationIndex);
+  clearRegionDragState();
+  renderRegionList();
+  persistData(`Ordine regioni aggiornato: ${draggedRegion.name}`);
+}
+
+function handleRegionDragLeave(event) {
+  if (!draggedRegionId) return;
+  if (event.currentTarget === event.target) {
+    clearRegionDropMarkers();
+  }
+}
+
+function clearRegionDropMarkers() {
+  els.regionList
+    .querySelectorAll(".admin-item-sortable.drop-before, .admin-item-sortable.drop-after")
+    .forEach((card) => card.classList.remove("drop-before", "drop-after"));
+}
+
+function clearRegionDragState() {
+  draggedRegionId = "";
+  clearRegionDropMarkers();
+  els.regionList
+    .querySelectorAll(".admin-item-sortable.is-dragging")
+    .forEach((card) => card.classList.remove("is-dragging"));
+}
+
 function handleRegionSubmit(event) {
   event.preventDefault();
 
   const id = slugify(els.regionId.value);
   const name = els.regionName.value.trim();
   const hubs = els.regionHubs.value.trim();
+  const shipOrigin = normalizeShipOrigin(els.regionShipOrigin?.value);
 
   if (!id || !name) {
     setStatus("Compila ID e nome regione.", "error");
@@ -647,6 +862,7 @@ function handleRegionSubmit(event) {
     region.id = id;
     region.name = name;
     region.hubs = hubs;
+    region.shipOrigin = shipOrigin;
     editingRegionId = id;
 
     if (els.pointRegionSelect.value === oldId) {
@@ -668,6 +884,7 @@ function handleRegionSubmit(event) {
     id,
     name,
     hubs,
+    shipOrigin,
     activePoints: [],
   });
   persistData(`Regione creata: ${name}`, "success", id);
@@ -679,6 +896,9 @@ function resetRegionForm() {
   regionIdTouched = false;
   els.regionEditingId.value = "";
   els.regionForm.reset();
+  if (els.regionShipOrigin) {
+    els.regionShipOrigin.value = "italy";
+  }
   updateRegionFormUi();
 }
 
@@ -707,31 +927,24 @@ function renderPointsContext() {
   }
 
   const pointsCount = Array.isArray(region.activePoints) ? region.activePoints.length : 0;
-  const label = pointsCount === 1 ? "1 punto" : `${pointsCount} punti`;
-  els.pointsContextHint.textContent = `Regione attiva: ${region.name}. ${label} configurati.`;
+  const label = formatPointCount(pointsCount);
+  const shipOriginLabel = getShipOriginLabel(region.shipOrigin);
+  els.pointsContextHint.textContent = `Regione attiva: ${region.name}. ${label} configurati. Ship: ${shipOriginLabel}.`;
 
   if (els.pointCreateNew) {
     els.pointCreateNew.disabled = false;
   }
 }
-function renderPointsList() {
-  const region = getSelectedRegion();
-  if (!region) {
-    els.pointsListCount.textContent = "0 punti";
-    els.pointsList.innerHTML = `
-      <article class="admin-item">
-        <p class="admin-empty">Seleziona o crea una regione per gestire i punti.</p>
-      </article>
-    `;
-    return;
-  }
+
+function getFilteredPoints(region) {
+  if (!region) return [];
 
   const points = Array.isArray(region.activePoints) ? region.activePoints : [];
   const search = els.pointSearch.value.trim().toLowerCase();
   const serviceFilter = els.pointServiceFilter.value;
   const starFilter = els.pointStarFilter.value;
 
-  const filtered = points.filter((point) => {
+  return points.filter((point) => {
     const matchesSearch =
       !search ||
       String(point.name || "").toLowerCase().includes(search) ||
@@ -742,10 +955,74 @@ function renderPointsList() {
     const matchesStars = starFilter === "all" || String(clampStars(point.stars)) === starFilter;
     return matchesSearch && matchesService && matchesStars;
   });
+}
 
-  els.pointsListCount.textContent = `${filtered.length} / ${points.length} punti`;
+function prunePointSelection(region) {
+  if (!region || !Array.isArray(region.activePoints)) {
+    selectedPointIds.clear();
+    return;
+  }
+
+  const validIds = new Set(region.activePoints.map((point) => point.id));
+  selectedPointIds.forEach((id) => {
+    if (!validIds.has(id)) {
+      selectedPointIds.delete(id);
+    }
+  });
+}
+
+function syncPointsBulkUi(region, filteredPoints = []) {
+  if (!region) {
+    selectedPointIds.clear();
+  } else {
+    prunePointSelection(region);
+  }
+
+  const visibleIds = filteredPoints.map((point) => point.id);
+  const selectedCount = selectedPointIds.size;
+  const visibleSelectedCount = visibleIds.filter((id) => selectedPointIds.has(id)).length;
+  const hasVisible = visibleIds.length > 0;
+  const allVisibleSelected = hasVisible && visibleSelectedCount === visibleIds.length;
+
+  if (els.bulkSelectionCount) {
+    els.bulkSelectionCount.textContent = selectedCount > 0 ? `${selectedCount} selezionati` : "Nessun punto selezionato";
+  }
+
+  if (els.bulkSelectVisibleBtn) {
+    els.bulkSelectVisibleBtn.disabled = !region || !hasVisible;
+    els.bulkSelectVisibleBtn.textContent = allVisibleSelected ? "Deseleziona visibili" : "Seleziona visibili";
+  }
+
+  if (els.bulkClearSelectionBtn) {
+    els.bulkClearSelectionBtn.disabled = selectedCount === 0;
+  }
+
+  if (els.bulkApplyServiceBtn) {
+    els.bulkApplyServiceBtn.disabled = !region || selectedCount === 0;
+  }
+}
+
+function renderPointsList() {
+  const region = getSelectedRegion();
+  if (!region) {
+    syncPointsBulkUi(null, []);
+    els.pointsListCount.textContent = "0 punti";
+    els.pointsList.innerHTML = `
+      <article class="admin-item">
+        <p class="admin-empty">Seleziona o crea una regione per gestire i punti.</p>
+      </article>
+    `;
+    return;
+  }
+
+  const points = Array.isArray(region.activePoints) ? region.activePoints : [];
+  const filtered = getFilteredPoints(region);
+  prunePointSelection(region);
+
+  els.pointsListCount.textContent = `${formatPointCount(filtered.length)} / ${formatPointCount(points.length)}`;
 
   if (filtered.length === 0) {
+    syncPointsBulkUi(region, filtered);
     els.pointsList.innerHTML = `
       <article class="admin-item">
         <p class="admin-empty">Nessun punto trovato con i filtri attuali.</p>
@@ -756,7 +1033,6 @@ function renderPointsList() {
 
   els.pointsList.innerHTML = filtered
     .map((point) => {
-      const pointIndex = points.findIndex((item) => item.id === point.id);
       const services = (point.services || [])
         .map((service) => `<span class="mini-chip">${escapeHtml(getServiceLabel(service))}</span>`)
         .join("");
@@ -767,9 +1043,15 @@ function renderPointsList() {
       const starsValue = clampStars(point.stars);
       const starsText = starsValue > 0 ? "★".repeat(starsValue) : "—";
       const isEditing = point.id === editingPointId;
+      const isSelected = selectedPointIds.has(point.id);
+      const hasShip = Array.isArray(point.services) && point.services.includes("ship");
+      const shipCountry = String(point.shipCountry || "").trim();
+      const showShipCountry = hasShip && getRegionShipOrigin(region) === "eu";
 
       return `
-        <article class="admin-item ${isEditing ? "is-editing" : ""}" data-point-id="${escapeHtmlAttr(point.id)}">
+        <article class="admin-item admin-item-sortable ${isEditing ? "is-editing" : ""} ${isSelected ? "is-selected" : ""}" data-point-id="${escapeHtmlAttr(
+          point.id
+        )}" draggable="true">
           <div class="admin-item-top">
             <p class="admin-item-title">${escapeHtml(point.name || "Punto senza nome")}</p>
             <p class="admin-item-id">${escapeHtml(point.id || "n/a")}</p>
@@ -780,19 +1062,24 @@ function renderPointsList() {
             <span class="mini-chip">Social ${socialsCount}</span>
             <span class="mini-chip">Retro ${hasDetails ? "OK" : "NO"}</span>
             <span class="mini-chip">Media ${mediaLabel}</span>
+            ${showShipCountry ? `<span class="mini-chip">Paese Ship ${escapeHtml(shipCountry || "Non impostato")}</span>` : ""}
           </div>
           <div class="admin-item-tags">${services || `<span class="mini-chip">Nessun servizio</span>`}</div>
+          <label class="point-select-control" aria-label="Seleziona punto ${escapeHtmlAttr(point.name || point.id || "punto")}">
+            <input
+              type="checkbox"
+              class="point-select-toggle"
+              data-point-id="${escapeHtmlAttr(point.id)}"
+              ${isSelected ? "checked" : ""}
+            />
+            <span>Seleziona</span>
+          </label>
+          <p class="admin-item-drag-hint">Trascina la card per ordinare.</p>
           <div class="admin-item-actions">
             <button class="admin-btn" data-point-action="edit" data-point-id="${escapeHtmlAttr(point.id)}">Modifica</button>
             <button class="admin-btn admin-btn-secondary" data-point-action="duplicate" data-point-id="${escapeHtmlAttr(
               point.id
             )}">Duplica</button>
-            <button class="admin-btn admin-btn-secondary" data-point-action="up" data-point-id="${escapeHtmlAttr(point.id)}" ${
-              pointIndex === 0 ? "disabled" : ""
-            }>Su</button>
-            <button class="admin-btn admin-btn-secondary" data-point-action="down" data-point-id="${escapeHtmlAttr(point.id)}" ${
-              pointIndex === points.length - 1 ? "disabled" : ""
-            }>Giu</button>
             <button class="admin-btn admin-btn-danger" data-point-action="delete" data-point-id="${escapeHtmlAttr(
               point.id
             )}">Elimina</button>
@@ -801,9 +1088,15 @@ function renderPointsList() {
       `;
     })
     .join("");
+
+  syncPointsBulkUi(region, filtered);
 }
 
 function handlePointActions(event) {
+  if (event.target.closest(".point-select-control")) {
+    return;
+  }
+
   const button = event.target.closest("[data-point-action]");
   const pointCard = event.target.closest(".admin-item[data-point-id]");
 
@@ -843,22 +1136,11 @@ function handlePointActions(event) {
     return;
   }
 
-  if (action === "up" && pointIndex > 0) {
-    moveArrayItem(region.activePoints, pointIndex, pointIndex - 1);
-    persistData(`Ordine aggiornato per ${point.name}`, "success", region.id);
-    return;
-  }
-
-  if (action === "down" && pointIndex < region.activePoints.length - 1) {
-    moveArrayItem(region.activePoints, pointIndex, pointIndex + 1);
-    persistData(`Ordine aggiornato per ${point.name}`, "success", region.id);
-    return;
-  }
-
   if (action === "delete") {
     const ok = window.confirm(`Eliminare il punto "${point.name}"?`);
     if (!ok) return;
     region.activePoints = region.activePoints.filter((item) => item.id !== point.id);
+    selectedPointIds.delete(point.id);
     if (editingPointId === point.id) {
       resetPointForm();
     }
@@ -866,18 +1148,279 @@ function handlePointActions(event) {
   }
 }
 
-function handlePointSubmit(event) {
+function handlePointSelectionChange(event) {
+  const checkbox = event.target.closest(".point-select-toggle");
+  if (!checkbox) return;
+
+  const pointId = String(checkbox.dataset.pointId || "");
+  if (!pointId) return;
+
+  if (checkbox.checked) {
+    selectedPointIds.add(pointId);
+  } else {
+    selectedPointIds.delete(pointId);
+  }
+
+  const pointCard = checkbox.closest(".admin-item[data-point-id]");
+  if (pointCard) {
+    pointCard.classList.toggle("is-selected", checkbox.checked);
+  }
+
+  const region = getSelectedRegion();
+  const filtered = getFilteredPoints(region);
+  syncPointsBulkUi(region, filtered);
+}
+
+function handleBulkSelectVisible() {
+  const region = getSelectedRegion();
+  if (!region) {
+    setStatus("Seleziona una regione prima delle azioni massive.", "error");
+    return;
+  }
+
+  const visiblePoints = getFilteredPoints(region);
+  if (visiblePoints.length === 0) {
+    setStatus("Nessun punto visibile da selezionare.", "warn");
+    return;
+  }
+
+  const visibleIds = visiblePoints.map((point) => point.id);
+  const allVisibleSelected = visibleIds.every((id) => selectedPointIds.has(id));
+
+  if (allVisibleSelected) {
+    visibleIds.forEach((id) => selectedPointIds.delete(id));
+  } else {
+    visibleIds.forEach((id) => selectedPointIds.add(id));
+  }
+
+  renderPointsList();
+}
+
+function handleBulkClearSelection() {
+  selectedPointIds.clear();
+  renderPointsList();
+}
+
+function handleBulkApplyService() {
+  const region = getSelectedRegion();
+  if (!region || !Array.isArray(region.activePoints)) {
+    setStatus("Seleziona una regione prima delle azioni massive.", "error");
+    return;
+  }
+
+  prunePointSelection(region);
+  if (selectedPointIds.size === 0) {
+    setStatus("Seleziona almeno un punto.", "error");
+    return;
+  }
+
+  const service = String(els.bulkServiceSelect?.value || "");
+  const action = String(els.bulkServiceAction?.value || "");
+
+  if (!POINT_SERVICES.includes(service)) {
+    setStatus("Servizio bulk non valido.", "error");
+    return;
+  }
+  if (action !== "enable" && action !== "disable") {
+    setStatus("Azione bulk non valida.", "error");
+    return;
+  }
+
+  const selectedSet = new Set(selectedPointIds);
+  let updated = 0;
+  let skipped = 0;
+  let skippedMinService = 0;
+
+  region.activePoints.forEach((point) => {
+    if (!selectedSet.has(point.id)) return;
+
+    const currentServicesRaw = Array.isArray(point.services) ? point.services : [];
+    const currentServices = Array.from(new Set(currentServicesRaw.filter((item) => POINT_SERVICES.includes(item))));
+    const safeCurrentServices = currentServices.length > 0 ? currentServices : ["meetup"];
+    const hasService = safeCurrentServices.includes(service);
+
+    if (action === "enable") {
+      if (hasService) {
+        skipped += 1;
+        return;
+      }
+      point.services = [...safeCurrentServices, service];
+      updated += 1;
+      return;
+    }
+
+    if (!hasService) {
+      skipped += 1;
+      return;
+    }
+
+    if (safeCurrentServices.length <= 1) {
+      skipped += 1;
+      skippedMinService += 1;
+      return;
+    }
+
+    point.services = safeCurrentServices.filter((item) => item !== service);
+    if (service === "ship") {
+      point.shipCountry = "";
+    }
+    updated += 1;
+  });
+
+  if (updated === 0) {
+    if (action === "disable" && skippedMinService > 0) {
+      setStatus("Impossibile rimuovere l'ultimo servizio da alcuni punti selezionati.", "warn");
+      return;
+    }
+    setStatus("Nessun punto aggiornato con questa azione.", "warn");
+    return;
+  }
+
+  const serviceLabel = getServiceLabel(service);
+  const actionLabel = action === "enable" ? "abilitato" : "disabilitato";
+  const extra = skipped > 0 ? ` (${skipped} saltati)` : "";
+  persistData(`Bulk: ${serviceLabel} ${actionLabel} su ${updated} punti${extra}.`, "success", region.id);
+}
+
+function handlePointDragStart(event) {
+  const pointCard = event.target.closest(".admin-item-sortable[data-point-id]");
+  if (!pointCard || event.target.closest(".admin-item-actions") || event.target.closest(".point-select-control")) {
+    event.preventDefault();
+    return;
+  }
+
+  draggedPointId = pointCard.dataset.pointId || "";
+  if (!draggedPointId) {
+    event.preventDefault();
+    return;
+  }
+
+  pointCard.classList.add("is-dragging");
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedPointId);
+  }
+}
+
+function handlePointDragOver(event) {
+  if (!draggedPointId) return;
+  event.preventDefault();
+
+  const targetCard = event.target.closest(".admin-item-sortable[data-point-id]");
+  clearPointDropMarkers();
+
+  if (!targetCard || targetCard.dataset.pointId === draggedPointId) {
+    const sortableCards = Array.from(els.pointsList.querySelectorAll(".admin-item-sortable[data-point-id]")).filter(
+      (card) => card.dataset.pointId !== draggedPointId
+    );
+    const lastCard = sortableCards[sortableCards.length - 1];
+    if (lastCard) {
+      lastCard.classList.add("drop-after");
+    }
+    return;
+  }
+
+  const dropPosition = getDropPosition(event, targetCard);
+  targetCard.classList.add(dropPosition === "before" ? "drop-before" : "drop-after");
+}
+
+function handlePointDrop(event) {
+  if (!draggedPointId) return;
   event.preventDefault();
 
   const region = getSelectedRegion();
+  if (!region || !Array.isArray(region.activePoints)) {
+    clearPointDragState();
+    return;
+  }
+
+  const targetCard = event.target.closest(".admin-item-sortable[data-point-id]");
+  const sourceIndex = region.activePoints.findIndex((point) => point.id === draggedPointId);
+  if (sourceIndex < 0) {
+    clearPointDragState();
+    return;
+  }
+
+  const draggedPoint = region.activePoints[sourceIndex];
+  let targetId = targetCard?.dataset.pointId || "";
+  let dropPosition = "after";
+
+  if (targetCard) {
+    dropPosition = getDropPosition(event, targetCard);
+  } else {
+    const sortableCards = Array.from(els.pointsList.querySelectorAll(".admin-item-sortable[data-point-id]")).filter(
+      (card) => card.dataset.pointId !== draggedPointId
+    );
+    const lastCard = sortableCards[sortableCards.length - 1];
+    if (lastCard) {
+      targetId = lastCard.dataset.pointId || "";
+      dropPosition = "after";
+    }
+  }
+
+  if (!targetId || targetId === draggedPointId) {
+    clearPointDragState();
+    return;
+  }
+
+  const targetIndex = region.activePoints.findIndex((point) => point.id === targetId);
+  if (targetIndex < 0) {
+    clearPointDragState();
+    return;
+  }
+
+  let destinationIndex = targetIndex + (dropPosition === "after" ? 1 : 0);
+  if (sourceIndex < destinationIndex) {
+    destinationIndex -= 1;
+  }
+
+  if (destinationIndex === sourceIndex) {
+    clearPointDragState();
+    return;
+  }
+
+  moveArrayItem(region.activePoints, sourceIndex, destinationIndex);
+  clearPointDragState();
+  renderPointsList();
+  persistData(`Ordine punti aggiornato: ${draggedPoint.name}`, "success", region.id);
+}
+
+function handlePointDragLeave(event) {
+  if (!draggedPointId) return;
+  if (event.currentTarget === event.target) {
+    clearPointDropMarkers();
+  }
+}
+
+function clearPointDropMarkers() {
+  els.pointsList
+    .querySelectorAll(".admin-item-sortable.drop-before, .admin-item-sortable.drop-after")
+    .forEach((card) => card.classList.remove("drop-before", "drop-after"));
+}
+
+function clearPointDragState() {
+  draggedPointId = "";
+  clearPointDropMarkers();
+  els.pointsList
+    .querySelectorAll(".admin-item-sortable.is-dragging")
+    .forEach((card) => card.classList.remove("is-dragging"));
+}
+
+function handlePointSubmit(event) {
+  event.preventDefault();
+  clearPointFormErrors();
+  validatePointInlineFields();
+
+  const region = getSelectedRegion();
   if (!region) {
-    setStatus("Seleziona prima una regione.", "error");
+    revealPointFieldError(els.pointRegionSelect, "Seleziona prima una regione.");
     return;
   }
 
   const id = slugify(els.pointId.value);
   const name = els.pointName.value.trim();
   const address = els.pointAddress.value.trim();
+  const shipCountry = String(els.pointShipCountry?.value || "").trim();
   const details = els.pointDetails.value.trim();
   const logo = els.pointLogo.value.trim();
   const mediaType = normalizeMediaType(els.pointMediaType.value);
@@ -885,23 +1428,28 @@ function handlePointSubmit(event) {
   const resolvedMediaType = resolvePointMediaType(mediaType, mediaUrl);
   const stars = clampStars(els.pointStars.value);
 
-  if (!id || !name) {
-    setStatus("Compila ID e nome del punto.", "error");
+  if (!id) {
+    revealPointFieldError(els.pointId, "Compila ID e nome del punto.");
+    return;
+  }
+
+  if (!name) {
+    revealPointFieldError(els.pointName, "Compila ID e nome del punto.");
     return;
   }
 
   if (logo && !isUrlOrPath(logo)) {
-    setStatus("Logo URL non valido. Usa URL completo o path relativo.", "error");
+    revealPointFieldError(els.pointLogo, "Logo URL non valido. Usa URL completo o path relativo.");
     return;
   }
 
   if (mediaType !== "none" && !mediaUrl) {
-    setStatus("Se scegli un tipo media, inserisci URL oppure carica un file.", "error");
+    revealPointFieldError(els.pointMediaUrl, "Se scegli un tipo media, inserisci URL oppure carica un file.");
     return;
   }
 
   if (mediaUrl && !isUrlOrPath(mediaUrl)) {
-    setStatus("Media URL non valido. Usa URL completo, path relativo o data URL.", "error");
+    revealPointFieldError(els.pointMediaUrl, "Media URL non valido. Usa URL completo, path relativo o data URL.");
     return;
   }
 
@@ -909,29 +1457,38 @@ function handlePointSubmit(event) {
     (input) => input.value
   );
   const services = selectedServices.length > 0 ? selectedServices : ["meetup"];
+  const isShipEnabled = services.includes("ship");
+  const needsShipCountry = isShipEnabled && getRegionShipOrigin(region) === "eu";
+
+  if (needsShipCountry && !shipCountry) {
+    revealPointFieldError(els.pointShipCountry, "Per punti Ship da UE inserisci il paese di spedizione.");
+    return;
+  }
 
   const socials = collectSocialRows();
   if (!socials.ok) {
-    setStatus(socials.message, "error");
+    revealPointFieldError(socials.errorElement || els.socialRows, socials.message);
     return;
   }
 
   if (editingPointId) {
-    const point = region.activePoints.find((item) => item.id === editingPointId);
+    const previousPointId = editingPointId;
+    const point = region.activePoints.find((item) => item.id === previousPointId);
     if (!point) {
       setStatus("Punto in modifica non trovato.", "error");
       return;
     }
 
-    const conflict = region.activePoints.some((item) => item.id === id && item.id !== editingPointId);
+    const conflict = region.activePoints.some((item) => item.id === id && item.id !== previousPointId);
     if (conflict) {
-      setStatus("ID punto gia in uso nella regione.", "error");
+      revealPointFieldError(els.pointId, "ID punto gia in uso nella regione.");
       return;
     }
 
     point.id = id;
     point.name = name;
     point.address = address;
+    point.shipCountry = isShipEnabled ? shipCountry : "";
     point.details = details;
     point.logo = logo;
     point.mediaType = resolvedMediaType;
@@ -940,6 +1497,10 @@ function handlePointSubmit(event) {
     point.services = services;
     point.socials = socials.items;
     editingPointId = id;
+    if (selectedPointIds.has(previousPointId)) {
+      selectedPointIds.delete(previousPointId);
+      selectedPointIds.add(id);
+    }
 
     persistData(`Punto aggiornato: ${name}`, "success", region.id);
     resetPointForm();
@@ -948,7 +1509,7 @@ function handlePointSubmit(event) {
 
   const exists = region.activePoints.some((item) => item.id === id);
   if (exists) {
-    setStatus("ID punto gia in uso nella regione.", "error");
+    revealPointFieldError(els.pointId, "ID punto gia in uso nella regione.");
     return;
   }
 
@@ -956,6 +1517,7 @@ function handlePointSubmit(event) {
     id,
     name,
     address,
+    shipCountry: isShipEnabled ? shipCountry : "",
     details,
     logo,
     mediaType: resolvedMediaType,
@@ -975,6 +1537,9 @@ function fillPointForm(point) {
   els.pointId.value = point.id || "";
   els.pointName.value = point.name || "";
   els.pointAddress.value = point.address || "";
+  if (els.pointShipCountry) {
+    els.pointShipCountry.value = point.shipCountry || "";
+  }
   els.pointDetails.value = point.details || "";
   els.pointLogo.value = point.logo || "";
   els.pointMediaType.value = resolvePointMediaType(point.mediaType, point.mediaUrl);
@@ -993,9 +1558,13 @@ function fillPointForm(point) {
     addSocialRow();
   }
 
+  syncShipCountryFieldState();
+  clearPointFormErrors();
   updatePointFormUi();
   renderPointsList();
   renderPointPreview();
+  capturePointFormSnapshot();
+  validatePointInlineFields();
 }
 
 function resetPointForm() {
@@ -1013,11 +1582,18 @@ function resetPointForm() {
   els.pointForm
     .querySelectorAll("input[name='services']")
     .forEach((checkbox) => (checkbox.checked = checkbox.value === "meetup"));
+  if (els.pointShipCountry) {
+    els.pointShipCountry.value = "";
+  }
   els.socialRows.innerHTML = "";
   addSocialRow();
+  syncShipCountryFieldState();
+  clearPointFormErrors();
   updatePointFormUi();
   renderPointsList();
   renderPointPreview();
+  capturePointFormSnapshot();
+  validatePointInlineFields();
 }
 
 function updatePointFormUi() {
@@ -1031,33 +1607,371 @@ function updatePointFormUi() {
     els.pointSubmitBtn.textContent = "Aggiungi punto";
   }
 }
+
+function setupPointFormCollapsibles() {
+  if (!els.pointForm) return;
+  const collapsibles = els.pointForm.querySelectorAll(".admin-collapsible");
+  collapsibles.forEach((block) => {
+    const summary = block.querySelector(".admin-collapsible-summary");
+    if (!summary) return;
+    summary.setAttribute("role", "button");
+  });
+}
+
+function serializePointFormState() {
+  if (!els.pointForm) return "";
+
+  const servicesSnapshot = Array.from(els.pointForm.querySelectorAll("input[name='services']"))
+    .map((checkbox) => `${checkbox.value}:${checkbox.checked ? "1" : "0"}`)
+    .join("|");
+  const socialsSnapshot = Array.from(els.socialRows.querySelectorAll(".social-row"))
+    .map((row) => {
+      const label = row.querySelector(".social-label")?.value.trim() || "";
+      const url = row.querySelector(".social-url")?.value.trim() || "";
+      return `${label}=>${url}`;
+    })
+    .join("||");
+
+  return JSON.stringify({
+    id: els.pointId.value.trim(),
+    name: els.pointName.value.trim(),
+    address: els.pointAddress.value.trim(),
+    shipCountry: String(els.pointShipCountry?.value || "").trim(),
+    details: els.pointDetails.value.trim(),
+    logo: els.pointLogo.value.trim(),
+    mediaType: els.pointMediaType.value,
+    mediaUrl: els.pointMediaUrl.value.trim(),
+    stars: els.pointStars.value,
+    servicesSnapshot,
+    socialsSnapshot,
+  });
+}
+
+function capturePointFormSnapshot() {
+  pointFormSnapshot = serializePointFormState();
+  updatePointFormDirtyState();
+}
+
+function isPointFormDirty() {
+  return serializePointFormState() !== pointFormSnapshot;
+}
+
+function updatePointFormDirtyState() {
+  if (!els.pointForm || !els.pointFormDirtyState) return;
+
+  const dirty = isPointFormDirty();
+  els.pointForm.classList.toggle("is-dirty", dirty);
+  if (els.pointFormStickyBar) {
+    els.pointFormStickyBar.dataset.dirty = dirty ? "true" : "false";
+  }
+  els.pointFormDirtyState.textContent = dirty ? "Есть несохранённые изменения" : "Nessuna modifica";
+}
+
+function handlePointCancelEdit() {
+  if (isPointFormDirty()) {
+    const ok = window.confirm("Annullare le modifiche non salvate?");
+    if (!ok) return;
+  }
+  resetPointForm();
+}
+
+function clearPointFormErrors() {
+  if (els.pointRegionSelect) {
+    els.pointRegionSelect.classList.remove("admin-error-field");
+  }
+  if (!els.pointForm) return;
+  els.pointForm.querySelectorAll(".admin-error-field").forEach((node) => node.classList.remove("admin-error-field"));
+  els.pointForm.querySelectorAll(".admin-error-row").forEach((node) => node.classList.remove("admin-error-row"));
+}
+
+function revealPointFieldError(target, message) {
+  setStatus(message, "error");
+  if (!target || !(target instanceof HTMLElement)) return;
+
+  const collapsible = target.closest(".admin-collapsible");
+  if (collapsible && collapsible.tagName === "DETAILS") {
+    collapsible.open = true;
+  }
+
+  const field = target.matches("input, select, textarea")
+    ? target
+    : target.querySelector?.("input, select, textarea");
+  if (field) {
+    field.classList.add("admin-error-field");
+  }
+
+  const row = target.closest(".social-row");
+  if (row) {
+    row.classList.add("admin-error-row");
+  }
+
+  const scrollTarget = target.closest(".social-row, label, .admin-form-block") || target;
+  window.requestAnimationFrame(() => {
+    scrollTarget.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "nearest",
+    });
+
+    if (field && typeof field.focus === "function") {
+      window.setTimeout(() => {
+        field.focus({ preventScroll: true });
+      }, 180);
+    }
+  });
+}
+
+function ensureInlineValidationHint(field) {
+  if (!field || !(field instanceof HTMLElement)) return null;
+
+  if (!field.dataset.inlineHintId) {
+    inlineHintCounter += 1;
+    const base = field.id ? `${field.id}-inline` : "inline-field";
+    field.dataset.inlineHintId = `${base}-${inlineHintCounter}`;
+  }
+
+  const hintId = field.dataset.inlineHintId;
+  let hint = document.getElementById(hintId);
+  if (!hint) {
+    hint = document.createElement("p");
+    hint.id = hintId;
+    hint.className = "admin-inline-validation";
+    hint.dataset.tone = "neutral";
+    hint.hidden = true;
+    hint.setAttribute("aria-live", "polite");
+    field.insertAdjacentElement("afterend", hint);
+  }
+
+  const ariaDescribedBy = (field.getAttribute("aria-describedby") || "")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!ariaDescribedBy.includes(hintId)) {
+    ariaDescribedBy.push(hintId);
+    field.setAttribute("aria-describedby", ariaDescribedBy.join(" "));
+  }
+
+  return hint;
+}
+
+function setInlineFieldValidation(field, tone = "neutral", message = "") {
+  if (!field || !(field instanceof HTMLElement)) {
+    return { valid: true, message: "" };
+  }
+
+  const hint = ensureInlineValidationHint(field);
+  const normalizedTone = tone === "error" ? "error" : tone === "success" ? "success" : "neutral";
+
+  if (hint) {
+    hint.textContent = message || "";
+    hint.dataset.tone = normalizedTone;
+    hint.hidden = !message;
+  }
+
+  field.classList.remove("admin-inline-invalid", "admin-inline-valid");
+  field.removeAttribute("aria-invalid");
+
+  if (normalizedTone === "error") {
+    field.classList.add("admin-inline-invalid");
+    field.setAttribute("aria-invalid", "true");
+  } else if (normalizedTone === "success") {
+    field.classList.add("admin-inline-valid");
+  }
+
+  return { valid: normalizedTone !== "error", message };
+}
+
+function validateSupportTelegramInline() {
+  const field = els.serviceSupportTelegram;
+  const value = String(field?.value || "").trim();
+
+  if (!value) {
+    return setInlineFieldValidation(
+      field,
+      "error",
+      "Inserisci il link supporto (formato: https://t.me/username)."
+    );
+  }
+
+  if (!isValidAbsoluteUrl(value)) {
+    return setInlineFieldValidation(field, "error", "URL non valido. Usa formato https://t.me/username.");
+  }
+
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.replace(/^www\./, "");
+    const path = parsed.pathname.replace(/^\/+/, "");
+    if (host !== "t.me") {
+      return setInlineFieldValidation(field, "error", "Dominio non valido. Usa solo t.me.");
+    }
+    if (!path) {
+      return setInlineFieldValidation(field, "error", "Aggiungi username dopo t.me/.");
+    }
+  } catch {
+    return setInlineFieldValidation(field, "error", "URL Telegram non valido.");
+  }
+
+  return setInlineFieldValidation(field, "success", "Link Telegram valido.");
+}
+
+function validatePointLogoInline() {
+  const field = els.pointLogo;
+  const value = String(field?.value || "").trim();
+
+  if (!value) {
+    return setInlineFieldValidation(field, "neutral", "Opzionale: URL https://... oppure path /assets/logo.png.");
+  }
+
+  if (!isUrlOrPath(value)) {
+    return setInlineFieldValidation(field, "error", "Logo non valido. Usa URL completo o path relativo.");
+  }
+
+  return setInlineFieldValidation(field, "success", "Logo valido.");
+}
+
+function validatePointMediaUrlInline() {
+  const field = els.pointMediaUrl;
+  const mediaType = normalizeMediaType(els.pointMediaType?.value);
+  const mediaUrl = String(field?.value || "").trim();
+  const hasMediaType = mediaType !== "none";
+
+  if (hasMediaType && !mediaUrl) {
+    return setInlineFieldValidation(field, "error", "Inserisci URL media o carica un file.");
+  }
+
+  if (!mediaUrl) {
+    return setInlineFieldValidation(field, "neutral", "Supporta URL https://..., path relativo o data URL.");
+  }
+
+  if (!isUrlOrPath(mediaUrl)) {
+    return setInlineFieldValidation(field, "error", "Media URL non valido. Usa URL completo, path o data URL.");
+  }
+
+  return setInlineFieldValidation(field, "success", "Media URL valido.");
+}
+
+function isValidShipCountryName(value) {
+  const candidate = String(value || "").trim();
+  if (candidate.length < 2 || candidate.length > 56) return false;
+  return /^[A-Za-zÀ-ÖØ-öø-ÿ'. -]+$/.test(candidate);
+}
+
+function validatePointShipCountryInline() {
+  const field = els.pointShipCountry;
+  if (!field) return { valid: true, message: "" };
+
+  const region = getSelectedRegion();
+  const isRequired = Boolean(region) && hasShipServiceSelected() && getRegionShipOrigin(region) === "eu";
+  const value = String(field.value || "").trim();
+
+  if (!isRequired) {
+    return setInlineFieldValidation(field, "neutral", "Richiesto solo per punti Ship da altri paesi UE.");
+  }
+
+  if (!value) {
+    return setInlineFieldValidation(field, "error", "Campo obbligatorio per Ship da UE.");
+  }
+
+  if (!isValidShipCountryName(value)) {
+    return setInlineFieldValidation(field, "error", "Inserisci un paese valido (solo lettere, spazi o trattini).");
+  }
+
+  return setInlineFieldValidation(field, "success", "Paese Ship valido.");
+}
+
+function setSocialRowInlineValidation(row, message = "", tone = "neutral", errorElement = null) {
+  if (!row) return;
+  const labelInput = row.querySelector(".social-label");
+  const urlInput = row.querySelector(".social-url");
+  const hint = row.querySelector(".social-row-hint");
+
+  if (labelInput) {
+    labelInput.classList.remove("admin-inline-invalid", "admin-inline-valid");
+    labelInput.removeAttribute("aria-invalid");
+  }
+  if (urlInput) {
+    urlInput.classList.remove("admin-inline-invalid", "admin-inline-valid");
+    urlInput.removeAttribute("aria-invalid");
+  }
+
+  if (hint) {
+    hint.textContent = message || "";
+    hint.dataset.tone = tone;
+    hint.hidden = !message;
+  }
+
+  if (tone === "error" && errorElement instanceof HTMLElement) {
+    errorElement.classList.add("admin-inline-invalid");
+    errorElement.setAttribute("aria-invalid", "true");
+  }
+}
+
+function validateSocialRowInline(row) {
+  const labelInput = row?.querySelector(".social-label");
+  const urlInput = row?.querySelector(".social-url");
+  const label = labelInput?.value.trim() || "";
+  const url = urlInput?.value.trim() || "";
+
+  if (!label && !url) {
+    setSocialRowInlineValidation(row);
+    return { ok: true, item: null };
+  }
+
+  if (!label) {
+    const message = "Inserisci etichetta social.";
+    setSocialRowInlineValidation(row, message, "error", labelInput);
+    return { ok: false, message: "Ogni social deve avere etichetta e URL.", errorElement: labelInput };
+  }
+
+  if (!url) {
+    const message = "Inserisci URL social completo.";
+    setSocialRowInlineValidation(row, message, "error", urlInput);
+    return { ok: false, message: "Ogni social deve avere etichetta e URL.", errorElement: urlInput };
+  }
+
+  if (!isValidAbsoluteUrl(url)) {
+    const message = "URL social non valido. Usa https://...";
+    setSocialRowInlineValidation(row, message, "error", urlInput);
+    return { ok: false, message: `URL social non valido: ${url}`, errorElement: urlInput };
+  }
+
+  setSocialRowInlineValidation(row);
+  return { ok: true, item: { label, url } };
+}
+
+function validateAllSocialRowsInline() {
+  const rows = Array.from(els.socialRows.querySelectorAll(".social-row"));
+  for (const row of rows) {
+    const validation = validateSocialRowInline(row);
+    if (!validation.ok) {
+      return validation;
+    }
+  }
+  return { ok: true };
+}
+
+function validatePointInlineFields() {
+  validatePointLogoInline();
+  validatePointMediaUrlInline();
+  validatePointShipCountryInline();
+  validateAllSocialRowsInline();
+}
+
 function collectSocialRows() {
   const rows = Array.from(els.socialRows.querySelectorAll(".social-row"));
   const items = [];
 
   for (const row of rows) {
-    const label = row.querySelector(".social-label")?.value.trim() || "";
-    const url = row.querySelector(".social-url")?.value.trim() || "";
-
-    if (!label && !url) {
-      continue;
-    }
-
-    if (!label || !url) {
+    const validation = validateSocialRowInline(row);
+    if (!validation.ok) {
       return {
         ok: false,
-        message: "Ogni social deve avere etichetta e URL.",
+        message: validation.message,
+        errorElement: validation.errorElement,
       };
     }
-
-    if (!isValidAbsoluteUrl(url)) {
-      return {
-        ok: false,
-        message: `URL social non valido: ${url}`,
-      };
+    if (validation.item) {
+      items.push(validation.item);
     }
-
-    items.push({ label, url });
   }
 
   return { ok: true, items };
@@ -1072,8 +1986,10 @@ function addSocialRow(label = "", url = "") {
     )}" />
     <input class="social-url" type="url" placeholder="https://..." value="${escapeHtmlAttr(url)}" />
     <button type="button" class="admin-btn admin-btn-danger social-remove">X</button>
+    <p class="admin-inline-validation social-row-hint" data-tone="neutral" hidden></p>
   `;
   els.socialRows.appendChild(row);
+  validateSocialRowInline(row);
 }
 
 function renderPointPreview() {
@@ -1086,6 +2002,7 @@ function renderPointPreview() {
   const name = els.pointName.value.trim();
   const id = slugify(els.pointId.value);
   const address = els.pointAddress.value.trim();
+  const shipCountry = String(els.pointShipCountry?.value || "").trim();
   const details = els.pointDetails.value.trim();
   const logo = els.pointLogo.value.trim();
   const mediaType = normalizeMediaType(els.pointMediaType.value);
@@ -1095,6 +2012,8 @@ function renderPointPreview() {
   const services = Array.from(els.pointForm.querySelectorAll("input[name='services']:checked")).map(
     (input) => input.value
   );
+  const regionShipOrigin = getRegionShipOrigin(region);
+  const showShipCountry = services.includes("ship") && regionShipOrigin === "eu";
   const socials = Array.from(els.socialRows.querySelectorAll(".social-row"))
     .map((row) => row.querySelector(".social-label")?.value.trim() || "")
     .filter(Boolean);
@@ -1123,6 +2042,11 @@ function renderPointPreview() {
         <div>
           <p class="preview-name">${escapeHtml(name || "Nuovo punto")}</p>
           <p class="preview-meta">${escapeHtml(address || "Indirizzo non specificato")}</p>
+          ${
+            showShipCountry
+              ? `<p class="preview-meta">Paese Ship: ${escapeHtml(shipCountry || "Non impostato")}</p>`
+              : ""
+          }
         </div>
       </header>
       ${mediaHtml ? `<div class="preview-media">${mediaHtml}</div>` : ""}
@@ -1178,7 +2102,9 @@ async function handlePointMediaUpload() {
     els.pointMediaType.value = uploadedType;
     els.pointMediaUrl.value = uploadedUrl;
     setPointMediaStatus(`Caricato su server: ${file.name} (${formatBytes(file.size)})`, "success");
+    validatePointMediaUrlInline();
     renderPointPreview();
+    updatePointFormDirtyState();
   } catch (error) {
     setPointMediaStatus(error?.message || "Caricamento fallito. Riprova con un altro file.", "error");
   } finally {
@@ -1467,6 +2393,51 @@ function getServiceLabel(serviceId) {
   return data.serviceLabels?.[serviceId] || defaultServiceLabels[serviceId] || serviceId;
 }
 
+function normalizeShipOrigin(value) {
+  const candidate = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (candidate === "ue") return "eu";
+  return SHIP_ORIGINS.includes(candidate) ? candidate : "italy";
+}
+
+function getRegionShipOrigin(region) {
+  return normalizeShipOrigin(region?.shipOrigin);
+}
+
+function getShipOriginLabel(originValue) {
+  return normalizeShipOrigin(originValue) === "eu" ? "UE" : "Italia";
+}
+
+function hasShipServiceSelected() {
+  return Array.from(els.pointForm.querySelectorAll("input[name='services']:checked")).some(
+    (input) => input.value === "ship"
+  );
+}
+
+function syncShipCountryFieldState() {
+  if (!els.pointShipCountry) return;
+
+  const region = getSelectedRegion();
+  const shouldEnable = Boolean(region) && hasShipServiceSelected() && getRegionShipOrigin(region) === "eu";
+  els.pointShipCountry.disabled = !shouldEnable;
+  els.pointShipCountry.required = shouldEnable;
+
+  const wrapper = els.pointShipCountry.closest("label");
+  if (wrapper) {
+    wrapper.classList.toggle("admin-field-disabled", !shouldEnable);
+  }
+
+  if (!shouldEnable) {
+    els.pointShipCountry.value = "";
+  }
+}
+
+function formatPointCount(count) {
+  const value = Number(count) || 0;
+  return value === 1 ? "1 punto" : `${value} punti`;
+}
+
 function makeUniquePointId(baseId, points) {
   const normalizedBase = slugify(baseId) || "nuovo-punto";
   if (!points.some((point) => point.id === normalizedBase)) {
@@ -1480,6 +2451,12 @@ function makeUniquePointId(baseId, points) {
     candidate = `${normalizedBase}-${counter}`;
   }
   return candidate;
+}
+
+function getDropPosition(event, targetElement) {
+  const rect = targetElement.getBoundingClientRect();
+  const midpoint = rect.top + rect.height / 2;
+  return event.clientY < midpoint ? "before" : "after";
 }
 
 function moveArrayItem(list, fromIndex, toIndex) {

@@ -2,9 +2,21 @@
 const state = {
   service: null,
   region: null,
+  shipZone: null,
 };
 const VALID_SERVICES = ["meetup", "delivery", "ship"];
-const DEFAULT_SUPPORT_TELEGRAM_URL = "https://t.me/SHLC26";
+const SHIP_ZONES = [
+  {
+    id: "italy",
+    title: "Ship da Italia",
+    hint: "Spedizione dai punti presenti in Italia",
+  },
+  {
+    id: "eu",
+    title: "Ship da UE",
+    hint: "Spedizione da altri paesi dell'Unione Europea",
+  },
+];
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
 
 let appData = fallbackData();
@@ -13,12 +25,12 @@ const els = {
   serviceOptions: document.getElementById("serviceOptions"),
   selectionStep: document.getElementById("selectionStep"),
   selectionTitle: document.getElementById("selectionTitle"),
+  selectionHint: document.getElementById("selectionHint"),
   selectionContent: document.getElementById("selectionContent"),
   pointsStep: document.getElementById("pointsStep"),
   pointsTitle: document.getElementById("pointsTitle"),
   pointsContent: document.getElementById("pointsContent"),
   scrollTopBtn: document.getElementById("scrollTopBtn"),
-  contactTelegramBtn: document.getElementById("contactTelegramBtn"),
 };
 
 setupMobilePreloader();
@@ -46,6 +58,12 @@ function bindEvents() {
   });
 
   els.selectionContent.addEventListener("click", (event) => {
+    const shipZoneButton = event.target.closest("[data-ship-zone]");
+    if (shipZoneButton && !shipZoneButton.disabled) {
+      selectShipZone(shipZoneButton.dataset.shipZone);
+      return;
+    }
+
     const regionButton = event.target.closest("[data-region]");
     if (!regionButton || regionButton.disabled) return;
     selectRegion(regionButton.dataset.region);
@@ -91,11 +109,9 @@ async function loadAppDataFromServer() {
 
     const payload = await response.json();
     appData = normalizeDataInput(payload?.data);
-    updateSupportLink();
     return;
   } catch {
     appData = loadFallbackAppData();
-    updateSupportLink();
   } finally {
     if (timeoutId) {
       window.clearTimeout(timeoutId);
@@ -122,7 +138,6 @@ function fallbackData() {
       delivery: "Consegna",
       ship: "Spedizione",
     },
-    supportTelegramUrl: DEFAULT_SUPPORT_TELEGRAM_URL,
     regions: [],
   };
 }
@@ -133,6 +148,7 @@ function selectService(serviceId) {
 
   state.service = service;
   state.region = null;
+  state.shipZone = null;
 
   normalizeState();
   highlightActiveOption(els.serviceOptions, `[data-service='${cssEscape(state.service)}']`);
@@ -142,18 +158,19 @@ function selectService(serviceId) {
 
   window.requestAnimationFrame(() =>
     focusStepIfNeeded(els.selectionStep, {
-      focusSelector: "[data-region]:not([disabled])",
+      focusSelector: "[data-region]:not([disabled]), [data-ship-zone]:not([disabled])",
     })
   );
 }
 
 function selectRegion(regionId) {
-  if (!state.service) return;
+  if (!state.service || state.service === "ship") return;
 
   const region = appData.regions.find((item) => item.id === regionId);
   if (!region) return;
 
   state.region = region.id;
+  state.shipZone = null;
 
   normalizeState();
   highlightActiveOption(els.selectionContent, `[data-region='${cssEscape(state.region)}']`);
@@ -167,13 +184,49 @@ function selectRegion(regionId) {
   );
 }
 
+function selectShipZone(zoneId) {
+  if (state.service !== "ship") return;
+
+  const normalizedZone = normalizeShipZoneId(zoneId);
+  if (!normalizedZone) return;
+
+  state.shipZone = normalizedZone;
+  state.region = null;
+
+  normalizeState();
+  highlightActiveOption(els.selectionContent, `[data-ship-zone='${cssEscape(state.shipZone)}']`);
+  renderPointsStep();
+  triggerSelectionHaptic();
+
+  window.requestAnimationFrame(() =>
+    focusStepIfNeeded(els.pointsStep, {
+      focusSelector: ".point-link",
+    })
+  );
+}
+
 function normalizeState() {
   state.service = normalizeServiceId(state.service);
+  state.shipZone = normalizeShipZoneId(state.shipZone);
 
   if (!state.service) {
     state.region = null;
+    state.shipZone = null;
     return;
   }
+
+  if (state.service === "ship") {
+    state.region = null;
+    if (!state.shipZone) return;
+
+    const activeShipPoints = getActiveShipPointsByZone(state.shipZone);
+    if (activeShipPoints.length === 0) {
+      state.shipZone = null;
+    }
+    return;
+  }
+
+  state.shipZone = null;
 
   const regionExists = appData.regions.some((region) => region.id === state.region);
   if (!regionExists) {
@@ -194,6 +247,14 @@ function renderRegionStep() {
     return;
   }
 
+  if (state.service === "ship") {
+    renderShipZoneStep();
+    return;
+  }
+
+  if (els.selectionHint) {
+    els.selectionHint.textContent = "Le regioni non attive vengono disabilitate automaticamente.";
+  }
   els.selectionTitle.textContent = `Seleziona la regione per ${getServiceLabel(state.service)}`;
 
   if (!Array.isArray(appData.regions) || appData.regions.length === 0) {
@@ -234,7 +295,7 @@ function renderRegionStep() {
           ${isDisabled ? "disabled" : ""}
         >
           <span class="region-name">${escapeHtml(region.name)}</span>
-          <span class="region-meta">${activeCount} punti disponibili</span>
+          <span class="region-meta">${formatAvailablePointsLabel(activeCount)}</span>
           <span class="region-meta">${escapeHtml(region.hubs || "Nessun hub specificato")}</span>
         </button>
       `;
@@ -249,25 +310,94 @@ function renderRegionStep() {
   }
 }
 
+function renderShipZoneStep() {
+  if (els.selectionHint) {
+    els.selectionHint.textContent = "Scegli se spedire da Italia o da altri paesi dell'Unione Europea.";
+  }
+  els.selectionTitle.textContent = "Seleziona l'origine per Ship";
+
+  const zoneMeta = SHIP_ZONES.map((zone) => ({
+    ...zone,
+    activeCount: getActiveShipPointsByZone(zone.id).length,
+  }));
+
+  const activeZones = zoneMeta.filter((zone) => zone.activeCount > 0);
+  if (!state.shipZone && activeZones.length === 1) {
+    state.shipZone = activeZones[0].id;
+  }
+
+  if (state.shipZone) {
+    const selected = zoneMeta.find((zone) => zone.id === state.shipZone);
+    if (!selected || selected.activeCount === 0) {
+      state.shipZone = null;
+    }
+  }
+
+  const zoneCards = zoneMeta
+    .map((zone) => {
+      const isDisabled = zone.activeCount === 0;
+      return `
+        <button
+          type="button"
+          class="option ${isDisabled ? "is-disabled" : ""}"
+          data-ship-zone="${escapeHtmlAttr(zone.id)}"
+          ${isDisabled ? "disabled" : ""}
+        >
+          <span class="region-name">${escapeHtml(zone.title)}</span>
+          <span class="region-meta">${formatAvailablePointsLabel(zone.activeCount)}</span>
+          <span class="region-meta">${escapeHtml(zone.hint)}</span>
+        </button>
+      `;
+    })
+    .join("");
+
+  els.selectionContent.innerHTML = `<div class="region-grid">${zoneCards}</div>`;
+  els.selectionStep.classList.remove("hidden");
+
+  if (state.shipZone) {
+    highlightActiveOption(els.selectionContent, `[data-ship-zone='${cssEscape(state.shipZone)}']`);
+  }
+}
+
 function renderPointsStep() {
-  if (!state.service || !state.region) {
+  if (!state.service) {
     els.pointsStep.classList.add("hidden");
     return;
   }
 
-  const region = appData.regions.find((item) => item.id === state.region);
-  if (!region) {
-    els.pointsStep.classList.add("hidden");
-    return;
-  }
+  let activePoints = [];
+  let emptyMessage = "";
 
-  const activePoints = getActivePointsByRegion(region.id);
-  els.pointsTitle.textContent = `Punti attivi in ${region.name}`;
+  if (state.service === "ship") {
+    if (!state.shipZone) {
+      els.pointsStep.classList.add("hidden");
+      return;
+    }
+    const shipZoneLabel = getShipZoneLabel(state.shipZone);
+    activePoints = getActiveShipPointsByZone(state.shipZone);
+    els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} - Ship da ${shipZoneLabel}`;
+    emptyMessage = "Nessun punto disponibile per questa origine di spedizione.";
+  } else {
+    if (!state.region) {
+      els.pointsStep.classList.add("hidden");
+      return;
+    }
+
+    const region = appData.regions.find((item) => item.id === state.region);
+    if (!region) {
+      els.pointsStep.classList.add("hidden");
+      return;
+    }
+
+    activePoints = getActivePointsByRegion(region.id);
+    els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} in ${region.name}`;
+    emptyMessage = "Nessun punto disponibile per questo servizio nella regione selezionata.";
+  }
 
   if (activePoints.length === 0) {
     els.pointsContent.innerHTML = `
       <div class="points-empty">
-        Nessun punto disponibile per questo servizio nella regione selezionata.
+        ${emptyMessage}
       </div>
     `;
     els.pointsStep.classList.remove("hidden");
@@ -293,6 +423,7 @@ function renderPointsStep() {
         : `<span class="point-logo-fallback">${escapeHtml(getInitials(point.name))}</span>`;
       const mediaType = resolvePointMediaType(point.mediaType, point.mediaUrl);
       const mediaHtml = buildPointMediaMarkup(mediaType, point.mediaUrl, point.name);
+      const shipCountryText = getPointShipCountryText(point);
 
       return `
         <article class="point-card" aria-label="Punto ${escapeHtmlAttr(point.name)}">
@@ -300,7 +431,8 @@ function renderPointsStep() {
             <div class="point-logo">${logoHtml}</div>
             <div>
               <h3 class="point-name">${escapeHtml(point.name)}</h3>
-              <p class="point-address">${escapeHtml(point.address || "Indirizzo non specificato")}</p>
+              <p class="point-address">${escapeHtml(formatPointAddress(point.address, point.regionName))}</p>
+              ${shipCountryText ? `<p class="point-ship-country">${escapeHtml(shipCountryText)}</p>` : ""}
             </div>
           </header>
           ${mediaHtml ? `<div class="point-media point-media-${mediaType}">${mediaHtml}</div>` : ""}
@@ -318,13 +450,94 @@ function renderPointsStep() {
   els.pointsStep.classList.remove("hidden");
 }
 
-function getActivePointsByRegion(regionId) {
+function getActivePointsByRegion(regionId, serviceId = state.service) {
   const region = appData.regions.find((item) => item.id === regionId);
-  if (!region || !state.service) return [];
+  if (!region || !serviceId) return [];
 
   return (region.activePoints || []).filter(
-    (point) => Array.isArray(point.services) && point.services.includes(state.service)
+    (point) => Array.isArray(point.services) && point.services.includes(serviceId)
   );
+}
+
+function getActiveShipPointsByZone(zoneId) {
+  const normalizedZone = normalizeShipZoneId(zoneId);
+  if (!normalizedZone) return [];
+
+  const result = [];
+  for (const region of appData.regions || []) {
+    if (resolveShipZoneForRegion(region) !== normalizedZone) continue;
+
+    const regionPoints = getActivePointsByRegion(region.id, "ship");
+    for (const point of regionPoints) {
+      result.push({
+        ...point,
+        regionName: region.name,
+      });
+    }
+  }
+
+  return result;
+}
+
+function resolveShipZoneForRegion(region) {
+  const explicitZone = normalizeShipZoneId(region?.shipOrigin);
+  if (explicitZone) return explicitZone;
+
+  const probe = `${region?.id || ""} ${region?.name || ""} ${region?.hubs || ""}`.toLowerCase();
+  if (/\b(ue|eu|unione europea|european union)\b/.test(probe)) {
+    return "eu";
+  }
+
+  return "italy";
+}
+
+function normalizeShipZoneId(zoneId) {
+  const candidate = String(zoneId || "")
+    .trim()
+    .toLowerCase();
+  if (candidate === "italy" || candidate === "eu") {
+    return candidate;
+  }
+  return null;
+}
+
+function getShipZoneLabel(zoneId) {
+  const zone = SHIP_ZONES.find((item) => item.id === zoneId);
+  return zone?.id === "eu" ? "UE" : "Italia";
+}
+
+function formatPointWord(count) {
+  return Number(count) === 1 ? "punto" : "punti";
+}
+
+function formatAvailablePointsLabel(count) {
+  const availabilityWord = Number(count) === 1 ? "disponibile" : "disponibili";
+  return `${count} ${formatPointWord(count)} ${availabilityWord}`;
+}
+
+function formatActivePointsTitle(count) {
+  return Number(count) === 1 ? "Punto attivo" : "Punti attivi";
+}
+
+function formatPointAddress(address, regionName) {
+  const safeAddress = String(address || "").trim();
+  const safeRegion = String(regionName || "").trim();
+
+  if (safeAddress && safeRegion) {
+    return `${safeAddress} - ${safeRegion}`;
+  }
+  if (safeAddress) return safeAddress;
+  if (safeRegion) return safeRegion;
+  return "Indirizzo non specificato";
+}
+
+function getPointShipCountryText(point) {
+  if (state.service !== "ship" || state.shipZone !== "eu") return "";
+  const country = String(point?.shipCountry || "").trim();
+  if (!country) {
+    return "Paese di spedizione: non specificato";
+  }
+  return `Paese di spedizione: ${country}`;
 }
 
 function getServiceLabel(serviceId) {
@@ -337,7 +550,6 @@ function normalizeServiceId(serviceId) {
 }
 
 function setupFloatingTools() {
-  updateSupportLink();
   updateScrollTopButton();
 
   if (els.scrollTopBtn) {
@@ -349,51 +561,13 @@ function setupFloatingTools() {
     });
   }
 
-  if (els.contactTelegramBtn) {
-    els.contactTelegramBtn.addEventListener("click", (event) => {
-      const href = els.contactTelegramBtn.getAttribute("href");
-      if (!href) {
-        event.preventDefault();
-        return;
-      }
-
-      const tg = window.Telegram?.WebApp;
-      if (!tg || typeof tg.openTelegramLink !== "function") return;
-
-      event.preventDefault();
-      tg.openTelegramLink(href);
-    });
-  }
-
   window.addEventListener("scroll", updateScrollTopButton, { passive: true });
-}
-
-function updateSupportLink() {
-  if (!els.contactTelegramBtn) return;
-  els.contactTelegramBtn.href = getSupportTelegramUrl();
 }
 
 function updateScrollTopButton() {
   if (!els.scrollTopBtn) return;
   const isVisible = window.scrollY > 320;
   els.scrollTopBtn.classList.toggle("is-visible", isVisible);
-}
-
-function getSupportTelegramUrl() {
-  const candidate = String(appData.supportTelegramUrl || "").trim();
-  if (isValidTelegramUrl(candidate)) return candidate;
-  return DEFAULT_SUPPORT_TELEGRAM_URL;
-}
-
-function isValidTelegramUrl(value) {
-  if (!value) return false;
-  try {
-    const url = new URL(value);
-    const host = url.hostname.replace(/^www\./, "");
-    return (url.protocol === "http:" || url.protocol === "https:") && host === "t.me";
-  } catch {
-    return false;
-  }
 }
 
 function highlightActiveOption(container, selector) {
