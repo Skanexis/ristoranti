@@ -394,6 +394,8 @@ function renderPointsStep() {
     emptyMessage = "Nessun punto disponibile per questo servizio nella regione selezionata.";
   }
 
+  activePoints = sortPointsByStarsPriority(activePoints);
+
   if (activePoints.length === 0) {
     els.pointsContent.innerHTML = `
       <div class="points-empty">
@@ -431,7 +433,6 @@ function renderPointsStep() {
             <div class="point-logo">${logoHtml}</div>
             <div>
               <h3 class="point-name">${escapeHtml(point.name)}</h3>
-              <p class="point-address">${escapeHtml(formatPointAddress(point.address, point.regionName))}</p>
               ${shipCountryText ? `<p class="point-ship-country">${escapeHtml(shipCountryText)}</p>` : ""}
             </div>
           </header>
@@ -478,6 +479,21 @@ function getActiveShipPointsByZone(zoneId) {
   return result;
 }
 
+function sortPointsByStarsPriority(points) {
+  if (!Array.isArray(points) || points.length <= 1) {
+    return Array.isArray(points) ? points : [];
+  }
+
+  return points
+    .map((point, index) => ({ point, index }))
+    .sort((a, b) => {
+      const starsDiff = clampStars(b.point?.stars) - clampStars(a.point?.stars);
+      if (starsDiff !== 0) return starsDiff;
+      return a.index - b.index;
+    })
+    .map((entry) => entry.point);
+}
+
 function resolveShipZoneForPoint(point, region) {
   const explicitZone = normalizeShipZoneId(point?.shipOrigin);
   if (explicitZone) return explicitZone;
@@ -519,18 +535,6 @@ function formatAvailablePointsLabel(count) {
 
 function formatActivePointsTitle(count) {
   return Number(count) === 1 ? "Punto attivo" : "Punti attivi";
-}
-
-function formatPointAddress(address, regionName) {
-  const safeAddress = String(address || "").trim();
-  const safeRegion = String(regionName || "").trim();
-
-  if (safeAddress && safeRegion) {
-    return `${safeAddress} - ${safeRegion}`;
-  }
-  if (safeAddress) return safeAddress;
-  if (safeRegion) return safeRegion;
-  return "Indirizzo non specificato";
 }
 
 function getPointShipCountryText(point) {

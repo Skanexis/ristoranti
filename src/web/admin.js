@@ -133,7 +133,6 @@ const els = {
   pointEditingId: document.getElementById("pointEditingId"),
   pointId: document.getElementById("pointId"),
   pointName: document.getElementById("pointName"),
-  pointAddress: document.getElementById("pointAddress"),
   pointShipOrigin: document.getElementById("pointShipOrigin"),
   pointShipCountry: document.getElementById("pointShipCountry"),
   pointDetails: document.getElementById("pointDetails"),
@@ -572,10 +571,6 @@ function bindAdminEvents() {
     if (!pointIdTouched) {
       els.pointId.value = slugify(els.pointName.value);
     }
-    renderPointPreview();
-    updatePointFormDirtyState();
-  });
-  els.pointAddress.addEventListener("input", () => {
     renderPointPreview();
     updatePointFormDirtyState();
   });
@@ -1196,8 +1191,7 @@ function getFilteredPoints(region) {
     const matchesSearch =
       !search ||
       String(point.name || "").toLowerCase().includes(search) ||
-      String(point.id || "").toLowerCase().includes(search) ||
-      String(point.address || "").toLowerCase().includes(search);
+      String(point.id || "").toLowerCase().includes(search);
     const matchesService =
       serviceFilter === "all" || (Array.isArray(point.services) && point.services.includes(serviceFilter));
     const matchesStars = starFilter === "all" || String(clampStars(point.stars)) === starFilter;
@@ -1306,7 +1300,6 @@ function renderPointsList() {
             <p class="admin-item-title">${escapeHtml(point.name || "Punto senza nome")}</p>
             <p class="admin-item-id">${escapeHtml(point.id || "n/a")}</p>
           </div>
-          <p class="admin-item-meta">${escapeHtml(point.address || "Indirizzo non specificato")}</p>
           <div class="admin-item-tags">
             <span class="mini-chip">Stelle ${starsText}</span>
             <span class="mini-chip">Social ${socialsCount}</span>
@@ -1674,7 +1667,6 @@ function handlePointSubmit(event) {
 
   const id = slugify(els.pointId.value);
   const name = els.pointName.value.trim();
-  const address = els.pointAddress.value.trim();
   const selectedShipOrigin = normalizeShipOrigin(els.pointShipOrigin?.value);
   const shipCountry = String(els.pointShipCountry?.value || "").trim();
   const details = els.pointDetails.value.trim();
@@ -1749,7 +1741,7 @@ function handlePointSubmit(event) {
 
     point.id = id;
     point.name = name;
-    point.address = address;
+    delete point.address;
     point.shipOrigin = pointShipOrigin;
     point.shipCountry = needsShipCountry ? shipCountry : "";
     point.details = details;
@@ -1779,7 +1771,6 @@ function handlePointSubmit(event) {
   region.activePoints.push({
     id,
     name,
-    address,
     shipOrigin: pointShipOrigin,
     shipCountry: needsShipCountry ? shipCountry : "",
     details,
@@ -1801,7 +1792,6 @@ function fillPointForm(point) {
   els.pointEditingId.value = point.id;
   els.pointId.value = point.id || "";
   els.pointName.value = point.name || "";
-  els.pointAddress.value = point.address || "";
   if (els.pointShipOrigin) {
     els.pointShipOrigin.value = resolvePointShipOrigin(point, region);
   }
@@ -1912,7 +1902,6 @@ function serializePointFormState() {
   return JSON.stringify({
     id: els.pointId.value.trim(),
     name: els.pointName.value.trim(),
-    address: els.pointAddress.value.trim(),
     shipOrigin: normalizeShipOrigin(els.pointShipOrigin?.value),
     shipCountry: String(els.pointShipCountry?.value || "").trim(),
     details: els.pointDetails.value.trim(),
@@ -2286,7 +2275,6 @@ function renderPointPreview() {
 
   const name = els.pointName.value.trim();
   const id = slugify(els.pointId.value);
-  const address = els.pointAddress.value.trim();
   const shipCountry = String(els.pointShipCountry?.value || "").trim();
   const details = els.pointDetails.value.trim();
   const logo = els.pointLogo.value.trim();
@@ -2305,7 +2293,7 @@ function renderPointPreview() {
     .map((row) => row.querySelector(".social-label")?.value.trim() || "")
     .filter(Boolean);
 
-  if (!name && !id && !address && !details && !logo && !mediaUrl && socials.length === 0 && !editingPointId) {
+  if (!name && !id && !details && !logo && !mediaUrl && socials.length === 0 && !editingPointId) {
     els.pointPreview.innerHTML = `<p class="preview-empty">Compila il form per vedere l'anteprima live.</p>`;
     return;
   }
@@ -2328,7 +2316,6 @@ function renderPointPreview() {
         <div class="preview-logo">${logoHtml}</div>
         <div>
           <p class="preview-name">${escapeHtml(name || "Nuovo punto")}</p>
-          <p class="preview-meta">${escapeHtml(address || "Indirizzo non specificato")}</p>
           ${hasShipService ? `<p class="preview-meta">Origine Ship: ${escapeHtml(shipOriginLabel)}</p>` : ""}
           ${
             showShipCountry

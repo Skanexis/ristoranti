@@ -963,15 +963,15 @@ h2 {
 
 .point-header {
   display: grid;
-  grid-template-columns: 84px 1fr;
-  gap: 8px;
+  grid-template-columns: 96px 1fr;
+  gap: 10px;
   align-items: center;
 }
 
 .point-logo {
-  width: 84px;
-  height: 84px;
-  border-radius: 14px;
+  width: 96px;
+  height: 96px;
+  border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(217, 161, 88, 0.35);
   background: linear-gradient(145deg, rgba(42, 33, 23, 0.84), rgba(17, 13, 10, 0.88));
@@ -989,25 +989,18 @@ h2 {
 
 .point-logo-fallback {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   letter-spacing: 0.08em;
   color: var(--gold-soft);
 }
 
 .point-name {
-  margin: 0 0 2px;
+  margin: 0;
   font-family: "Bebas Neue", sans-serif;
-  font-size: 1.02rem;
-  line-height: 1;
+  font-size: 1.22rem;
+  line-height: 1.04;
   letter-spacing: 0.05em;
   color: #fff;
-}
-
-.point-address {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.74rem;
-  line-height: 1.28;
 }
 
 .point-ship-country {
@@ -1039,27 +1032,32 @@ h2 {
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  border: 1px solid rgba(217, 161, 88, 0.26);
+  border: 1px solid rgba(245, 201, 95, 0.56);
   border-radius: 999px;
-  padding: 5px 10px;
-  background: rgba(33, 26, 18, 0.7);
+  padding: 6px 12px;
+  background: linear-gradient(145deg, rgba(49, 37, 22, 0.9), rgba(21, 16, 12, 0.92));
+  box-shadow:
+    inset 0 0 0 1px rgba(245, 201, 95, 0.16),
+    0 6px 14px rgba(0, 0, 0, 0.34);
 }
 
 .point-stars-row {
   display: inline-flex;
-  gap: 5px;
+  gap: 6px;
 }
 
 .point-star {
-  font-size: 1.02rem;
+  font-size: 1.12rem;
   line-height: 1;
-  color: rgba(194, 166, 120, 0.42);
-  text-shadow: none;
+  color: rgba(245, 215, 145, 0.32);
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.45);
 }
 
 .point-star.is-filled {
-  color: #f5c95f;
-  text-shadow: 0 0 10px rgba(242, 197, 109, 0.34);
+  color: #ffd36b;
+  text-shadow:
+    0 0 2px rgba(255, 239, 201, 0.9),
+    0 0 12px rgba(255, 208, 100, 0.62);
 }
 
 .point-details-block {
@@ -1530,9 +1528,13 @@ select:focus-visible,
   }
 
   .point-logo {
-    width: 108px;
-    height: 108px;
+    width: 122px;
+    height: 122px;
     border-radius: 18px;
+  }
+
+  .point-name {
+    font-size: 1.34rem;
   }
 
   .point-media {
@@ -1546,11 +1548,11 @@ select:focus-visible,
 
   .point-stars {
     margin: 0 auto;
-    padding: 7px 12px;
+    padding: 8px 14px;
   }
 
   .point-star {
-    font-size: 1.26rem;
+    font-size: 1.4rem;
   }
 
   .point-details-text {
