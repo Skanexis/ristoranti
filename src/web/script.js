@@ -30,6 +30,7 @@ const els = {
   pointsStep: document.getElementById("pointsStep"),
   pointsTitle: document.getElementById("pointsTitle"),
   pointsContent: document.getElementById("pointsContent"),
+  heroTelegramLink: document.getElementById("heroTelegramLink"),
   scrollTopBtn: document.getElementById("scrollTopBtn"),
 };
 
@@ -41,11 +42,13 @@ void initializeAppData();
 
 async function initializeAppData() {
   normalizeState();
+  renderHeroSocialLinks();
   renderRegionStep();
   renderPointsStep();
 
   await loadAppDataFromServer();
   normalizeState();
+  renderHeroSocialLinks();
   renderRegionStep();
   renderPointsStep();
 }
@@ -87,6 +90,7 @@ function setupTelegram() {
 async function refreshLiveData() {
   await loadAppDataFromServer();
   normalizeState();
+  renderHeroSocialLinks();
   renderRegionStep();
   renderPointsStep();
 }
@@ -138,6 +142,7 @@ function fallbackData() {
       delivery: "Consegna",
       ship: "Spedizione",
     },
+    supportTelegramUrl: "https://t.me/SHLC26",
     regions: [],
   };
 }
@@ -448,6 +453,7 @@ function renderPointsStep() {
     .join("");
 
   els.pointsContent.innerHTML = `<div class="points-grid">${cards}</div>`;
+  applySmartLogoFit(els.pointsContent);
   els.pointsStep.classList.remove("hidden");
 }
 
@@ -544,6 +550,20 @@ function getPointShipCountryText(point) {
     return "Paese di spedizione: non specificato";
   }
   return `Paese di spedizione: ${country}`;
+}
+
+function renderHeroSocialLinks() {
+  if (!els.heroTelegramLink) return;
+
+  const telegramUrl = normalizeTelegramChannelUrl(appData.supportTelegramUrl);
+  if (!telegramUrl) {
+    els.heroTelegramLink.hidden = true;
+    els.heroTelegramLink.removeAttribute("href");
+    return;
+  }
+
+  els.heroTelegramLink.hidden = false;
+  els.heroTelegramLink.href = telegramUrl;
 }
 
 function getServiceLabel(serviceId) {
@@ -675,6 +695,49 @@ function buildPointMediaMarkup(mediaType, mediaUrl, pointName) {
   return `<img src="${escapeHtmlAttr(safeUrl)}" alt="Media ${escapeHtmlAttr(pointName || "punto")}" loading="lazy" />`;
 }
 
+function applySmartLogoFit(scope = document) {
+  const host = scope instanceof HTMLElement ? scope : document;
+  const logos = host.querySelectorAll(".point-logo img");
+
+  logos.forEach((img) => {
+    if (!(img instanceof HTMLImageElement)) return;
+
+    const apply = () => {
+      const mode = resolveLogoFitMode(img);
+      img.classList.toggle("point-logo-img--contain", mode === "contain");
+    };
+
+    if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+      apply();
+      return;
+    }
+
+    img.addEventListener("load", apply, { once: true });
+    img.addEventListener(
+      "error",
+      () => {
+        img.classList.remove("point-logo-img--contain");
+      },
+      { once: true }
+    );
+  });
+}
+
+function resolveLogoFitMode(image) {
+  const width = Number(image?.naturalWidth || 0);
+  const height = Number(image?.naturalHeight || 0);
+  if (!width || !height) {
+    return "cover";
+  }
+
+  const aspectRatio = width / height;
+  if (aspectRatio < 0.78 || aspectRatio > 1.28) {
+    return "contain";
+  }
+
+  return "cover";
+}
+
 function buildStarMeter(stars) {
   const hasStar = clampStars(stars) === 1;
   if (!hasStar) {
@@ -694,6 +757,23 @@ function clampStars(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return 0;
   return Math.max(0, Math.min(1, Math.round(num)));
+}
+
+function normalizeTelegramChannelUrl(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate) return "";
+
+  try {
+    const parsed = new URL(candidate);
+    const host = parsed.hostname.replace(/^www\./, "");
+    const path = parsed.pathname.replace(/^\/+/, "");
+    if ((parsed.protocol !== "https:" && parsed.protocol !== "http:") || host !== "t.me" || !path) {
+      return "";
+    }
+    return parsed.toString();
+  } catch {
+    return "";
+  }
 }
 
 function getInitials(name) {

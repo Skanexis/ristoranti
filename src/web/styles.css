@@ -984,7 +984,15 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center center;
   display: block;
+}
+
+.point-logo img.point-logo-img--contain {
+  object-fit: contain;
+  padding: 6px;
+  box-sizing: border-box;
+  background: radial-gradient(circle at 50% 28%, rgba(255, 224, 160, 0.1), rgba(14, 11, 9, 0.66));
 }
 
 .point-logo-fallback {

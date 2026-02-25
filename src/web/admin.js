@@ -48,7 +48,7 @@ const ADMIN_PAGE_META = {
   },
   services: {
     title: "Servizi",
-    subtitle: "Gestione etichette operative e link di supporto.",
+    subtitle: "Gestione etichette operative e link canale Telegram.",
   },
   regions: {
     title: "Regioni",
@@ -754,7 +754,7 @@ function handleServicesSubmit(event) {
 
   const telegramValidation = validateSupportTelegramInline();
   if (!telegramValidation.valid) {
-    setStatus(telegramValidation.message || "URL supporto Telegram non valido. Usa formato https://t.me/username.", "error");
+    setStatus(telegramValidation.message || "URL canale Telegram non valido. Usa formato https://t.me/username.", "error");
     return;
   }
 
@@ -2055,7 +2055,7 @@ function validateSupportTelegramInline() {
     return setInlineFieldValidation(
       field,
       "error",
-      "Inserisci il link supporto (formato: https://t.me/username)."
+      "Inserisci il link del canale (formato: https://t.me/username)."
     );
   }
 
@@ -2077,7 +2077,7 @@ function validateSupportTelegramInline() {
     return setInlineFieldValidation(field, "error", "URL Telegram non valido.");
   }
 
-  return setInlineFieldValidation(field, "success", "Link Telegram valido.");
+  return setInlineFieldValidation(field, "success", "Link canale Telegram valido.");
 }
 
 function validatePointLogoInline() {
