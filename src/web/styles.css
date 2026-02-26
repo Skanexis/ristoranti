@@ -440,6 +440,23 @@ h1 {
   color: rgba(241, 207, 159, 0.86);
 }
 
+.site-footer-link {
+  color: rgba(255, 228, 171, 0.96);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(241, 207, 159, 0.48);
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.site-footer-link:hover {
+  color: #fff3d5;
+  border-color: rgba(255, 229, 176, 0.8);
+}
+
+.site-footer-link:focus-visible {
+  outline: 2px solid rgba(217, 161, 88, 0.72);
+  outline-offset: 2px;
+}
+
 .ux-hub {
   display: grid;
   gap: 10px;

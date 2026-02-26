@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Privacy & Termini | Ristoranti d'Italia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #090704;
+        --panel: rgba(20, 15, 11, 0.9);
+        --line: rgba(217, 161, 88, 0.32);
+        --text: #f0e6d6;
+        --muted: rgba(241, 207, 159, 0.82);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 14% 4%, rgba(217, 161, 88, 0.12), transparent 30%),
+          linear-gradient(180deg, #14100c 0%, #090704 78%);
+        min-height: 100dvh;
+      }
+
+      .legal-wrap {
+        width: min(980px, calc(100% - 24px));
+        margin: 22px auto 34px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .legal-top,
+      .legal-content {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: linear-gradient(145deg, rgba(29, 22, 15, 0.86), var(--panel));
+      }
+
+      .legal-top {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .legal-top h1 {
+        margin: 0;
+        font-family: "Bebas Neue", sans-serif;
+        letter-spacing: 0.06em;
+        font-size: clamp(1.5rem, 4vw, 2rem);
+      }
+
+      .legal-back {
+        text-decoration: none;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .legal-content {
+        padding: clamp(14px, 3vw, 24px);
+        line-height: 1.58;
+      }
+
+      .legal-content h1,
+      .legal-content h2,
+      .legal-content h3 {
+        margin: 22px 0 10px;
+        line-height: 1.25;
+        color: #fff7e8;
+      }
+
+      .legal-content h1 {
+        font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+        letter-spacing: 0.02em;
+      }
+
+      .legal-content h2 {
+        font-size: clamp(1.1rem, 3vw, 1.35rem);
+        letter-spacing: 0.01em;
+      }
+
+      .legal-content h3 {
+        font-size: 1rem;
+      }
+
+      .legal-content p {
+        margin: 0 0 9px;
+        color: var(--text);
+        font-size: 0.93rem;
+      }
+
+      .legal-content ul {
+        margin: 0 0 12px;
+        padding-left: 20px;
+      }
+
+      .legal-content li {
+        margin: 0 0 5px;
+        font-size: 0.93rem;
+      }
+
+      .legal-content strong {
+        color: #fff;
+      }
+
+      .legal-content hr {
+        border: 0;
+        border-top: 1px solid rgba(217, 161, 88, 0.32);
+        margin: 18px 0;
+      }
+
+      .legal-placeholder {
+        color: #f7d89f;
+      }
+
+      @media (max-width: 640px) {
+        .legal-wrap {
+          width: min(980px, calc(100% - 16px));
+          margin-top: 14px;
+        }
+
+        .legal-top {
+          padding: 12px;
+          border-radius: 14px;
+        }
+
+        .legal-content {
+          border-radius: 14px;
+          padding: 12px;
+        }
+
+        .legal-back {
+          font-size: 0.7rem;
+          padding: 7px 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="legal-wrap">
+      <section class="legal-top">
+        <h1>Privacy, Termini e Disclaimer</h1>
+        <a class="legal-back" href="./index.html">Torna al sito</a>
+      </section>
+
+      <article class="legal-content">
+        <h1>DOCUMENTAZIONE LEGALE COMPLETA</h1>
+        <h2>Privacy Policy • Termini di Servizio • Disclaimer • Banner &amp; Responsabilità Utenti • Norme Community Telegram</h2>
+        <hr />
+        <p><strong>Ultimo aggiornamento:</strong> <span class="legal-placeholder">[Inserire data]</span></p>
+        <p><strong>Titolare del Trattamento:</strong> <span class="legal-placeholder">[Nome Azienda / Struttura]</span></p>
+        <p><strong>Sede legale:</strong> <span class="legal-placeholder">[Indirizzo]</span></p>
+        <p><strong>Email legale/privacy:</strong> <span class="legal-placeholder">[Email]</span></p>
+        <hr />
+        <h1>1. INTRODUZIONE</h1>
+        <p>Il presente documento disciplina:</p>
+        <ul>
+          <li>La Privacy Policy del sito web</li>
+          <li>I Termini e Condizioni di utilizzo</li>
+          <li>Le limitazioni di responsabilità</li>
+          <li>La gestione di banner, inserzionisti e contenuti di terze parti</li>
+          <li>Le regole delle community Telegram collegate</li>
+        </ul>
+        <p>L’obiettivo è garantire conformità normativa (GDPR, ePrivacy, Digital Services Act ove applicabile) e tutelare la struttura da responsabilità derivanti da condotte degli utenti.</p>
+        <hr />
+        <h1>2. PRIVACY POLICY (GDPR COMPLIANT)</h1>
+        <h2>2.1 Tipologia di dati raccolti</h2>
+        <p>Possiamo raccogliere le seguenti categorie di dati:</p>
+        <ul>
+          <li>Dati identificativi (nome, username, email)</li>
+          <li>Dati tecnici (IP, device, browser, log)</li>
+          <li>Dati di utilizzo (pagine visitate, click, interazioni)</li>
+          <li>Dati forniti volontariamente dagli utenti</li>
+        </ul>
+        <h2>2.2 Finalità del trattamento</h2>
+        <p>I dati sono trattati per:</p>
+        <ul>
+          <li>Erogazione dei servizi</li>
+          <li>Sicurezza della piattaforma</li>
+          <li>Prevenzione abusi/frodi</li>
+          <li>Comunicazioni tecniche</li>
+          <li>Adempimenti legali</li>
+          <li>Statistiche anonime</li>
+        </ul>
+        <h2>2.3 Base giuridica</h2>
+        <ul>
+          <li>Consenso</li>
+          <li>Esecuzione contrattuale</li>
+          <li>Obblighi legali</li>
+          <li>Legittimo interesse</li>
+        </ul>
+        <h2>2.4 Conservazione dei dati</h2>
+        <p>I dati sono conservati per il tempo strettamente necessario alle finalità sopra indicate, salvo obblighi di legge.</p>
+        <h2>2.5 Condivisione dei dati</h2>
+        <p>I dati possono essere condivisi con:</p>
+        <ul>
+          <li>Fornitori tecnici</li>
+          <li>Autorità competenti</li>
+          <li>Partner contrattualizzati</li>
+        </ul>
+        <p>Non vendiamo dati personali.</p>
+        <h2>2.6 Diritti dell’interessato</h2>
+        <p>Ai sensi del GDPR l’utente può richiedere:</p>
+        <ul>
+          <li>Accesso</li>
+          <li>Rettifica</li>
+          <li>Cancellazione</li>
+          <li>Limitazione</li>
+          <li>Portabilità</li>
+          <li>Opposizione</li>
+        </ul>
+        <p>Richieste: <span class="legal-placeholder">[Email privacy]</span></p>
+        <hr />
+        <h1>3. COOKIE POLICY</h1>
+        <p>Utilizziamo:</p>
+        <ul>
+          <li>Cookie tecnici</li>
+          <li>Cookie statistici</li>
+          <li>Cookie di marketing (ove presenti banner ads)</li>
+        </ul>
+        <p>L’utente può gestire il consenso tramite il banner cookie.</p>
+        <hr />
+        <h1>4. TERMINI E CONDIZIONI DI UTILIZZO</h1>
+        <h2>4.1 Accettazione</h2>
+        <p>Utilizzando il sito o le nostre community Telegram, l’utente accetta integralmente i presenti termini.</p>
+        <h2>4.2 Requisiti</h2>
+        <p>È vietato l’uso dei servizi per:</p>
+        <ul>
+          <li>Attività illegali</li>
+          <li>Violazioni copyright</li>
+          <li>Truffe / phishing</li>
+          <li>Spam</li>
+          <li>Vendita prodotti vietati</li>
+          <li>Diffusione malware</li>
+        </ul>
+        <hr />
+        <h1>5. CONTENUTI GENERATI DAGLI UTENTI</h1>
+        <p>Gli utenti sono gli unici responsabili dei contenuti pubblicati, inclusi:</p>
+        <ul>
+          <li>Banner</li>
+          <li>Link</li>
+          <li>Annunci</li>
+          <li>Post</li>
+          <li>Messaggi Telegram</li>
+        </ul>
+        <p>La struttura:</p>
+        <ul>
+          <li>Non esercita controllo preventivo</li>
+          <li>Non approva contenuti singolarmente</li>
+          <li>Non è editore dei contenuti utenti</li>
+        </ul>
+        <p>Agiamo come <strong>hosting provider / intermediario tecnico</strong>.</p>
+        <hr />
+        <h1>6. DISCLAIMER RESPONSABILITÀ BANNER &amp; INSERZIONISTI</h1>
+        <h2>6.1 Banner di terze parti</h2>
+        <p>Gli spazi banner presenti sul sito sono concessi a utenti/inserzionisti terzi.</p>
+        <p>Pertanto:</p>
+        <ul>
+          <li>Non garantiamo veridicità contenuti pubblicitari</li>
+          <li>Non verifichiamo prodotti/servizi promossi</li>
+          <li>Non siamo parte delle transazioni</li>
+          <li>Non gestiamo pagamenti tra utenti e inserzionisti</li>
+        </ul>
+        <h2>6.2 Esclusione di responsabilità</h2>
+        <p>La struttura non è responsabile per:</p>
+        <ul>
+          <li>Perdite economiche</li>
+          <li>Truffe tra utenti</li>
+          <li>Contenuti ingannevoli</li>
+          <li>Violazioni di legge commesse dagli inserzionisti</li>
+        </ul>
+        <p>Ogni responsabilità ricade esclusivamente sul soggetto che pubblica il banner.</p>
+        <hr />
+        <h1>7. LINK ESTERNI</h1>
+        <p>Il sito e i canali Telegram possono contenere link esterni.</p>
+        <p>Non controlliamo né rispondiamo per:</p>
+        <ul>
+          <li>Contenuti dei siti linkati</li>
+          <li>Sicurezza piattaforme terze</li>
+          <li>Trattamento dati di terzi</li>
+        </ul>
+        <p>L’accesso avviene a rischio dell’utente.</p>
+        <hr />
+        <h1>8. NORME COMMUNITY TELEGRAM</h1>
+        <h2>8.1 Ruolo della struttura</h2>
+        <p>I nostri canali/gruppi Telegram hanno funzione di:</p>
+        <ul>
+          <li>Aggregazione contenuti</li>
+          <li>Condivisione informazioni</li>
+          <li>Community networking</li>
+        </ul>
+        <p>Non rappresentano testata giornalistica.</p>
+        <h2>8.2 Responsabilità utenti</h2>
+        <p>Gli utenti sono pienamente responsabili di:</p>
+        <ul>
+          <li>Messaggi inviati</li>
+          <li>File condivisi</li>
+          <li>Link pubblicati</li>
+          <li>Prodotti/servizi promossi</li>
+        </ul>
+        <h2>8.3 Contenuti vietati</h2>
+        <p>È vietato pubblicare:</p>
+        <ul>
+          <li>Materiale illegale</li>
+          <li>Copyright violato</li>
+          <li>Pornografia illegale</li>
+          <li>Hate speech</li>
+          <li>Malware</li>
+          <li>Scam</li>
+        </ul>
+        <h2>8.4 Moderazione</h2>
+        <p>Ci riserviamo il diritto di:</p>
+        <ul>
+          <li>Rimuovere contenuti</li>
+          <li>Bannare utenti</li>
+          <li>Segnalare alle autorità</li>
+        </ul>
+        <p>Senza preavviso.</p>
+        <hr />
+        <h1>9. DMCA &amp; COPYRIGHT</h1>
+        <p>Se ritieni che un contenuto violi il copyright, invia segnalazione a:</p>
+        <p><span class="legal-placeholder">[Email DMCA]</span></p>
+        <p>Indicare:</p>
+        <ul>
+          <li>URL</li>
+          <li>Prova titolarità</li>
+          <li>Documento identità</li>
+        </ul>
+        <p>Rimuoveremo tempestivamente se fondato.</p>
+        <hr />
+        <h1>10. LIMITAZIONE GENERALE DI RESPONSABILITÀ</h1>
+        <p>Nei limiti massimi consentiti dalla legge, la struttura non è responsabile per:</p>
+        <ul>
+          <li>Danni indiretti</li>
+          <li>Perdite di profitto</li>
+          <li>Interruzioni servizio</li>
+          <li>Ban di account Telegram derivanti da condotte utenti</li>
+          <li>Uso improprio della piattaforma</li>
+        </ul>
+        <hr />
+        <h1>11. MANLEVA</h1>
+        <p>L’utente accetta di manlevare e tenere indenne la struttura da qualsiasi pretesa, danno, sanzione o costo derivante da:</p>
+        <ul>
+          <li>Uso illecito dei servizi</li>
+          <li>Violazioni di legge</li>
+          <li>Contenuti pubblicati</li>
+          <li>Attività commerciali autonome</li>
+        </ul>
+        <hr />
+        <h1>12. COMPLIANCE TELEGRAM &amp; PIATTAFORME TERZE</h1>
+        <p>Gli utenti devono rispettare anche:</p>
+        <ul>
+          <li>Termini di Servizio Telegram</li>
+          <li>Policy anti‑spam</li>
+          <li>Normative digital advertising</li>
+        </ul>
+        <p>Violazioni possono comportare ban non imputabili alla struttura.</p>
+        <hr />
+        <h1>13. SOSPENSIONE E CHIUSURA ACCOUNT</h1>
+        <p>Possiamo sospendere o chiudere account/spazi banner in caso di:</p>
+        <ul>
+          <li>Violazioni legali</li>
+          <li>Segnalazioni autorità</li>
+          <li>Rischi reputazionali</li>
+          <li>Abusi piattaforma</li>
+        </ul>
+        <hr />
+        <h1>14. MODIFICHE AI TERMINI</h1>
+        <p>Ci riserviamo il diritto di modificare il presente documento in qualsiasi momento.</p>
+        <p>Le modifiche entrano in vigore alla pubblicazione.</p>
+        <hr />
+        <h1>15. LEGGE APPLICABILE E FORO</h1>
+        <p>Il presente documento è regolato dalla legge italiana.</p>
+        <p>Foro competente: <span class="legal-placeholder">[Città]</span></p>
+        <hr />
+        <h1>16. CONTATTI LEGALI</h1>
+        <p>Per richieste legali o privacy:</p>
+        <ul>
+          <li>Email: <span class="legal-placeholder">[Email]</span></li>
+          <li>PEC: <span class="legal-placeholder">[PEC]</span></li>
+        </ul>
+        <hr />
+        <hr />
+        <h1>17. CLAUSOLA ANTI‑CHARGEBACK &amp; PAGAMENTI</h1>
+        <p>Qualsiasi pagamento effettuato verso inserzionisti, utenti o terze parti presenti sulla piattaforma non coinvolge la struttura.</p>
+        <p>La struttura:</p>
+        <ul>
+          <li>Non è merchant of record</li>
+          <li>Non processa pagamenti per conto terzi</li>
+          <li>Non è responsabile per chargeback, dispute o frodi</li>
+        </ul>
+        <p>Eventuali controversie economiche devono essere risolte esclusivamente tra le parti coinvolte.</p>
+        <hr />
+        <h1>18. ESCLUSIONE RESPONSABILITÀ FISCALE INSERZIONISTI</h1>
+        <p>Gli inserzionisti e possessori di spazi banner dichiarano di operare in conformità alle normative fiscali del proprio Paese.</p>
+        <p>La struttura:</p>
+        <ul>
+          <li>Non è sostituto d’imposta</li>
+          <li>Non emette fatture per conto terzi</li>
+          <li>Non verifica posizione fiscale inserzionisti</li>
+          <li>Non risponde di evasione o irregolarità tributarie</li>
+        </ul>
+        <hr />
+        <h1>19. POLICY AFFILIAZIONI &amp; REFERRAL</h1>
+        <p>La piattaforma può ospitare link affiliati o referral di terze parti.</p>
+        <p>Non garantiamo:</p>
+        <ul>
+          <li>Guadagni</li>
+          <li>Conversioni</li>
+          <li>Performance economiche</li>
+        </ul>
+        <p>Ogni rischio imprenditoriale resta in capo all’utente.</p>
+        <hr />
+        <h1>20. DIGITAL SERVICES ACT (DSA) COMPLIANCE</h1>
+        <p>Operiamo come prestatore di servizi di hosting ai sensi del Regolamento UE Digital Services Act.</p>
+        <p>Non siamo soggetti a obbligo generale di sorveglianza preventiva.</p>
+        <p>Agiamo su segnalazione per:</p>
+        <ul>
+          <li>Rimozione contenuti illegali</li>
+          <li>Disabilitazione accessi</li>
+          <li>Conservazione prove per autorità</li>
+        </ul>
+        <hr />
+        <h1>21. PROCEDURA NOTICE &amp; TAKEDOWN AVANZATA</h1>
+        <p>Segnalazioni devono includere:</p>
+        <ul>
+          <li>URL preciso</li>
+          <li>Motivo giuridico</li>
+          <li>Prova titolarità diritti</li>
+          <li>Documento identità</li>
+          <li>Dichiarazione di veridicità</li>
+        </ul>
+        <p>Richieste incomplete possono non essere processate.</p>
+        <hr />
+        <h1>22. REGISTRO LOG &amp; COOPERAZIONE AUTORITÀ</h1>
+        <p>La piattaforma conserva log tecnici per finalità di:</p>
+        <ul>
+          <li>Sicurezza</li>
+          <li>Antifrode</li>
+          <li>Tutela legale</li>
+        </ul>
+        <p>I dati possono essere forniti ad autorità competenti su richiesta legale.</p>
+        <hr />
+        <h1>23. KYC &amp; AML DISCLAIMER</h1>
+        <p>Salvo ove espressamente previsto, la piattaforma non effettua verifiche Know Your Customer (KYC) sugli utenti.</p>
+        <p>Le attività economiche svolte dagli utenti sono autonome.</p>
+        <p>Eventuali obblighi antiriciclaggio restano in capo ai soggetti che erogano servizi finanziari.</p>
+        <hr />
+        <h1>24. ESCLUSIONE RESPONSABILITÀ PRODOTTI/SERVIZI ILLEGALI</h1>
+        <p>È vietato promuovere prodotti o servizi illegali.</p>
+        <p>Tuttavia la struttura, operando come hosting tecnico:</p>
+        <ul>
+          <li>Non verifica preventivamente le inserzioni</li>
+          <li>Non garantisce liceità offerte pubblicate</li>
+        </ul>
+        <p>La responsabilità resta esclusivamente dell’inserzionista.</p>
+        <hr />
+        <h1>25. CLAUSOLA REPUTAZIONALE &amp; RISCHIO PIATTAFORMA</h1>
+        <p>Possiamo rimuovere contenuti, banner o utenti che:</p>
+        <ul>
+          <li>Espongano la piattaforma a rischio ban</li>
+          <li>Violino policy Telegram o provider</li>
+          <li>Danneggino la reputazione del network</li>
+        </ul>
+        <p>Anche senza violazione di legge diretta.</p>
+        <hr />
+        <h1>26. ESCLUSIONE RESPONSABILITÀ BAN / DEINDICIZZAZIONI</h1>
+        <p>Non siamo responsabili per:</p>
+        <ul>
+          <li>Ban Telegram</li>
+          <li>Shadowban</li>
+          <li>Chiusura account utenti</li>
+          <li>Deindicizzazione motori di ricerca</li>
+          <li>Restrizioni advertising</li>
+        </ul>
+        <p>Derivanti da comportamenti degli utenti o inserzionisti.</p>
+        <hr />
+        <h1>27. FORZA MAGGIORE DIGITALE</h1>
+        <p>Non rispondiamo per disservizi causati da:</p>
+        <ul>
+          <li>Ban provider</li>
+          <li>Attacchi informatici</li>
+          <li>DDoS</li>
+          <li>Down infrastrutturali</li>
+          <li>Policy change piattaforme terze</li>
+        </ul>
+        <hr />
+        <h1>28. CLAUSOLA DI SEPARABILITÀ</h1>
+        <p>L’eventuale nullità di una clausola non invalida il resto del documento.</p>
+        <hr />
+        <h1>29. VERSIONE LINGUISTICA</h1>
+        <p>In caso di traduzioni, fa fede la versione italiana salvo diversa indicazione.</p>
+        <hr />
+        <hr />
+        <h1>30. TRUST &amp; SAFETY FRAMEWORK</h1>
+        <p>La piattaforma adotta un modello di gestione del rischio basato su:</p>
+        <ul>
+          <li>Monitoraggio reattivo su segnalazione</li>
+          <li>Risk scoring comportamentale interno</li>
+          <li>Analisi anomalie traffico</li>
+          <li>Blocco preventivo pattern sospetti</li>
+        </ul>
+        <p>La struttura mantiene piena discrezionalità nella valutazione del rischio operativo e reputazionale.</p>
+        <hr />
+        <h1>31. MONETIZZAZIONE SERVIZI – ESONERO RESPONSABILITÀ</h1>
+        <p>La piattaforma può monetizzare tramite:</p>
+        <ul>
+          <li>Vendita servizi digitali</li>
+          <li>Lead generation</li>
+          <li>Intermediazione pubblicitaria</li>
+          <li>Spazi premium</li>
+          <li>Abbonamenti</li>
+        </ul>
+        <p>Salvo espressa indicazione contrattuale:</p>
+        <ul>
+          <li>Non garantiamo risultati economici</li>
+          <li>Non garantiamo traffico minimo</li>
+          <li>Non garantiamo conversioni</li>
+          <li>Non garantiamo ROI</li>
+        </ul>
+        <p>Ogni acquisto è effettuato a rischio imprenditoriale dell’utente.</p>
+        <hr />
+        <h1>32. NO PARTNERSHIP / NO AGENCY CLAUSE</h1>
+        <p>L’utilizzo della piattaforma non crea:</p>
+        <ul>
+          <li>Società</li>
+          <li>Joint venture</li>
+          <li>Agenzia</li>
+          <li>Mandato</li>
+          <li>Rappresentanza legale</li>
+        </ul>
+        <p>Gli utenti operano come soggetti indipendenti.</p>
+        <hr />
+        <h1>33. CLASS ACTION WAIVER</h1>
+        <p>Nei limiti consentiti dalla legge, l’utente rinuncia a promuovere azioni collettive o class action contro la struttura.</p>
+        <p>Eventuali controversie devono essere proposte individualmente.</p>
+        <hr />
+        <h1>34. ARBITRATO E RISOLUZIONE CONTROVERSIE</h1>
+        <p>Eventuali controversie potranno essere risolte mediante arbitrato rituale o irrituale, su scelta della struttura.</p>
+        <p>Prima di qualsiasi azione legale è obbligatorio tentativo di risoluzione bonaria.</p>
+        <hr />
+        <h1>35. SAFE HARBOR EXTRA‑UE</h1>
+        <p>Per utenti extra‑UE, la responsabilità della piattaforma è limitata nei massimi termini consentiti dalla giurisdizione applicabile.</p>
+        <p>La piattaforma opera quale intermediario tecnico e non quale editore.</p>
+        <hr />
+        <h1>36. PENALI INSERZIONISTI</h1>
+        <p>In caso di violazione grave (contenuti illegali, truffe, danni reputazionali), la struttura può:</p>
+        <ul>
+          <li>Rimuovere immediatamente il contenuto</li>
+          <li>Bloccare l’account</li>
+          <li>Trattenere eventuali somme versate</li>
+          <li>Applicare penali contrattuali</li>
+        </ul>
+        <hr />
+        <h1>37. DEPOSITO CAUZIONALE (OVE PREVISTO)</h1>
+        <p>La struttura può richiedere deposito cauzionale agli inserzionisti ad alto rischio.</p>
+        <p>Il deposito può essere trattenuto in caso di danni o sanzioni.</p>
+        <hr />
+        <h1>38. AI &amp; MODERAZIONE AUTOMATIZZATA</h1>
+        <p>La piattaforma può utilizzare sistemi automatizzati e algoritmi per:</p>
+        <ul>
+          <li>Rilevamento spam</li>
+          <li>Rischio frodi</li>
+          <li>Pattern illeciti</li>
+          <li>Violazioni policy</li>
+        </ul>
+        <p>Le decisioni automatizzate possono comportare sospensione o rimozione contenuti.</p>
+        <hr />
+        <h1>39. DATA RETENTION FORENSICS</h1>
+        <p>In caso di attività sospette o segnalazioni autorità, la piattaforma può:</p>
+        <ul>
+          <li>Estendere conservazione log</li>
+          <li>Congelare dati</li>
+          <li>Conservare prove digitali</li>
+        </ul>
+        <p>Per finalità di tutela legale.</p>
+        <hr />
+        <h1>40. LIMITAZIONE MASSIMA RISARCIMENTO</h1>
+        <p>In ogni caso, la responsabilità massima della struttura non potrà eccedere l’importo eventualmente corrisposto dall’utente nei 30 giorni precedenti l’evento contestato.</p>
+        <hr />
+        <h1>41. CLAUSOLA DI SUPREMAZIA CONTRATTUALE</h1>
+        <p>In caso di conflitto tra versioni, condizioni speciali o accordi separati, prevale la versione più tutelante per la struttura.</p>
+        <hr />
+        <p><strong>Documento redatto in configurazione BLACK‑OPS LEGAL SHIELD – livello massimo di tutela per piattaforme che monetizzano servizi digitali, advertising e community ad alto rischio operativo.</strong></p>
+        <p>(Consigliata revisione da legale abilitato per piena conformità settoriale.)</p>
+      </article>
+    </main>
+  </body>
+</html>
