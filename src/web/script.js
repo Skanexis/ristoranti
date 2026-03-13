@@ -4,7 +4,7 @@ const state = {
   region: null,
   shipZone: null,
 };
-const VALID_SERVICES = ["meetup", "delivery", "ship"];
+const VALID_SERVICES = ["meetup", "delivery", "ship", "other"];
 const SHIP_ZONES = [
   {
     id: "italy",
@@ -144,6 +144,7 @@ function fallbackData() {
       meetup: "Ritiro",
       delivery: "Consegna",
       ship: "Spedizione",
+      other: "Altro",
     },
     supportTelegramUrl: "https://t.me/SHLC26",
     regions: [],

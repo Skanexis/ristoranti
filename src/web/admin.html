@@ -121,6 +121,10 @@
                   <span>Ship</span>
                   <strong id="kpiShip">0</strong>
                 </div>
+                <div class="kpi-service-line">
+                  <span>Other</span>
+                  <strong id="kpiOther">0</strong>
+                </div>
               </article>
             </section>
           </section>
@@ -145,6 +149,10 @@
                     <label>
                       Ship
                       <input id="serviceShip" type="text" maxlength="32" required />
+                    </label>
+                    <label>
+                      Other
+                      <input id="serviceOther" type="text" maxlength="32" required />
                     </label>
                     <label>
                       URL canale Telegram
@@ -253,8 +261,7 @@
                         <option value="all">Tutti</option>
                         <option value="meetup">Meetup</option>
                         <option value="delivery">Delivery</option>
-                        <option value="ship">Ship</option>
-                      </select>
+                        <option value="ship">Ship</option>                        <option value="other">Other</option>                      </select>
                     </div>
                     <div class="admin-inline-field">
                       <label for="pointStarFilter">Filtro stella</label>
@@ -292,6 +299,7 @@
                               <option value="meetup">Meetup</option>
                               <option value="delivery">Delivery</option>
                               <option value="ship">Ship</option>
+                              <option value="other">Other</option>
                             </select>
                           </label>
                           <label>
@@ -389,6 +397,7 @@
                             <label><input type="checkbox" name="services" value="meetup" checked /> Meetup</label>
                             <label><input type="checkbox" name="services" value="delivery" /> Delivery</label>
                             <label><input type="checkbox" name="services" value="ship" /> Ship</label>
+                            <label><input type="checkbox" name="services" value="other" /> Other</label>
                           </fieldset>
                           <label>
                             Origine Ship (questo punto)

@@ -13,6 +13,7 @@
       meetup: "Ritiro",
       delivery: "Consegna",
       ship: "Spedizione",
+      other: "Altro",
     },
     supportTelegramUrl: "https://t.me/SHLC26",
     regions: [
@@ -27,7 +28,7 @@
             address: "Via Torino 18, Milano",
             logo: "",
             stars: 3,
-            services: ["meetup", "delivery", "ship"],
+            services: ["meetup", "delivery", "ship", "other"],
             socials: [
               { label: "Instagram", url: "https://instagram.com/ristoranti_italia_milano" },
               { label: "Telegram", url: "https://t.me/ristoranti_italia_milano" },

@@ -4,6 +4,7 @@ const FALLBACK_SERVICE_LABELS = {
   meetup: "Ritiro",
   delivery: "Consegna",
   ship: "Spedizione",
+  other: "Altro",
 };
 const API = {
   session: "/api/admin/session",
@@ -16,7 +17,7 @@ const API = {
 const MEDIA_FILE_LIMIT_BYTES = 8 * 1024 * 1024;
 const MEDIA_TYPES = ["none", "photo", "gif", "video"];
 const SHIP_ORIGINS = ["italy", "eu"];
-const POINT_SERVICES = ["meetup", "delivery", "ship"];
+const POINT_SERVICES = ["meetup", "delivery", "ship", "other"];
 
 const defaultServiceLabels = store?.getDefaultData?.()?.serviceLabels ?? FALLBACK_SERVICE_LABELS;
 const defaultSupportTelegramUrl =
@@ -98,6 +99,7 @@ const els = {
   kpiMeetup: document.getElementById("kpiMeetup"),
   kpiDelivery: document.getElementById("kpiDelivery"),
   kpiShip: document.getElementById("kpiShip"),
+  kpiOther: document.getElementById("kpiOther"),
 
   quickExportBtn: document.getElementById("quickExportBtn"),
   logoutAdminBtn: document.getElementById("logoutAdminBtn"),
@@ -105,6 +107,7 @@ const els = {
   serviceMeetup: document.getElementById("serviceMeetup"),
   serviceDelivery: document.getElementById("serviceDelivery"),
   serviceShip: document.getElementById("serviceShip"),
+  serviceOther: document.getElementById("serviceOther"),
   serviceSupportTelegram: document.getElementById("serviceSupportTelegram"),
   resetServicesBtn: document.getElementById("resetServicesBtn"),
 
@@ -735,6 +738,7 @@ function renderServicesForm() {
   els.serviceMeetup.value = data.serviceLabels?.meetup || defaultServiceLabels.meetup;
   els.serviceDelivery.value = data.serviceLabels?.delivery || defaultServiceLabels.delivery;
   els.serviceShip.value = data.serviceLabels?.ship || defaultServiceLabels.ship;
+  els.serviceOther.value = data.serviceLabels?.other || defaultServiceLabels.other;
   els.serviceSupportTelegram.value = data.supportTelegramUrl || defaultSupportTelegramUrl;
   validateSupportTelegramInline();
 }
@@ -744,9 +748,10 @@ function handleServicesSubmit(event) {
   const meetup = els.serviceMeetup.value.trim();
   const delivery = els.serviceDelivery.value.trim();
   const ship = els.serviceShip.value.trim();
+  const other = els.serviceOther.value.trim();
   const supportTelegram = els.serviceSupportTelegram.value.trim();
 
-  if (!meetup || !delivery || !ship || !supportTelegram) {
+  if (!meetup || !delivery || !ship || !other || !supportTelegram) {
     setStatus("Le etichette servizi non possono essere vuote.", "error");
     validateSupportTelegramInline();
     return;
@@ -762,6 +767,7 @@ function handleServicesSubmit(event) {
     meetup,
     delivery,
     ship,
+    other,
   };
   data.supportTelegramUrl = supportTelegram;
   persistData("Etichette servizi aggiornate.");
@@ -771,6 +777,7 @@ function handleServicesReset() {
   els.serviceMeetup.value = defaultServiceLabels.meetup;
   els.serviceDelivery.value = defaultServiceLabels.delivery;
   els.serviceShip.value = defaultServiceLabels.ship;
+  els.serviceOther.value = defaultServiceLabels.other;
   els.serviceSupportTelegram.value = defaultSupportTelegramUrl;
   data.serviceLabels = {
     ...defaultServiceLabels,
@@ -786,6 +793,7 @@ function renderKpi() {
     meetup: 0,
     delivery: 0,
     ship: 0,
+    other: 0,
   };
   let starredPoints = 0;
 
@@ -804,6 +812,9 @@ function renderKpi() {
   els.kpiMeetup.textContent = String(serviceCoverage.meetup);
   els.kpiDelivery.textContent = String(serviceCoverage.delivery);
   els.kpiShip.textContent = String(serviceCoverage.ship);
+  if (els.kpiOther) {
+    els.kpiOther.textContent = String(serviceCoverage.other);
+  }
 }
 
 function renderRegionSelect(preferredRegionId) {
