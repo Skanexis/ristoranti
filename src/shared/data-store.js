@@ -272,8 +272,7 @@
         ? {
             meetup: sanitizeString(data.serviceLabels.meetup) || "Ritiro",
             delivery: sanitizeString(data.serviceLabels.delivery) || "Consegna",
-            ship: sanitizeString(data.serviceLabels.ship) || "Spedizione",
-          }
+            ship: sanitizeString(data.serviceLabels.ship) || "Spedizione",            other: sanitizeString(data.serviceLabels.other) || "Altro",          }
         : clone(DEFAULT_DATA.serviceLabels);
     const supportTelegramUrl = normalizeSupportTelegramUrl(data.supportTelegramUrl);
 
@@ -293,7 +292,7 @@
 
                 const services = Array.isArray(point?.services)
                   ? point.services.filter((service) =>
-                      ["meetup", "delivery", "ship"].includes(service)
+                      ["meetup", "delivery", "ship", "other"].includes(service)
                     )
                   : [];
                 const mediaUrl = sanitizeString(point?.mediaUrl);

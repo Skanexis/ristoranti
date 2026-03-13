@@ -50,6 +50,7 @@ const UPLOAD_MIME_EXTENSION = {
   "video/quicktime": ".mov",
 };
 
+const VALID_SERVICE_IDS = ["meetup", "delivery", "ship", "other"];
 const DEFAULT_DATA =
   typeof dataStore.getDefaultData === "function" ? dataStore.getDefaultData() : { serviceLabels: {}, regions: [] };
 const normalizeInputData =
@@ -334,6 +335,13 @@ async function handleApiRequest(req, res, pathname) {
       return;
     }
 
+    try {
+      validateAdminData(nextPayload);
+    } catch (validationError) {
+      sendJson(res, 400, { error: validationError.message || "Dati non validi." });
+      return;
+    }
+
     const normalized = normalizeInputData(nextPayload);
     currentData = saveDataToDisk(normalized);
 
@@ -549,6 +557,74 @@ function validateCsrf(req, session) {
   const headerToken = String(req.headers["x-csrf-token"] || "");
   if (!headerToken) return false;
   return timingSafeEqualString(headerToken, session.csrfToken);
+}
+
+function validateAdminData(payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Dati admin non validi: payload mancante o non oggetto.");
+  }
+
+  const labels = payload.serviceLabels;
+  if (!labels || typeof labels !== "object") {
+    throw new Error("Dati admin non validi: serviceLabels mancante.");
+  }
+
+  for (const id of VALID_SERVICE_IDS) {
+    if (!labels[id] || String(labels[id]).trim() === "") {
+      throw new Error(`Dati admin non validi: etichetta servizio '${id}' mancante o vuota.`);
+    }
+  }
+
+  if (!Array.isArray(payload.regions)) {
+    throw new Error("Dati admin non validi: regions deve essere un array.");
+  }
+
+  for (const region of payload.regions) {
+    if (!region || typeof region !== "object") {
+      throw new Error("Dati admin non validi: regione non valida.");
+    }
+    if (!region.id || !String(region.id).trim()) {
+      throw new Error("Dati admin non validi: ogni regione deve avere un id valido.");
+    }
+
+    if (!Array.isArray(region.activePoints)) continue;
+
+    for (const point of region.activePoints) {
+      if (!point || typeof point !== "object") {
+        throw new Error("Dati admin non validi: punto regione non valido.");
+      }
+      if (!point.id || !String(point.id).trim()) {
+        throw new Error("Dati admin non validi: ogni punto deve avere un id valido.");
+      }
+      if (!point.name || !String(point.name).trim()) {
+        throw new Error("Dati admin non validi: ogni punto deve avere un nome valido.");
+      }
+
+      if (!Array.isArray(point.services) || point.services.length === 0) {
+        throw new Error(`Dati admin non validi: punto '${point.id}' devi avere almeno un servizio.`);
+      }
+
+      for (const service of point.services) {
+        if (!VALID_SERVICE_IDS.includes(service)) {
+          throw new Error(`Dati admin non validi: servizio '${service}' del punto '${point.id}' non supportato.`);
+        }
+      }
+
+      if (point.services.includes("ship")) {
+        const origin = String(point.shipOrigin || "").trim();
+        if (origin && !["italy", "eu"].includes(origin.toLowerCase())) {
+          throw new Error(`Dati admin non validi: shipOrigin non valido per il punto '${point.id}'.`);
+        }
+      }
+
+      if (point.services.includes("ship") && String(point.shipOrigin || "").toLowerCase() === "eu") {
+        const country = String(point.shipCountry || "").trim();
+        if (!country) {
+          throw new Error(`Dati admin non validi: country mancante per ship UE nel punto '${point.id}'.`);
+        }
+      }
+    }
+  }
 }
 
 function validateLoginRateLimit(ip) {

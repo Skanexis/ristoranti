@@ -235,6 +235,12 @@ function normalizeState() {
     return;
   }
 
+  if (state.service === "other") {
+    state.region = null;
+    state.shipZone = null;
+    return;
+  }
+
   state.shipZone = null;
 
   const regionExists = appData.regions.some((region) => region.id === state.region);
@@ -251,7 +257,7 @@ function normalizeState() {
 }
 
 function renderRegionStep() {
-  if (!state.service) {
+  if (!state.service || state.service === "other") {
     els.selectionStep.classList.add("hidden");
     return;
   }
@@ -386,6 +392,10 @@ function renderPointsStep() {
     activePoints = getActiveShipPointsByZone(state.shipZone);
     els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} - Ship da ${shipZoneLabel}`;
     emptyMessage = "Nessun punto disponibile per questa origine di spedizione.";
+  } else if (state.service === "other") {
+    activePoints = getActivePointsByService("other");
+    els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} - Other`;
+    emptyMessage = "Nessun punto Other disponibile al momento.";
   } else {
     if (!state.region) {
       els.pointsStep.classList.add("hidden");
@@ -399,6 +409,7 @@ function renderPointsStep() {
     }
 
     activePoints = getActivePointsByRegion(region.id);
+
     els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} in ${region.name}`;
     emptyMessage = "Nessun punto disponibile per questo servizio nella regione selezionata.";
   }
@@ -474,6 +485,16 @@ function getActivePointsByRegion(regionId, serviceId = state.service) {
 
   return (region.activePoints || []).filter(
     (point) => Array.isArray(point.services) && point.services.includes(serviceId)
+  );
+}
+
+function getActivePointsByService(serviceId) {
+  if (!serviceId) return [];
+
+  return (appData.regions || []).flatMap((region) =>
+    (region.activePoints || []).filter(
+      (point) => Array.isArray(point.services) && point.services.includes(serviceId)
+    )
   );
 }
 
