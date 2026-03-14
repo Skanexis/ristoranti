@@ -17,7 +17,7 @@ const API = {
 const MEDIA_FILE_LIMIT_BYTES = 8 * 1024 * 1024;
 const MEDIA_TYPES = ["none", "photo", "gif", "video"];
 const SHIP_ORIGINS = ["italy", "eu"];
-const POINT_SERVICES = ["meetup", "delivery", "ship", "other"];
+const POINT_SERVICES = ["meetup", "delivery", "ship"];
 const OTHER_CATEGORIES = ["antiscam", "lifestyle", "digitalSystems"];
 const OTHER_CATEGORY_LABELS = {
   antiscam: "Antiscam",
@@ -83,7 +83,7 @@ const ADMIN_PAGE_META = {
   },
   other: {
     title: "Other",
-    subtitle: "Gestione punti Antiscam, Lifestyle e Digital Systems.",
+    subtitle: "Gestione sottocategorie e punti Other con form completo.",
   },
 };
 
@@ -187,6 +187,8 @@ const els = {
   pointSubmitBtn: document.getElementById("pointSubmitBtn"),
   pointFormStickyBar: document.getElementById("pointFormStickyBar"),
   pointFormDirtyState: document.getElementById("pointFormDirtyState"),
+  pointOtherCategoryHint: document.getElementById("pointOtherCategoryHint"),
+  pointServicesFieldset: document.querySelector("#pointForm .admin-services"),
   pointBlockIdentity: document.getElementById("pointBlockIdentity"),
   socialRows: document.getElementById("socialRows"),
   addSocialBtn: document.getElementById("addSocialBtn"),
@@ -515,24 +517,26 @@ function setOtherPointMode(category) {
     els.pointOtherCategoryHint.hidden = false;
   }
 
-  if (els.pointFormTitle) {
-    els.pointFormTitle.textContent = "Nuovo punto Other";
-  }
-
   if (els.pointForm) {
     els.pointForm.dataset.otherCategory = category;
-  }
-
-  if (els.pointForm) {
     els.pointForm.querySelectorAll("input[name='services']").forEach((checkbox) => {
-      checkbox.checked = checkbox.value === "other";
-      checkbox.disabled = checkbox.value !== "other";
+      checkbox.checked = false;
+      checkbox.disabled = true;
     });
+  }
+  if (els.pointServicesFieldset) {
+    els.pointServicesFieldset.classList.add("admin-field-disabled");
   }
 
   if (els.pointRegionSelect) {
     els.pointRegionSelect.disabled = true;
   }
+
+  updatePointFormUi();
+  syncShipCountryFieldState();
+  validatePointShipCountryInline();
+  renderPointsContext();
+  renderPointPreview();
 
   setStatus(`Creazione punto Other in categoria: ${data.otherCategoryLabels?.[category] || category}`, "info");
 }
@@ -545,20 +549,25 @@ function clearOtherPointMode() {
     els.pointOtherCategoryHint.hidden = true;
   }
 
-  if (els.pointFormTitle) {
-    els.pointFormTitle.textContent = "Nuovo punto";
-  }
-
   if (els.pointForm) {
     delete els.pointForm.dataset.otherCategory;
     els.pointForm.querySelectorAll("input[name='services']").forEach((checkbox) => {
       checkbox.disabled = false;
     });
   }
+  if (els.pointServicesFieldset) {
+    els.pointServicesFieldset.classList.remove("admin-field-disabled");
+  }
 
   if (els.pointRegionSelect) {
     els.pointRegionSelect.disabled = false;
   }
+
+  updatePointFormUi();
+  syncShipCountryFieldState();
+  validatePointShipCountryInline();
+  renderPointsContext();
+  renderPointPreview();
 }
 
 
@@ -685,6 +694,16 @@ function bindAdminEvents() {
           resetPointForm();
           setOtherPointMode(category);
           focusPointEditorForm(els.pointName);
+        }
+        return;
+      }
+
+      const editBtn = event.target.closest(".other-point-edit");
+      if (editBtn) {
+        const category = editBtn.dataset.category;
+        const pointId = editBtn.dataset.pointId;
+        if (category && pointId) {
+          openOtherPointEditor(category, pointId);
         }
         return;
       }
@@ -1487,6 +1506,9 @@ function renderOtherPage() {
             .map((point) => {
               const starMark = point.stars === 1 ? "★" : "☆";
               const logoHtml = point.logo ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" class="other-point-logo-preview" />` : "";
+              const mediaType = resolvePointMediaType(point.mediaType, point.mediaUrl);
+              const mediaLabel = mediaType === "none" ? "NO" : mediaType.toUpperCase();
+              const socialsCount = Array.isArray(point.socials) ? point.socials.length : 0;
 
               return `
                 <article class="admin-item other-point-item">
@@ -1500,8 +1522,13 @@ function renderOtherPage() {
                     </div>
                     <p class="other-point-stars">${starMark}</p>
                   </div>
+                  <div class="admin-item-tags">
+                    <span class="mini-chip">Social ${socialsCount}</span>
+                    <span class="mini-chip">Media ${mediaLabel}</span>
+                  </div>
                   <p class="admin-item-meta">${escapeHtml(point.details || "Nessun dettaglio")}</p>
                   <div class="admin-item-actions">
+                    <button class="admin-btn other-point-edit" data-category="${escapeHtmlAttr(category)}" data-point-id="${escapeHtmlAttr(point.id)}">Modifica</button>
                     <button class="admin-btn admin-btn-danger other-point-delete" data-category="${escapeHtmlAttr(category)}" data-point-id="${escapeHtmlAttr(point.id)}">Elimina</button>
                   </div>
                 </article>
@@ -1522,6 +1549,30 @@ function renderOtherPage() {
       `;
     })
     .join("\n");
+}
+
+function openOtherPointEditor(category, pointId) {
+  ensureOtherCategories();
+
+  const categoryPoints = data.otherCategories?.[category];
+  if (!Array.isArray(categoryPoints)) {
+    setStatus("Categoria Other non trovata.", "error");
+    return;
+  }
+
+  const point = categoryPoints.find((item) => item.id === pointId);
+  if (!point) {
+    setStatus("Punto Other non trovato.", "error");
+    return;
+  }
+
+  resetPointForm();
+  setOtherPointMode(category);
+  fillPointForm(point);
+  otherPointMode.editingPointId = point.id;
+  updatePointFormUi();
+  focusPointEditorForm(els.pointName);
+  setStatus(`Modifica punto Other: ${point.name}`, "warn");
 }
 
 function addOtherPoint(category) {
@@ -2121,9 +2172,7 @@ function handlePointSubmit(event) {
     return;
   }
 
-  const selectedServices = Array.from(els.pointForm.querySelectorAll("input[name='services']:checked")).map(
-    (input) => input.value
-  );
+  const selectedServices = getPointFormSelectedServices();
   const services = selectedServices.length > 0 ? selectedServices : ["meetup"];
   const isShipEnabled = services.includes("ship");
   const pointShipOrigin = isShipEnabled ? selectedShipOrigin : "italy";
@@ -2300,8 +2349,9 @@ function fillPointForm(point) {
   setPointLogoStatus("");
   setPointMediaStatus("");
 
+  const serviceSet = new Set(otherPointMode.category ? ["other"] : point.services || []);
   els.pointForm.querySelectorAll("input[name='services']").forEach((checkbox) => {
-    checkbox.checked = point.services?.includes(checkbox.value) ?? false;
+    checkbox.checked = serviceSet.has(checkbox.value);
   });
 
   els.socialRows.innerHTML = "";
@@ -2322,6 +2372,7 @@ function fillPointForm(point) {
 
 function resetPointForm() {
   const region = getSelectedRegion();
+  const isOtherMode = Boolean(otherPointMode.category);
   editingPointId = null;
   pointIdTouched = false;
   els.pointEditingId.value = "";
@@ -2337,9 +2388,13 @@ function resetPointForm() {
   setPointLogoStatus("");
   setPointMediaStatus("");
   els.pointStars.value = "0";
-  els.pointForm
-    .querySelectorAll("input[name='services']")
-    .forEach((checkbox) => (checkbox.checked = checkbox.value === "meetup"));
+  els.pointForm.querySelectorAll("input[name='services']").forEach((checkbox) => {
+    checkbox.checked = !isOtherMode && checkbox.value === "meetup";
+    checkbox.disabled = isOtherMode;
+  });
+  if (els.pointServicesFieldset) {
+    els.pointServicesFieldset.classList.toggle("admin-field-disabled", isOtherMode);
+  }
   if (els.pointShipOrigin) {
     els.pointShipOrigin.value = getRegionShipOrigin(region);
   }
@@ -2359,6 +2414,15 @@ function resetPointForm() {
 
 function updatePointFormUi() {
   if (!els.pointFormTitle || !els.pointSubmitBtn) return;
+
+  const isOtherMode = Boolean(otherPointMode.category);
+  const isEditingOther = Boolean(otherPointMode.editingPointId || editingPointId);
+
+  if (isOtherMode) {
+    els.pointFormTitle.textContent = isEditingOther ? "Modifica punto Other" : "Nuovo punto Other";
+    els.pointSubmitBtn.textContent = isEditingOther ? "Salva punto Other" : "Aggiungi punto Other";
+    return;
+  }
 
   if (editingPointId) {
     els.pointFormTitle.textContent = "Modifica punto";
@@ -2382,9 +2446,7 @@ function setupPointFormCollapsibles() {
 function serializePointFormState() {
   if (!els.pointForm) return "";
 
-  const servicesSnapshot = Array.from(els.pointForm.querySelectorAll("input[name='services']"))
-    .map((checkbox) => `${checkbox.value}:${checkbox.checked ? "1" : "0"}`)
-    .join("|");
+  const servicesSnapshot = getPointFormSelectedServices().join("|");
   const socialsSnapshot = Array.from(els.socialRows.querySelectorAll(".social-row"))
     .map((row) => {
       const label = row.querySelector(".social-label")?.value.trim() || "";
@@ -2403,6 +2465,7 @@ function serializePointFormState() {
     mediaType: els.pointMediaType.value,
     mediaUrl: els.pointMediaUrl.value.trim(),
     stars: els.pointStars.value,
+    otherCategory: otherPointMode.category || "",
     servicesSnapshot,
     socialsSnapshot,
   });
@@ -2762,7 +2825,8 @@ function addSocialRow(label = "", url = "") {
 
 function renderPointPreview() {
   const region = getSelectedRegion();
-  if (!region) {
+  const isOtherMode = Boolean(otherPointMode.category);
+  if (!region && !isOtherMode) {
     els.pointPreview.innerHTML = `<p class="preview-empty">Seleziona una regione per creare anteprima.</p>`;
     return;
   }
@@ -2776,9 +2840,7 @@ function renderPointPreview() {
   const mediaUrl = els.pointMediaUrl.value.trim();
   const resolvedMediaType = resolvePointMediaType(mediaType, mediaUrl);
   const stars = clampStars(els.pointStars.value);
-  const services = Array.from(els.pointForm.querySelectorAll("input[name='services']:checked")).map(
-    (input) => input.value
-  );
+  const services = getPointFormSelectedServices();
   const pointShipOrigin = getPointShipOriginValue();
   const hasShipService = services.includes("ship");
   const shipOriginLabel = getShipOriginLabel(pointShipOrigin);
@@ -2787,7 +2849,16 @@ function renderPointPreview() {
     .map((row) => row.querySelector(".social-label")?.value.trim() || "")
     .filter(Boolean);
 
-  if (!name && !id && !details && !logo && !mediaUrl && socials.length === 0 && !editingPointId) {
+  if (
+    !name &&
+    !id &&
+    !details &&
+    !logo &&
+    !mediaUrl &&
+    socials.length === 0 &&
+    !editingPointId &&
+    !otherPointMode.editingPointId
+  ) {
     els.pointPreview.innerHTML = `<p class="preview-empty">Compila il form per vedere l'anteprima live.</p>`;
     return;
   }
@@ -3252,10 +3323,22 @@ function getPointShipOriginValue() {
   return normalizeShipOrigin(els.pointShipOrigin?.value);
 }
 
+function getPointFormSelectedServices() {
+  if (otherPointMode.category) {
+    return ["other"];
+  }
+
+  if (!els.pointForm) {
+    return [];
+  }
+
+  return Array.from(els.pointForm.querySelectorAll("input[name='services']:checked"))
+    .map((input) => input.value)
+    .filter((serviceId) => POINT_SERVICES.includes(serviceId));
+}
+
 function hasShipServiceSelected() {
-  return Array.from(els.pointForm.querySelectorAll("input[name='services']:checked")).some(
-    (input) => input.value === "ship"
-  );
+  return getPointFormSelectedServices().includes("ship");
 }
 
 function syncShipCountryFieldState() {

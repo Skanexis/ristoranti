@@ -221,6 +221,26 @@
     return typeof value === "string" ? value.trim() : "";
   }
 
+  function slugify(value) {
+    return sanitizeString(value)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function normalizeSocials(value) {
+    if (!Array.isArray(value)) return [];
+
+    return value
+      .map((link) => ({
+        label: sanitizeString(link?.label),
+        url: sanitizeString(link?.url),
+      }))
+      .filter((link) => link.label && link.url);
+  }
+
   function normalizeShipOrigin(value) {
     const candidate = sanitizeString(value).toLowerCase();
     if (candidate === "eu" || candidate === "ue") return "eu";
@@ -282,7 +302,9 @@
         ? {
             meetup: sanitizeString(data.serviceLabels.meetup) || "Ritiro",
             delivery: sanitizeString(data.serviceLabels.delivery) || "Consegna",
-            ship: sanitizeString(data.serviceLabels.ship) || "Spedizione",            other: sanitizeString(data.serviceLabels.other) || "Altro",          }
+            ship: sanitizeString(data.serviceLabels.ship) || "Spedizione",
+            other: sanitizeString(data.serviceLabels.other) || "Altro",
+          }
         : clone(DEFAULT_DATA.serviceLabels);
     const supportTelegramUrl = normalizeSupportTelegramUrl(data.supportTelegramUrl);
 
@@ -291,14 +313,7 @@
           const regionId = sanitizeString(region?.id) || `regione-${index + 1}`;
           const activePoints = Array.isArray(region?.activePoints)
             ? region.activePoints.map((point, pointIndex) => {
-                const socials = Array.isArray(point?.socials)
-                  ? point.socials
-                      .map((link) => ({
-                        label: sanitizeString(link?.label),
-                        url: sanitizeString(link?.url),
-                      }))
-                      .filter((link) => link.label && link.url)
-                  : [];
+                const socials = normalizeSocials(point?.socials);
 
                 const services = Array.isArray(point?.services)
                   ? point.services.filter((service) =>
@@ -360,16 +375,26 @@
         otherCategories[categoryId] = items
           .map((point, index) => {
             const name = sanitizeString(point?.name);
-            const id = sanitizeString(point?.id) || slugify(`${categoryId}-${index + 1}`);
+            const fallbackId = slugify(`${categoryId}-${index + 1}`) || `${categoryId}-${index + 1}`;
+            const id = sanitizeString(point?.id) || fallbackId;
             if (!name) return null;
+
+            const mediaUrl = sanitizeString(point?.mediaUrl);
+            const mediaType = resolveMediaType(point?.mediaType, mediaUrl);
+            const socials = normalizeSocials(point?.socials);
+
             return {
               id,
               name,
+              shipOrigin: normalizeShipOrigin(point?.shipOrigin),
+              shipCountry: normalizeShipCountry(point?.shipCountry),
               details: sanitizeString(point?.details),
               logo: sanitizeString(point?.logo),
+              mediaType,
+              mediaUrl,
               stars: clampStars(point?.stars),
               services: ["other"],
-              socials: [],
+              socials,
             };
           })
           .filter(Boolean);
