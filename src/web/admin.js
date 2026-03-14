@@ -47,6 +47,7 @@ data.otherCategories = data.otherCategories || {
 };
 let editingRegionId = null;
 let editingPointId = null;
+let otherPointMode = { category: null, editingPointId: null };
 let regionIdTouched = false;
 let pointIdTouched = false;
 let statusTimer = null;
@@ -505,6 +506,62 @@ function focusPointEditorForm(field = els.pointName) {
   }, 180);
 }
 
+function setOtherPointMode(category) {
+  otherPointMode.category = category;
+  otherPointMode.editingPointId = null;
+  if (els.pointOtherCategoryHint) {
+    const label = data.otherCategoryLabels?.[category] || category;
+    els.pointOtherCategoryHint.textContent = `Categoria Other: ${label}`;
+    els.pointOtherCategoryHint.hidden = false;
+  }
+
+  if (els.pointFormTitle) {
+    els.pointFormTitle.textContent = "Nuovo punto Other";
+  }
+
+  if (els.pointForm) {
+    els.pointForm.dataset.otherCategory = category;
+  }
+
+  if (els.pointForm) {
+    els.pointForm.querySelectorAll("input[name='services']").forEach((checkbox) => {
+      checkbox.checked = checkbox.value === "other";
+      checkbox.disabled = checkbox.value !== "other";
+    });
+  }
+
+  if (els.pointRegionSelect) {
+    els.pointRegionSelect.disabled = true;
+  }
+
+  setStatus(`Creazione punto Other in categoria: ${data.otherCategoryLabels?.[category] || category}`, "info");
+}
+
+function clearOtherPointMode() {
+  otherPointMode.category = null;
+  otherPointMode.editingPointId = null;
+  if (els.pointOtherCategoryHint) {
+    els.pointOtherCategoryHint.textContent = "";
+    els.pointOtherCategoryHint.hidden = true;
+  }
+
+  if (els.pointFormTitle) {
+    els.pointFormTitle.textContent = "Nuovo punto";
+  }
+
+  if (els.pointForm) {
+    delete els.pointForm.dataset.otherCategory;
+    els.pointForm.querySelectorAll("input[name='services']").forEach((checkbox) => {
+      checkbox.disabled = false;
+    });
+  }
+
+  if (els.pointRegionSelect) {
+    els.pointRegionSelect.disabled = false;
+  }
+}
+
+
 function bindAdminEvents() {
   els.quickExportBtn.addEventListener("click", () => exportJson(true));
   els.logoutAdminBtn.addEventListener("click", async () => {
@@ -621,11 +678,13 @@ function bindAdminEvents() {
 
   if (els.otherCategoriesContainer) {
     els.otherCategoriesContainer.addEventListener("click", (event) => {
-      const addBtn = event.target.closest(".other-point-add");
-      if (addBtn) {
-        const category = addBtn.dataset.category;
+      const openFullBtn = event.target.closest(".other-point-open-full");
+      if (openFullBtn) {
+        const category = openFullBtn.dataset.category;
         if (category) {
-          addOtherPoint(category);
+          resetPointForm();
+          setOtherPointMode(category);
+          focusPointEditorForm(els.pointName);
         }
         return;
       }
@@ -642,6 +701,7 @@ function bindAdminEvents() {
   }
 
   els.pointRegionSelect.addEventListener("change", () => {
+    clearOtherPointMode();
     setAdminPage("points", { updateHash: true, focus: false });
     editingPointId = null;
     selectedPointIds.clear();
@@ -663,6 +723,7 @@ function bindAdminEvents() {
         setStatus("Crea o seleziona una regione prima di aggiungere un punto.", "error");
         return;
       }
+      clearOtherPointMode();
       resetPointForm();
       focusPointEditorForm(els.pointName);
     });
@@ -1302,21 +1363,39 @@ function updateRegionFormUi() {
 function renderPointsContext() {
   if (!els.pointsContextHint) return;
 
+  if (otherPointMode.category) {
+    const label = data.otherCategoryLabels?.[otherPointMode.category] || otherPointMode.category;
+    els.pointsContextHint.textContent = `Modalità Other: ${label}. Usa il form per aggiungere o modificare punti Other.`;
+    if (els.pointCreateNew) {
+      els.pointCreateNew.disabled = true;
+    }
+    if (els.pointRegionSelect) {
+      els.pointRegionSelect.disabled = true;
+    }
+    return;
+  }
+
   const region = getSelectedRegion();
   if (!region) {
     els.pointsContextHint.textContent = "Seleziona una regione per gestire i punti attivi.";
     if (els.pointCreateNew) {
       els.pointCreateNew.disabled = true;
     }
+    if (els.pointRegionSelect) {
+      els.pointRegionSelect.disabled = false;
+    }
     return;
   }
 
   const pointsCount = Array.isArray(region.activePoints) ? region.activePoints.length : 0;
-  const label = formatPointCount(pointsCount);
-  els.pointsContextHint.textContent = `Regione attiva: ${region.name}. ${label} configurati.`;
+  const countLabel = formatPointCount(pointsCount);
+  els.pointsContextHint.textContent = `Regione attiva: ${region.name}. ${countLabel} configurati.`;
 
   if (els.pointCreateNew) {
     els.pointCreateNew.disabled = false;
+  }
+  if (els.pointRegionSelect) {
+    els.pointRegionSelect.disabled = false;
   }
 }
 
@@ -1436,37 +1515,9 @@ function renderOtherPage() {
           <h3>${escapeHtml(categoryLabel)} <small>(${escapeHtml(category)})</small></h3>
           <div class="other-list">${pointsHtml}</div>
 
-          <form class="admin-form other-point-form" data-category="${escapeHtmlAttr(category)}" onsubmit="return false;">
-            <fieldset>
-              <legend>Aggiungi nuovo punto</legend>
-              <label>
-                ID punto (facoltativo)
-                <input class="other-point-id" type="text" maxlength="64" placeholder="Lascia vuoto per generare automaticamente" />
-              </label>
-              <label>
-                Nome punto
-                <input class="other-point-name" type="text" maxlength="64" required />
-              </label>
-              <label>
-                Dettagli
-                <textarea class="other-point-details" rows="2" maxlength="256" placeholder="Dettagli visibili sulla card"></textarea>
-              </label>
-              <label>
-                URL logo
-                <input class="other-point-logo" type="url" maxlength="300" placeholder="https://..." />
-              </label>
-              <label>
-                Stella
-                <select class="other-point-stars">
-                  <option value="0">Senza stella</option>
-                  <option value="1">Con stella</option>
-                </select>
-              </label>
-              <div class="admin-form-actions">
-                <button class="admin-btn other-point-add" type="button" data-category="${escapeHtmlAttr(category)}">Aggiungi punto</button>
-              </div>
-            </fieldset>
-          </form>
+          <div class="admin-form-actions" style="margin-top: 0.75rem;">
+            <button class="admin-btn other-point-open-full" type="button" data-category="${escapeHtmlAttr(category)}">Aggiungi punto con form completo</button>
+          </div>
         </section>
       `;
     })
@@ -2027,8 +2078,9 @@ function handlePointSubmit(event) {
   clearPointFormErrors();
   validatePointInlineFields();
 
+  const isOtherMode = Boolean(otherPointMode.category);
   const region = getSelectedRegion();
-  if (!region) {
+  if (!isOtherMode && !region) {
     revealPointFieldError(els.pointRegionSelect, "Seleziona prima una regione.");
     return;
   }
@@ -2093,6 +2145,80 @@ function handlePointSubmit(event) {
     return;
   }
 
+  const activeCategory = otherPointMode.category;
+  const isEditingOther = Boolean(otherPointMode.editingPointId);
+  const editingId = isEditingOther ? otherPointMode.editingPointId : editingPointId;
+
+  if (isOtherMode) {
+    ensureOtherCategories();
+    const categoryPoints = data.otherCategories[activeCategory] || [];
+
+    if (isEditingOther) {
+      const pointIndex = categoryPoints.findIndex((item) => item.id === editingId);
+      if (pointIndex < 0) {
+        setStatus("Punto Other in modifica non trovato.", "error");
+        return;
+      }
+
+      const conflict = categoryPoints.some((item) => item.id === id && item.id !== editingId);
+      if (conflict) {
+        revealPointFieldError(els.pointId, "ID punto gia in uso nella categoria Other.");
+        return;
+      }
+
+      categoryPoints[pointIndex] = {
+        ...categoryPoints[pointIndex],
+        id,
+        name,
+        details,
+        logo,
+        mediaType: resolvedMediaType,
+        mediaUrl,
+        stars,
+        services,
+        socials: socials.items,
+      };
+
+      data.otherCategories[activeCategory] = categoryPoints;
+      otherPointMode.editingPointId = id;
+      persistData(`Punto Other aggiornato: ${name}`, "success");
+      resetPointForm();
+      clearOtherPointMode();
+      renderOtherPage();
+      renderKpi();
+      setAdminPage("other", { updateHash: true, focus: false });
+      return;
+    }
+
+    const exists = categoryPoints.some((item) => item.id === id);
+    if (exists) {
+      revealPointFieldError(els.pointId, "ID punto gia in uso nella categoria Other.");
+      return;
+    }
+
+    categoryPoints.push({
+      id,
+      name,
+      details,
+      logo,
+      mediaType: resolvedMediaType,
+      mediaUrl,
+      stars,
+      services,
+      socials: socials.items,
+    });
+
+    data.otherCategories[activeCategory] = categoryPoints;
+    persistData(`Punto Other creato: ${name}`, "success");
+    resetPointForm();
+    clearOtherPointMode();
+    renderOtherPage();
+    renderKpi();
+    setAdminPage("other", { updateHash: true, focus: false });
+    return;
+  }
+
+  // Existing region point flow
   if (editingPointId) {
     const previousPointId = editingPointId;
     const point = region.activePoints.find((item) => item.id === previousPointId);
