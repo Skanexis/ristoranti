@@ -325,7 +325,35 @@
         })
       : clone(DEFAULT_DATA.regions);
 
-    return { serviceLabels, supportTelegramUrl, regions };
+    const otherCategories = {
+      antiscam: [],
+      lifestyle: [],
+      digitalSystems: [],
+    };
+
+    if (data.otherCategories && typeof data.otherCategories === "object") {
+      for (const rawCategory of ["antiscam", "lifestyle", "digitalSystems"]) {
+        const items = Array.isArray(data.otherCategories[rawCategory]) ? data.otherCategories[rawCategory] : [];
+        otherCategories[rawCategory] = items
+          .map((point, index) => {
+            const name = sanitizeString(point?.name);
+            const id = sanitizeString(point?.id) || slugify(`${rawCategory}-${index + 1}`);
+            if (!name) return null;
+            return {
+              id,
+              name,
+              details: sanitizeString(point?.details),
+              logo: sanitizeString(point?.logo),
+              stars: clampStars(point?.stars),
+              services: ["other"],
+              socials: [],
+            };
+          })
+          .filter(Boolean);
+      }
+    }
+
+    return { serviceLabels, supportTelegramUrl, regions, otherCategories };
   }
 
   function canUseLocalStorage() {

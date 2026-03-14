@@ -48,6 +48,7 @@
             <a href="#services" class="admin-nav-link admin-side-link" data-admin-page="services">Servizi</a>
             <a href="#regions" class="admin-nav-link admin-side-link" data-admin-page="regions">Regioni</a>
             <a href="#points" class="admin-nav-link admin-side-link" data-admin-page="points">Punti</a>
+            <a href="#other" class="admin-nav-link admin-side-link" data-admin-page="other">Other</a>
             <a href="#data" class="admin-nav-link admin-side-link" data-admin-page="data">Dati</a>
           </nav>
 
@@ -442,6 +443,62 @@
                         <div id="pointPreview" class="point-preview"></div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </details>
+            </article>
+          </section>
+
+          <section id="adminPageOther" class="admin-page" data-admin-page="other" hidden>
+            <article class="panel panel-other admin-panel" id="otherPanel">
+              <details class="admin-panel-fold" open>
+                <summary class="admin-panel-fold-summary">
+                  <span class="admin-panel-fold-title">Other categories</span>
+                  <span class="admin-panel-fold-hint">Aggiungi e gestisci punti per Antiscam / Lifestyle / Digital Systems.</span>
+                </summary>
+                <div class="admin-panel-fold-body">
+                  <div class="other-categories-grid">
+                    <section class="other-category">
+                      <h3>Antiscam</h3>
+                      <div id="otherListAntiscam" class="other-list"></div>
+                      <label>
+                        Nome punto
+                        <input id="otherNameAntiscam" type="text" maxlength="64" />
+                      </label>
+                      <label>
+                        Dettagli
+                        <input id="otherDetailsAntiscam" type="text" maxlength="256" />
+                      </label>
+                      <button id="otherAddAntiscamBtn" type="button" class="admin-btn">Aggiungi punto Antiscam</button>
+                    </section>
+
+                    <section class="other-category">
+                      <h3>Lifestyle</h3>
+                      <div id="otherListLifestyle" class="other-list"></div>
+                      <label>
+                        Nome punto
+                        <input id="otherNameLifestyle" type="text" maxlength="64" />
+                      </label>
+                      <label>
+                        Dettagli
+                        <input id="otherDetailsLifestyle" type="text" maxlength="256" />
+                      </label>
+                      <button id="otherAddLifestyleBtn" type="button" class="admin-btn">Aggiungi punto Lifestyle</button>
+                    </section>
+
+                    <section class="other-category">
+                      <h3>Digital Systems</h3>
+                      <div id="otherListDigitalSystems" class="other-list"></div>
+                      <label>
+                        Nome punto
+                        <input id="otherNameDigitalSystems" type="text" maxlength="64" />
+                      </label>
+                      <label>
+                        Dettagli
+                        <input id="otherDetailsDigitalSystems" type="text" maxlength="256" />
+                      </label>
+                      <button id="otherAddDigitalSystemsBtn" type="button" class="admin-btn">Aggiungi punto Digital Systems</button>
+                    </section>
                   </div>
                 </div>
               </details>

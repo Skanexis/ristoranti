@@ -579,6 +579,28 @@ function validateAdminData(payload) {
     throw new Error("Dati admin non validi: regions deve essere un array.");
   }
 
+  if (!payload.otherCategories || typeof payload.otherCategories !== "object") {
+    throw new Error("Dati admin non validi: otherCategories deve essere un oggetto.");
+  }
+
+  for (const category of ["antiscam", "lifestyle", "digitalSystems"]) {
+    if (!Array.isArray(payload.otherCategories[category])) {
+      throw new Error(`Dati admin non validi: otherCategories.${category} deve essere un array.`);
+    }
+
+    for (const point of payload.otherCategories[category]) {
+      if (!point || typeof point !== "object") {
+        throw new Error(`Dati admin non validi: otherCategories.${category} elemento non valido.`);
+      }
+      if (!point.id || !String(point.id).trim()) {
+        throw new Error(`Dati admin non validi: otherCategories.${category} punto senza id.`);
+      }
+      if (!point.name || !String(point.name).trim()) {
+        throw new Error(`Dati admin non validi: otherCategories.${category} punto senza nome.`);
+      }
+    }
+  }
+
   for (const region of payload.regions) {
     if (!region || typeof region !== "object") {
       throw new Error("Dati admin non validi: regione non valida.");

@@ -1719,6 +1719,36 @@ select:focus-visible,
     padding-bottom: 10px;
   }
 
+  .other-categories-grid {
+    display: grid;
+    gap: 14px;
+  }
+
+  .other-category {
+    border: 1px solid rgba(150, 112, 70, 0.38);
+    border-radius: 14px;
+    padding: 12px;
+    background: linear-gradient(145deg, rgba(40, 30, 22, 0.72), rgba(15, 12, 10, 0.8));
+  }
+
+  .other-category h3 {
+    margin: 0 0 10px;
+    font-size: 1.1rem;
+  }
+
+  .other-category .other-list {
+    margin-bottom: 10px;
+  }
+
+  .admin-item-meta {
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  .other-item-delete {
+    margin-top: 6px;
+  }
+
   .action-tools {
     grid-template-columns: 1fr auto;
     align-items: center;

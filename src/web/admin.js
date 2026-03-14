@@ -18,6 +18,12 @@ const MEDIA_FILE_LIMIT_BYTES = 8 * 1024 * 1024;
 const MEDIA_TYPES = ["none", "photo", "gif", "video"];
 const SHIP_ORIGINS = ["italy", "eu"];
 const POINT_SERVICES = ["meetup", "delivery", "ship", "other"];
+const OTHER_CATEGORIES = ["antiscam", "lifestyle", "digitalSystems"];
+const OTHER_CATEGORY_LABELS = {
+  antiscam: "Antiscam",
+  lifestyle: "Lifestyle",
+  digitalSystems: "Digital Systems",
+};
 
 const defaultServiceLabels = store?.getDefaultData?.()?.serviceLabels ?? FALLBACK_SERVICE_LABELS;
 const defaultSupportTelegramUrl =
@@ -27,6 +33,17 @@ let data = store?.getData?.() ?? {
   serviceLabels: defaultServiceLabels,
   supportTelegramUrl: defaultSupportTelegramUrl,
   regions: [],
+  otherCategories: {
+    antiscam: [],
+    lifestyle: [],
+    digitalSystems: [],
+  },
+};
+
+data.otherCategories = data.otherCategories || {
+  antiscam: [],
+  lifestyle: [],
+  digitalSystems: [],
 };
 let editingRegionId = null;
 let editingPointId = null;
@@ -62,6 +79,10 @@ const ADMIN_PAGE_META = {
   data: {
     title: "Strumenti dati",
     subtitle: "Backup, import e reset in sicurezza.",
+  },
+  other: {
+    title: "Other",
+    subtitle: "Gestione punti Antiscam, Lifestyle e Digital Systems.",
   },
 };
 
@@ -125,10 +146,23 @@ const els = {
   regionSubmitBtn: document.getElementById("regionSubmitBtn"),
 
   pointsPanel: document.getElementById("pointsPanel"),
+  otherPanelFold: document.querySelector("#otherPanel .admin-panel-fold"),
   pointRegionSelect: document.getElementById("pointRegionSelect"),
   pointSearch: document.getElementById("pointSearch"),
   pointServiceFilter: document.getElementById("pointServiceFilter"),
   pointStarFilter: document.getElementById("pointStarFilter"),
+  otherListAntiscam: document.getElementById("otherListAntiscam"),
+  otherNameAntiscam: document.getElementById("otherNameAntiscam"),
+  otherDetailsAntiscam: document.getElementById("otherDetailsAntiscam"),
+  otherAddAntiscamBtn: document.getElementById("otherAddAntiscamBtn"),
+  otherListLifestyle: document.getElementById("otherListLifestyle"),
+  otherNameLifestyle: document.getElementById("otherNameLifestyle"),
+  otherDetailsLifestyle: document.getElementById("otherDetailsLifestyle"),
+  otherAddLifestyleBtn: document.getElementById("otherAddLifestyleBtn"),
+  otherListDigitalSystems: document.getElementById("otherListDigitalSystems"),
+  otherNameDigitalSystems: document.getElementById("otherNameDigitalSystems"),
+  otherDetailsDigitalSystems: document.getElementById("otherDetailsDigitalSystems"),
+  otherAddDigitalSystemsBtn: document.getElementById("otherAddDigitalSystemsBtn"),
   pointCreateNew: document.getElementById("pointCreateNew"),
   pointsContextHint: document.getElementById("pointsContextHint"),
   pointForm: document.getElementById("pointForm"),
@@ -310,7 +344,7 @@ function setAdminVisibility(isUnlocked) {
 }
 
 function collapseAdminPanels() {
-  [els.servicesPanelFold, els.regionsPanelFold, els.pointsPanelFold, els.toolsPanelFold].forEach((panel) => {
+  [els.servicesPanelFold, els.regionsPanelFold, els.pointsPanelFold, els.otherPanelFold, els.toolsPanelFold].forEach((panel) => {
     if (panel) {
       panel.open = true;
     }
@@ -379,6 +413,12 @@ function focusAdminPage(pageId, preferredTarget = null) {
 
   if (pageId === "data") {
     safeFocus(els.exportDataBtn);
+    return;
+  }
+
+  if (pageId === "other") {
+    safeFocus(els.otherAddAntiscamBtn);
+    return;
   }
 }
 
@@ -412,6 +452,7 @@ function setAdminPage(pageId, options = {}) {
   if (resolved === "services") openAdminPanel(els.servicesPanelFold);
   if (resolved === "regions") openAdminPanel(els.regionsPanelFold);
   if (resolved === "points") openAdminPanel(els.pointsPanelFold);
+  if (resolved === "other") openAdminPanel(els.otherPanelFold);
   if (resolved === "data") openAdminPanel(els.toolsPanelFold);
 
   activeAdminPage = resolved;
@@ -515,6 +556,32 @@ function bindAdminEvents() {
   if (els.regionSearch) {
     els.regionSearch.addEventListener("input", renderRegionList);
   }
+
+  // Other categories fields
+  if (els.otherAddAntiscamBtn) {
+    els.otherAddAntiscamBtn.addEventListener("click", () => addOtherPoint("antiscam"));
+  }
+  if (els.otherAddLifestyleBtn) {
+    els.otherAddLifestyleBtn.addEventListener("click", () => addOtherPoint("lifestyle"));
+  }
+  if (els.otherAddDigitalSystemsBtn) {
+    els.otherAddDigitalSystemsBtn.addEventListener("click", () => addOtherPoint("digitalSystems"));
+  }
+
+  ["otherListAntiscam", "otherListLifestyle", "otherListDigitalSystems"].forEach((id) => {
+    const el = els[id];
+    if (el) {
+      el.addEventListener("click", (event) => {
+        const btn = event.target.closest(".other-item-delete");
+        if (!btn) return;
+        const category = btn.dataset.category;
+        const pointId = btn.dataset.pointId;
+        if (category && pointId) {
+          removeOtherPoint(category, pointId);
+        }
+      });
+    }
+  });
 
   els.pointRegionSelect.addEventListener("change", () => {
     setAdminPage("points", { updateHash: true, focus: false });
@@ -729,6 +796,7 @@ function refreshAdminUI(preferredRegionId = "") {
   renderPointsList();
   renderKpi();
   renderPointsContext();
+  renderOtherPage();
   if (isAdminBooted) {
     setAdminPage(activeAdminPage || resolveAdminPageFromHash(), { updateHash: false, focus: false });
   }
@@ -789,11 +857,12 @@ function handleServicesReset() {
 
 function renderKpi() {
   const allPoints = data.regions.flatMap((region) => region.activePoints || []);
+  const otherPoints = Object.values(data.otherCategories || {}).flatMap((arr) => arr || []);
   const serviceCoverage = {
     meetup: 0,
     delivery: 0,
     ship: 0,
-    other: 0,
+    other: otherPoints.length,
   };
   let starredPoints = 0;
 
@@ -804,6 +873,10 @@ function renderKpi() {
         serviceCoverage[service] += 1;
       }
     });
+  });
+
+  otherPoints.forEach((point) => {
+    starredPoints += clampStars(point.stars);
   });
 
   els.kpiRegions.textContent = String(data.regions.length);
@@ -1187,6 +1260,95 @@ function renderPointsContext() {
   if (els.pointCreateNew) {
     els.pointCreateNew.disabled = false;
   }
+}
+
+function ensureOtherCategories() {
+  data.otherCategories = data.otherCategories || {
+    antiscam: [],
+    lifestyle: [],
+    digitalSystems: [],
+  };
+}
+
+function renderOtherPage() {
+  ensureOtherCategories();
+
+  OTHER_CATEGORIES.forEach((category) => {
+    const listEl = els[`otherList${category.charAt(0).toUpperCase() + category.slice(1)}`];
+    if (!Array.isArray(data.otherCategories[category]) || !listEl) return;
+
+    const items = data.otherCategories[category].map((point) => {
+      return `
+        <article class="admin-item">
+          <div class="admin-item-top">
+            <p class="admin-item-title">${escapeHtml(point.name)}</p>
+            <p class="admin-item-id">${escapeHtml(point.id)}</p>
+          </div>
+          <p class="admin-item-meta">${escapeHtml(point.details || "Nessun dettaglio")}</p>
+          <div class="admin-item-actions">
+            <button class="admin-btn admin-btn-danger other-item-delete" data-category="${escapeHtmlAttr(category)}" data-point-id="${escapeHtmlAttr(point.id)}">Elimina</button>
+          </div>
+        </article>
+      `;
+    });
+
+    listEl.innerHTML = items.length > 0 ? items.join("") : `<article class="admin-item"><p class="admin-empty">Nessun punto in ${OTHER_CATEGORY_LABELS[category]}</p></article>`;
+  });
+}
+
+function addOtherPoint(category) {
+  const nameInput = els[`otherName${category.charAt(0).toUpperCase() + category.slice(1)}`];
+  const detailsInput = els[`otherDetails${category.charAt(0).toUpperCase() + category.slice(1)}`];
+
+  if (!nameInput || !detailsInput) return;
+
+  const name = String(nameInput.value || "").trim();
+  const details = String(detailsInput.value || "").trim();
+
+  if (!name) {
+    setStatus(`Inserisci un nome valido per la categoria ${OTHER_CATEGORY_LABELS[category]}.`, "error");
+    return;
+  }
+
+  ensureOtherCategories();
+
+  const targetArray = data.otherCategories[category] || [];
+  const id = makeUniqueOtherPointId(name, targetArray);
+
+  targetArray.push({
+    id,
+    name,
+    details,
+    stars: 0,
+    services: ["other"],
+  });
+
+  data.otherCategories[category] = targetArray;
+  nameInput.value = "";
+  detailsInput.value = "";
+  renderOtherPage();
+  renderKpi();
+  persistData(`Nuovo punto ${OTHER_CATEGORY_LABELS[category]} aggiunto.`, "success");
+}
+
+function removeOtherPoint(category, pointId) {
+  ensureOtherCategories();
+
+  data.otherCategories[category] = (data.otherCategories[category] || []).filter((point) => point.id !== pointId);
+  renderOtherPage();
+  renderKpi();
+  persistData(`Punto rimosso da ${OTHER_CATEGORY_LABELS[category]}.`, "warn");
+}
+
+function makeUniqueOtherPointId(baseName, points) {
+  const normalizedBase = slugify(baseName) || "other-point";
+  let candidate = normalizedBase;
+  let suffix = 1;
+  while (points.some((point) => point.id === candidate)) {
+    suffix += 1;
+    candidate = `${normalizedBase}-${suffix}`;
+  }
+  return candidate;
 }
 
 function getFilteredPoints(region) {

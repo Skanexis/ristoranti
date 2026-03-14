@@ -148,6 +148,11 @@ function fallbackData() {
     },
     supportTelegramUrl: "https://t.me/SHLC26",
     regions: [],
+    otherCategories: {
+      antiscam: [],
+      lifestyle: [],
+      digitalSystems: [],
+    },
   };
 }
 
@@ -396,6 +401,7 @@ function renderPointsStep() {
     activePoints = getActivePointsByService("other");
     els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} - Other`;
     emptyMessage = "Nessun punto Other disponibile al momento.";
+    els.pointsStep.classList.remove("hidden");
   } else {
     if (!state.region) {
       els.pointsStep.classList.add("hidden");
@@ -491,11 +497,40 @@ function getActivePointsByRegion(regionId, serviceId = state.service) {
 function getActivePointsByService(serviceId) {
   if (!serviceId) return [];
 
-  return (appData.regions || []).flatMap((region) =>
-    (region.activePoints || []).filter(
-      (point) => Array.isArray(point.services) && point.services.includes(serviceId)
-    )
+  const regionPoints = (appData.regions || []).flatMap((region) =>
+    (region.activePoints || [])
+      .filter((point) => Array.isArray(point.services) && point.services.includes(serviceId))
+      .map((point) => ({ ...point, regionName: region.name }))
   );
+
+  if (serviceId !== "other") {
+    return regionPoints;
+  }
+
+  const categoryLabels = {
+    antiscam: "Antiscam",
+    lifestyle: "Lifestyle",
+    digitalSystems: "Digital Systems",
+  };
+
+  const otherPoints = Object.entries(appData.otherCategories || {}).flatMap(([category, points]) => {
+    if (!Array.isArray(points)) return [];
+    return points.map((point) => ({
+      id: point.id,
+      name: point.name,
+      details: point.details || "",
+      logo: point.logo || "",
+      mediaType: "none",
+      mediaUrl: "",
+      stars: Number(point.stars) || 0,
+      services: ["other"],
+      socials: [],
+      category,
+      categoryLabel: categoryLabels[category] || category,
+    }));
+  });
+
+  return [...regionPoints, ...otherPoints];
 }
 
 function getActiveShipPointsByZone(zoneId) {
