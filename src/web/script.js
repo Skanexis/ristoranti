@@ -438,40 +438,41 @@ function renderPointsStep() {
     return;
   }
 
-  const cards = activePoints
-    .map((point, index) => {
-      const socials = Array.isArray(point.socials)
-        ? point.socials
-            .map(
-              (link) => `
-                <a class="point-link" href="${escapeHtmlAttr(link.url)}" target="_blank" rel="noopener noreferrer">
-                  ${escapeHtml(link.label)}
-                </a>
-              `
-            )
-            .join("")
-        : "";
+  const cardTemplates = activePoints.map((point, index) => {
+    const socials = Array.isArray(point.socials)
+      ? point.socials
+          .map(
+            (link) => `
+              <a class="point-link" href="${escapeHtmlAttr(link.url)}" target="_blank" rel="noopener noreferrer">
+                ${escapeHtml(link.label)}
+              </a>
+            `
+          )
+          .join("")
+      : "";
 
-      const fallbackInitials = getInitials(point.name);
-      const priorityLogo = index < 4;
-      const logoHtml = point.logo
-        ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" loading="${
-            priorityLogo ? "eager" : "lazy"
-          }" decoding="async" fetchpriority="${priorityLogo ? "high" : "auto"}" data-logo-fallback="${escapeHtmlAttr(
-            fallbackInitials
-          )}" />`
-        : `<span class="point-logo-fallback">${escapeHtml(fallbackInitials)}</span>`;
-      const mediaType = resolvePointMediaType(point.mediaType, point.mediaUrl);
-      const mediaHtml = buildPointMediaMarkup(mediaType, point.mediaUrl, point.name);
-      const shipCountryText = getPointShipCountryText(point);
+    const fallbackInitials = getInitials(point.name);
+    const priorityLogo = index < 4;
+    const logoHtml = point.logo
+      ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" loading="${
+          priorityLogo ? "eager" : "lazy"
+        }" decoding="async" fetchpriority="${priorityLogo ? "high" : "auto"}" data-logo-fallback="${escapeHtmlAttr(
+          fallbackInitials
+        )}" />`
+      : `<span class="point-logo-fallback">${escapeHtml(fallbackInitials)}</span>`;
+    const mediaType = resolvePointMediaType(point.mediaType, point.mediaUrl);
+    const mediaHtml = buildPointMediaMarkup(mediaType, point.mediaUrl, point.name);
+    const shipCountryText = getPointShipCountryText(point);
 
-      return `
+    return {
+      category: point.categoryLabel || point.category || "Other",
+      html: `
         <article class="point-card" aria-label="Punto ${escapeHtmlAttr(point.name)}">
           <header class="point-header">
             <div class="point-logo">${logoHtml}</div>
             <div>
               <h3 class="point-name">${escapeHtml(point.name)}</h3>
-            ${point.categoryLabel ? `<p class="point-category">${escapeHtml(point.categoryLabel)}</p>` : ""}
+              ${point.categoryLabel ? `<p class="point-category">${escapeHtml(point.categoryLabel)}</p>` : ""}
               ${shipCountryText ? `<p class="point-ship-country">${escapeHtml(shipCountryText)}</p>` : ""}
             </div>
           </header>
@@ -482,11 +483,35 @@ function renderPointsStep() {
           </div>
           <div class="point-links">${socials || `<span class="point-links-empty">Nessun social configurato</span>`}</div>
         </article>
-      `;
-    })
-    .join("");
+      `,
+    };
+  });
 
-  els.pointsContent.innerHTML = `<div class="points-grid">${cards}</div>`;
+  if (state.service === "other") {
+    const grouped = cardTemplates.reduce((acc, item) => {
+      const key = item.category || "Other";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item.html);
+      return acc;
+    }, {});
+
+    const groupedHtml = Object.entries(grouped)
+      .map(
+        ([categoryLabel, pointsHtml]) => `
+          <section class="other-view-group">
+            <h3 class="other-view-group-title">${escapeHtml(categoryLabel)}</h3>
+            <div class="points-grid">${pointsHtml.join("")}</div>
+          </section>
+        `
+      )
+      .join("");
+
+    els.pointsContent.innerHTML = groupedHtml;
+  } else {
+    const cards = cardTemplates.map((item) => item.html).join("");
+    els.pointsContent.innerHTML = `<div class="points-grid">${cards}</div>`;
+  }
+
   applySmartLogoFit(els.pointsContent);
   els.pointsStep.classList.remove("hidden");
 }

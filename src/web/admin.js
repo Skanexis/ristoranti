@@ -1406,11 +1406,20 @@ function renderOtherPage() {
       const pointsHtml = points.length
         ? points
             .map((point) => {
+              const starMark = point.stars === 1 ? "★" : "☆";
+              const logoHtml = point.logo ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" class="other-point-logo-preview" />` : "";
+
               return `
-                <article class="admin-item">
+                <article class="admin-item other-point-item">
                   <div class="admin-item-top">
-                    <p class="admin-item-title">${escapeHtml(point.name)}</p>
-                    <p class="admin-item-id">${escapeHtml(point.id)}</p>
+                    <div class="other-point-identity">
+                      ${logoHtml}
+                      <div>
+                        <p class="admin-item-title">${escapeHtml(point.name)}</p>
+                        <p class="admin-item-id">${escapeHtml(point.id)}</p>
+                      </div>
+                    </div>
+                    <p class="other-point-stars">${starMark}</p>
                   </div>
                   <p class="admin-item-meta">${escapeHtml(point.details || "Nessun dettaglio")}</p>
                   <div class="admin-item-actions">
@@ -1426,15 +1435,38 @@ function renderOtherPage() {
         <section class="other-category" data-category="${escapeHtmlAttr(category)}">
           <h3>${escapeHtml(categoryLabel)} <small>(${escapeHtml(category)})</small></h3>
           <div class="other-list">${pointsHtml}</div>
-          <label>
-            Nome punto
-            <input class="other-point-name" type="text" maxlength="64" />
-          </label>
-          <label>
-            Dettagli
-            <input class="other-point-details" type="text" maxlength="256" />
-          </label>
-          <button class="admin-btn other-point-add" type="button" data-category="${escapeHtmlAttr(category)}">Aggiungi punto a ${escapeHtml(categoryLabel)}</button>
+
+          <form class="admin-form other-point-form" data-category="${escapeHtmlAttr(category)}" onsubmit="return false;">
+            <fieldset>
+              <legend>Aggiungi nuovo punto</legend>
+              <label>
+                ID punto (facoltativo)
+                <input class="other-point-id" type="text" maxlength="64" placeholder="Lascia vuoto per generare automaticamente" />
+              </label>
+              <label>
+                Nome punto
+                <input class="other-point-name" type="text" maxlength="64" required />
+              </label>
+              <label>
+                Dettagli
+                <textarea class="other-point-details" rows="2" maxlength="256" placeholder="Dettagli visibili sulla card"></textarea>
+              </label>
+              <label>
+                URL logo
+                <input class="other-point-logo" type="url" maxlength="300" placeholder="https://..." />
+              </label>
+              <label>
+                Stella
+                <select class="other-point-stars">
+                  <option value="0">Senza stella</option>
+                  <option value="1">Con stella</option>
+                </select>
+              </label>
+              <div class="admin-form-actions">
+                <button class="admin-btn other-point-add" type="button" data-category="${escapeHtmlAttr(category)}">Aggiungi punto</button>
+              </div>
+            </fieldset>
+          </form>
         </section>
       `;
     })
@@ -1448,13 +1480,19 @@ function addOtherPoint(category) {
     return;
   }
 
+  const idInput = section.querySelector(".other-point-id");
   const nameInput = section.querySelector(".other-point-name");
   const detailsInput = section.querySelector(".other-point-details");
+  const logoInput = section.querySelector(".other-point-logo");
+  const starsInput = section.querySelector(".other-point-stars");
 
-  if (!nameInput || !detailsInput) return;
+  if (!nameInput || !detailsInput || !starsInput) return;
 
+  const customId = String(idInput?.value || "").trim();
   const name = String(nameInput.value || "").trim();
   const details = String(detailsInput.value || "").trim();
+  const logo = String(logoInput?.value || "").trim();
+  const stars = Number(starsInput.value) === 1 ? 1 : 0;
 
   if (!name) {
     const label = data.otherCategoryLabels?.[category] || category;
@@ -1465,13 +1503,19 @@ function addOtherPoint(category) {
   ensureOtherCategories();
 
   const targetArray = data.otherCategories[category] || [];
-  const id = makeUniqueOtherPointId(name, targetArray);
+
+  let id = customId ? slugify(customId) : makeUniqueOtherPointId(name, targetArray);
+  if (!id) id = makeUniqueOtherPointId(name, targetArray);
+  if (targetArray.some((point) => point.id === id)) {
+    id = makeUniqueOtherPointId(id, targetArray);
+  }
 
   targetArray.push({
     id,
     name,
     details,
-    stars: 0,
+    logo,
+    stars,
     services: ["other"],
   });
 

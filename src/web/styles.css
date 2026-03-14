@@ -1740,6 +1740,78 @@ select:focus-visible,
     margin-bottom: 10px;
   }
 
+  .other-point-form {
+    background: rgba(28, 23, 17, 0.55);
+    border: 1px solid rgba(174, 133, 78, 0.4);
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 12px;
+  }
+
+  .other-point-form fieldset {
+    border: 1px solid rgba(217, 161, 88, 0.3);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 0;
+  }
+
+  .other-point-form legend {
+    padding: 0 6px;
+    color: var(--gold-soft);
+    font-size: 0.85rem;
+  }
+
+  .other-point-form label {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .other-point-form input,
+  .other-point-form textarea,
+  .other-point-form select {
+    width: 100%;
+    margin-top: 4px;
+    background: rgba(22, 18, 14, 0.6);
+    color: #fff;
+    border: 1px solid rgba(174, 133, 78, 0.4);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .other-point-item .other-point-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .other-point-logo-preview {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid rgba(217, 161, 88, 0.4);
+  }
+
+  .other-point-stars {
+    font-size: 1.2rem;
+    color: var(--gold-soft);
+  }
+
+  .other-view-group {
+    margin-bottom: 22px;
+  }
+
+  .other-view-group-title {
+    margin: 0 0 8px;
+    color: rgba(241, 207, 159, 0.92);
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(217, 161, 88, 0.25);
+    padding-bottom: 6px;
+  }
+
   .admin-item-meta {
     color: var(--muted);
     font-size: 0.78rem;
