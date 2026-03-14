@@ -91,10 +91,12 @@ const ADMIN_PAGE_ALIAS = {
   services: "services",
   regions: "regions",
   points: "points",
+  other: "other",
   data: "data",
   servicespanel: "services",
   regionspanel: "regions",
   pointspanel: "points",
+  otherpanel: "other",
   toolspanel: "data",
   tools: "data",
 };
@@ -151,18 +153,12 @@ const els = {
   pointSearch: document.getElementById("pointSearch"),
   pointServiceFilter: document.getElementById("pointServiceFilter"),
   pointStarFilter: document.getElementById("pointStarFilter"),
-  otherListAntiscam: document.getElementById("otherListAntiscam"),
-  otherNameAntiscam: document.getElementById("otherNameAntiscam"),
-  otherDetailsAntiscam: document.getElementById("otherDetailsAntiscam"),
-  otherAddAntiscamBtn: document.getElementById("otherAddAntiscamBtn"),
-  otherListLifestyle: document.getElementById("otherListLifestyle"),
-  otherNameLifestyle: document.getElementById("otherNameLifestyle"),
-  otherDetailsLifestyle: document.getElementById("otherDetailsLifestyle"),
-  otherAddLifestyleBtn: document.getElementById("otherAddLifestyleBtn"),
-  otherListDigitalSystems: document.getElementById("otherListDigitalSystems"),
-  otherNameDigitalSystems: document.getElementById("otherNameDigitalSystems"),
-  otherDetailsDigitalSystems: document.getElementById("otherDetailsDigitalSystems"),
-  otherAddDigitalSystemsBtn: document.getElementById("otherAddDigitalSystemsBtn"),
+  otherCategoryConfig: document.getElementById("otherCategoryConfig"),
+  otherNewCategoryId: document.getElementById("otherNewCategoryId"),
+  otherNewCategoryLabel: document.getElementById("otherNewCategoryLabel"),
+  otherAddCategoryBtn: document.getElementById("otherAddCategoryBtn"),
+  otherCategoryList: document.getElementById("otherCategoryList"),
+  otherCategoriesContainer: document.getElementById("otherCategoriesContainer"),
   pointCreateNew: document.getElementById("pointCreateNew"),
   pointsContextHint: document.getElementById("pointsContextHint"),
   pointForm: document.getElementById("pointForm"),
@@ -417,7 +413,7 @@ function focusAdminPage(pageId, preferredTarget = null) {
   }
 
   if (pageId === "other") {
-    safeFocus(els.otherAddAntiscamBtn);
+    safeFocus(els.otherNewCategoryId || els.otherCategoriesContainer);
     return;
   }
 }
@@ -557,31 +553,93 @@ function bindAdminEvents() {
     els.regionSearch.addEventListener("input", renderRegionList);
   }
 
-  // Other categories fields
-  if (els.otherAddAntiscamBtn) {
-    els.otherAddAntiscamBtn.addEventListener("click", () => addOtherPoint("antiscam"));
-  }
-  if (els.otherAddLifestyleBtn) {
-    els.otherAddLifestyleBtn.addEventListener("click", () => addOtherPoint("lifestyle"));
-  }
-  if (els.otherAddDigitalSystemsBtn) {
-    els.otherAddDigitalSystemsBtn.addEventListener("click", () => addOtherPoint("digitalSystems"));
+  // Other categories fields (dynamic)
+  if (els.otherAddCategoryBtn) {
+    els.otherAddCategoryBtn.addEventListener("click", () => {
+      const categoryId = String(els.otherNewCategoryId?.value || "").trim().toLowerCase();
+      const categoryLabel = String(els.otherNewCategoryLabel?.value || "").trim();
+
+      if (!categoryId || !categoryLabel) {
+        setStatus("Inserisci ID e label validi per la nuova categoria.", "error");
+        return;
+      }
+
+      if (!/^[a-z0-9_-]+$/.test(categoryId)) {
+        setStatus("L'ID categoria può contenere solo lettere, numeri, underscore e trattini.", "error");
+        return;
+      }
+
+      ensureOtherCategories();
+      if (data.otherCategories[categoryId]) {
+        setStatus(`Categoria '${categoryId}' già esiste.`, "error");
+        return;
+      }
+
+      data.otherCategories[categoryId] = [];
+      data.otherCategoryLabels[categoryId] = categoryLabel;
+      els.otherNewCategoryId.value = "";
+      els.otherNewCategoryLabel.value = "";
+      renderOtherPage();
+      renderKpi();
+      persistData(`Categoria '${categoryLabel}' aggiunta a Other.`, "success");
+    });
   }
 
-  ["otherListAntiscam", "otherListLifestyle", "otherListDigitalSystems"].forEach((id) => {
-    const el = els[id];
-    if (el) {
-      el.addEventListener("click", (event) => {
-        const btn = event.target.closest(".other-item-delete");
-        if (!btn) return;
-        const category = btn.dataset.category;
-        const pointId = btn.dataset.pointId;
+  if (els.otherCategoryList) {
+    els.otherCategoryList.addEventListener("input", (event) => {
+      const target = event.target.closest(".other-category-config-label");
+      if (!target) return;
+      const category = target.dataset.category;
+      const label = String(target.value || "").trim();
+      if (!category) return;
+      if (!label) return;
+      data.otherCategoryLabels = data.otherCategoryLabels || {};
+      data.otherCategoryLabels[category] = label;
+      renderOtherCategoryConfig();
+      renderOtherPage();
+      persistData(`Label della categoria '${category}' aggiornata.`, "success");
+    });
+
+    els.otherCategoryList.addEventListener("click", (event) => {
+      const del = event.target.closest(".other-category-delete");
+      if (!del) return;
+      const category = del.dataset.category;
+      if (!category) return;
+
+      if (OTHER_CATEGORIES.includes(category)) {
+        setStatus("Le categorie built-in non possono essere rimosse.", "error");
+        return;
+      }
+
+      delete data.otherCategories[category];
+      delete data.otherCategoryLabels[category];
+      renderOtherPage();
+      renderKpi();
+      persistData(`Categoria '${category}' rimossa da Other.`, "warn");
+    });
+  }
+
+  if (els.otherCategoriesContainer) {
+    els.otherCategoriesContainer.addEventListener("click", (event) => {
+      const addBtn = event.target.closest(".other-point-add");
+      if (addBtn) {
+        const category = addBtn.dataset.category;
+        if (category) {
+          addOtherPoint(category);
+        }
+        return;
+      }
+
+      const deleteBtn = event.target.closest(".other-point-delete");
+      if (deleteBtn) {
+        const category = deleteBtn.dataset.category;
+        const pointId = deleteBtn.dataset.pointId;
         if (category && pointId) {
           removeOtherPoint(category, pointId);
         }
-      });
-    }
-  });
+      }
+    });
+  }
 
   els.pointRegionSelect.addEventListener("change", () => {
     setAdminPage("points", { updateHash: true, focus: false });
@@ -1268,37 +1326,130 @@ function ensureOtherCategories() {
     lifestyle: [],
     digitalSystems: [],
   };
+
+  data.otherCategoryLabels = data.otherCategoryLabels || {
+    antiscam: "Antiscam",
+    lifestyle: "Lifestyle",
+    digitalSystems: "Digital Systems",
+  };
+
+  for (const category of OTHER_CATEGORIES) {
+    if (!Array.isArray(data.otherCategories[category])) {
+      data.otherCategories[category] = [];
+    }
+    if (!data.otherCategoryLabels[category]) {
+      data.otherCategoryLabels[category] = OTHER_CATEGORY_LABELS[category] || category;
+    }
+  }
+}
+
+function renderOtherCategoryConfig() {
+  if (!els.otherCategoryList) return;
+  ensureOtherCategories();
+
+  const categories = Object.keys(data.otherCategories || {}).sort((a, b) => {
+    const aName = data.otherCategoryLabels?.[a] || a;
+    const bName = data.otherCategoryLabels?.[b] || b;
+    return aName.localeCompare(bName, "it", { sensitivity: "base" });
+  });
+
+  if (categories.length === 0) {
+    els.otherCategoryList.innerHTML = "<p class='admin-empty'>Nessuna categoria Other configurata.</p>";
+    return;
+  }
+
+  els.otherCategoryList.innerHTML = categories
+    .map((category) => {
+      const label = data.otherCategoryLabels?.[category] || category;
+      const fixed = OTHER_CATEGORIES.includes(category);
+
+      return `
+        <div class="other-category-config-item" data-category="${escapeHtmlAttr(category)}">
+          <span class="other-category-config-id">${escapeHtml(category)}</span>
+          <input
+            class="other-category-config-label"
+            type="text"
+            value="${escapeHtmlAttr(label)}"
+            data-category="${escapeHtmlAttr(category)}"
+            placeholder="Nome categoria"
+            ${fixed ? "disabled" : ""}
+          />
+          ${fixed ? "" : `<button class="admin-btn admin-btn-danger other-category-delete" data-category="${escapeHtmlAttr(category)}">Elimina</button>`}
+        </div>
+      `;
+    })
+    .join("\n");
 }
 
 function renderOtherPage() {
   ensureOtherCategories();
+  renderOtherCategoryConfig();
 
-  OTHER_CATEGORIES.forEach((category) => {
-    const listEl = els[`otherList${category.charAt(0).toUpperCase() + category.slice(1)}`];
-    if (!Array.isArray(data.otherCategories[category]) || !listEl) return;
+  if (!els.otherCategoriesContainer) return;
 
-    const items = data.otherCategories[category].map((point) => {
-      return `
-        <article class="admin-item">
-          <div class="admin-item-top">
-            <p class="admin-item-title">${escapeHtml(point.name)}</p>
-            <p class="admin-item-id">${escapeHtml(point.id)}</p>
-          </div>
-          <p class="admin-item-meta">${escapeHtml(point.details || "Nessun dettaglio")}</p>
-          <div class="admin-item-actions">
-            <button class="admin-btn admin-btn-danger other-item-delete" data-category="${escapeHtmlAttr(category)}" data-point-id="${escapeHtmlAttr(point.id)}">Elimina</button>
-          </div>
-        </article>
-      `;
-    });
-
-    listEl.innerHTML = items.length > 0 ? items.join("") : `<article class="admin-item"><p class="admin-empty">Nessun punto in ${OTHER_CATEGORY_LABELS[category]}</p></article>`;
+  const categories = Object.keys(data.otherCategories || {}).sort((a, b) => {
+    const aName = data.otherCategoryLabels?.[a] || a;
+    const bName = data.otherCategoryLabels?.[b] || b;
+    return aName.localeCompare(bName, "it", { sensitivity: "base" });
   });
+
+  if (categories.length === 0) {
+    els.otherCategoriesContainer.innerHTML = "<p class='admin-empty'>Nessuna categoria Other configurata.</p>";
+    return;
+  }
+
+  els.otherCategoriesContainer.innerHTML = categories
+    .map((category) => {
+      const categoryLabel = data.otherCategoryLabels?.[category] || category;
+      const points = Array.isArray(data.otherCategories[category]) ? data.otherCategories[category] : [];
+
+      const pointsHtml = points.length
+        ? points
+            .map((point) => {
+              return `
+                <article class="admin-item">
+                  <div class="admin-item-top">
+                    <p class="admin-item-title">${escapeHtml(point.name)}</p>
+                    <p class="admin-item-id">${escapeHtml(point.id)}</p>
+                  </div>
+                  <p class="admin-item-meta">${escapeHtml(point.details || "Nessun dettaglio")}</p>
+                  <div class="admin-item-actions">
+                    <button class="admin-btn admin-btn-danger other-point-delete" data-category="${escapeHtmlAttr(category)}" data-point-id="${escapeHtmlAttr(point.id)}">Elimina</button>
+                  </div>
+                </article>
+              `;
+            })
+            .join("")
+        : `<article class="admin-item"><p class="admin-empty">Nessun punto in ${escapeHtml(categoryLabel)}</p></article>`;
+
+      return `
+        <section class="other-category" data-category="${escapeHtmlAttr(category)}">
+          <h3>${escapeHtml(categoryLabel)} <small>(${escapeHtml(category)})</small></h3>
+          <div class="other-list">${pointsHtml}</div>
+          <label>
+            Nome punto
+            <input class="other-point-name" type="text" maxlength="64" />
+          </label>
+          <label>
+            Dettagli
+            <input class="other-point-details" type="text" maxlength="256" />
+          </label>
+          <button class="admin-btn other-point-add" type="button" data-category="${escapeHtmlAttr(category)}">Aggiungi punto a ${escapeHtml(categoryLabel)}</button>
+        </section>
+      `;
+    })
+    .join("\n");
 }
 
 function addOtherPoint(category) {
-  const nameInput = els[`otherName${category.charAt(0).toUpperCase() + category.slice(1)}`];
-  const detailsInput = els[`otherDetails${category.charAt(0).toUpperCase() + category.slice(1)}`];
+  const section = els.otherCategoriesContainer?.querySelector(`.other-category[data-category='${cssEscape(category)}']`);
+  if (!section) {
+    setStatus(`Categoria ${category} non trovata.`, "error");
+    return;
+  }
+
+  const nameInput = section.querySelector(".other-point-name");
+  const detailsInput = section.querySelector(".other-point-details");
 
   if (!nameInput || !detailsInput) return;
 
@@ -1306,7 +1457,8 @@ function addOtherPoint(category) {
   const details = String(detailsInput.value || "").trim();
 
   if (!name) {
-    setStatus(`Inserisci un nome valido per la categoria ${OTHER_CATEGORY_LABELS[category]}.`, "error");
+    const label = data.otherCategoryLabels?.[category] || category;
+    setStatus(`Inserisci un nome valido per la categoria ${label}.`, "error");
     return;
   }
 
@@ -1328,7 +1480,7 @@ function addOtherPoint(category) {
   detailsInput.value = "";
   renderOtherPage();
   renderKpi();
-  persistData(`Nuovo punto ${OTHER_CATEGORY_LABELS[category]} aggiunto.`, "success");
+  persistData(`Nuovo punto ${data.otherCategoryLabels?.[category] || category} aggiunto.`, "success");
 }
 
 function removeOtherPoint(category, pointId) {
@@ -1337,7 +1489,7 @@ function removeOtherPoint(category, pointId) {
   data.otherCategories[category] = (data.otherCategories[category] || []).filter((point) => point.id !== pointId);
   renderOtherPage();
   renderKpi();
-  persistData(`Punto rimosso da ${OTHER_CATEGORY_LABELS[category]}.`, "warn");
+  persistData(`Punto rimosso da ${data.otherCategoryLabels?.[category] || category}.`, "warn");
 }
 
 function makeUniqueOtherPointId(baseName, points) {

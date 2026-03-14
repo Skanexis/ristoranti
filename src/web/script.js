@@ -153,6 +153,11 @@ function fallbackData() {
       lifestyle: [],
       digitalSystems: [],
     },
+    otherCategoryLabels: {
+      antiscam: "Antiscam",
+      lifestyle: "Lifestyle",
+      digitalSystems: "Digital Systems",
+    },
   };
 }
 
@@ -466,6 +471,7 @@ function renderPointsStep() {
             <div class="point-logo">${logoHtml}</div>
             <div>
               <h3 class="point-name">${escapeHtml(point.name)}</h3>
+            ${point.categoryLabel ? `<p class="point-category">${escapeHtml(point.categoryLabel)}</p>` : ""}
               ${shipCountryText ? `<p class="point-ship-country">${escapeHtml(shipCountryText)}</p>` : ""}
             </div>
           </header>
@@ -508,9 +514,12 @@ function getActivePointsByService(serviceId) {
   }
 
   const categoryLabels = {
-    antiscam: "Antiscam",
-    lifestyle: "Lifestyle",
-    digitalSystems: "Digital Systems",
+    ...{
+      antiscam: "Antiscam",
+      lifestyle: "Lifestyle",
+      digitalSystems: "Digital Systems",
+    },
+    ...(appData.otherCategoryLabels || {}),
   };
 
   const otherPoints = Object.entries(appData.otherCategories || {}).flatMap(([category, points]) => {

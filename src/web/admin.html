@@ -454,52 +454,28 @@
               <details class="admin-panel-fold" open>
                 <summary class="admin-panel-fold-summary">
                   <span class="admin-panel-fold-title">Other categories</span>
-                  <span class="admin-panel-fold-hint">Aggiungi e gestisci punti per Antiscam / Lifestyle / Digital Systems.</span>
+                  <span class="admin-panel-fold-hint">Aggiungi e gestisci punti e categorie dinamiche per Other.</span>
                 </summary>
                 <div class="admin-panel-fold-body">
-                  <div class="other-categories-grid">
-                    <section class="other-category">
-                      <h3>Antiscam</h3>
-                      <div id="otherListAntiscam" class="other-list"></div>
+                  <div id="otherCategoryConfig" class="admin-other-config">
+                    <h3>Configura categorie Other</h3>
+                    <div class="admin-grid admin-grid-gap">
                       <label>
-                        Nome punto
-                        <input id="otherNameAntiscam" type="text" maxlength="64" />
+                        ID categoria
+                        <input id="otherNewCategoryId" type="text" maxlength="32" placeholder="es. antiscam" />
                       </label>
                       <label>
-                        Dettagli
-                        <input id="otherDetailsAntiscam" type="text" maxlength="256" />
+                        Etichetta categoria
+                        <input id="otherNewCategoryLabel" type="text" maxlength="64" placeholder="Antiscam" />
                       </label>
-                      <button id="otherAddAntiscamBtn" type="button" class="admin-btn">Aggiungi punto Antiscam</button>
-                    </section>
-
-                    <section class="other-category">
-                      <h3>Lifestyle</h3>
-                      <div id="otherListLifestyle" class="other-list"></div>
-                      <label>
-                        Nome punto
-                        <input id="otherNameLifestyle" type="text" maxlength="64" />
-                      </label>
-                      <label>
-                        Dettagli
-                        <input id="otherDetailsLifestyle" type="text" maxlength="256" />
-                      </label>
-                      <button id="otherAddLifestyleBtn" type="button" class="admin-btn">Aggiungi punto Lifestyle</button>
-                    </section>
-
-                    <section class="other-category">
-                      <h3>Digital Systems</h3>
-                      <div id="otherListDigitalSystems" class="other-list"></div>
-                      <label>
-                        Nome punto
-                        <input id="otherNameDigitalSystems" type="text" maxlength="64" />
-                      </label>
-                      <label>
-                        Dettagli
-                        <input id="otherDetailsDigitalSystems" type="text" maxlength="256" />
-                      </label>
-                      <button id="otherAddDigitalSystemsBtn" type="button" class="admin-btn">Aggiungi punto Digital Systems</button>
-                    </section>
+                      <div class="admin-form-actions" style="align-self: end;">
+                        <button id="otherAddCategoryBtn" type="button" class="admin-btn">Aggiungi categoria</button>
+                      </div>
+                    </div>
+                    <div id="otherCategoryList" class="admin-list"></div>
                   </div>
+
+                  <div id="otherCategoriesContainer" class="other-categories-grid"></div>
                 </div>
               </details>
             </article>

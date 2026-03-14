@@ -583,12 +583,34 @@ function validateAdminData(payload) {
     throw new Error("Dati admin non validi: otherCategories deve essere un oggetto.");
   }
 
-  for (const category of ["antiscam", "lifestyle", "digitalSystems"]) {
-    if (!Array.isArray(payload.otherCategories[category])) {
+  if (payload.otherCategoryLabels && typeof payload.otherCategoryLabels === "object") {
+    for (const [category, label] of Object.entries(payload.otherCategoryLabels)) {
+      if (!category || !String(category).trim()) {
+        throw new Error("Dati admin non validi: otherCategoryLabels contiene categoria non valida.");
+      }
+      if (!label || !String(label).trim()) {
+        throw new Error(`Dati admin non validi: label mancante per otherCategoryLabels.${category}.`);
+      }
+    }
+  }
+
+  const categories = Object.keys(payload.otherCategories);
+  const categorySet = new Set();
+  for (const category of categories) {
+    if (!category || !String(category).trim()) {
+      throw new Error("Dati admin non validi: otherCategories contiene chiave categoria non valida.");
+    }
+    if (categorySet.has(category)) {
+      throw new Error(`Dati admin non validi: otherCategories contiene categoria duplicata '${category}'.`);
+    }
+    categorySet.add(category);
+
+    const points = payload.otherCategories[category];
+    if (!Array.isArray(points)) {
       throw new Error(`Dati admin non validi: otherCategories.${category} deve essere un array.`);
     }
 
-    for (const point of payload.otherCategories[category]) {
+    for (const point of points) {
       if (!point || typeof point !== "object") {
         throw new Error(`Dati admin non validi: otherCategories.${category} elemento non valido.`);
       }

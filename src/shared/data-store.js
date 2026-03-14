@@ -195,6 +195,16 @@
         ],
       },
     ],
+    otherCategories: {
+      antiscam: [],
+      lifestyle: [],
+      digitalSystems: [],
+    },
+    otherCategoryLabels: {
+      antiscam: "Antiscam",
+      lifestyle: "Lifestyle",
+      digitalSystems: "Digital Systems",
+    },
   };
 
   function clone(data) {
@@ -325,19 +335,32 @@
         })
       : clone(DEFAULT_DATA.regions);
 
-    const otherCategories = {
-      antiscam: [],
-      lifestyle: [],
-      digitalSystems: [],
+    const otherCategories = {};
+    const otherCategoryLabels = {
+      antiscam: "Antiscam",
+      lifestyle: "Lifestyle",
+      digitalSystems: "Digital Systems",
     };
 
+    if (data.otherCategoryLabels && typeof data.otherCategoryLabels === "object") {
+      for (const key of Object.keys(data.otherCategoryLabels)) {
+        const label = sanitizeString(data.otherCategoryLabels[key]);
+        if (label) {
+          otherCategoryLabels[key] = label;
+        }
+      }
+    }
+
     if (data.otherCategories && typeof data.otherCategories === "object") {
-      for (const rawCategory of ["antiscam", "lifestyle", "digitalSystems"]) {
-        const items = Array.isArray(data.otherCategories[rawCategory]) ? data.otherCategories[rawCategory] : [];
-        otherCategories[rawCategory] = items
+      for (const [rawCategory, rawPoints] of Object.entries(data.otherCategories)) {
+        const categoryId = sanitizeString(rawCategory);
+        if (!categoryId) continue;
+
+        const items = Array.isArray(rawPoints) ? rawPoints : [];
+        otherCategories[categoryId] = items
           .map((point, index) => {
             const name = sanitizeString(point?.name);
-            const id = sanitizeString(point?.id) || slugify(`${rawCategory}-${index + 1}`);
+            const id = sanitizeString(point?.id) || slugify(`${categoryId}-${index + 1}`);
             if (!name) return null;
             return {
               id,
@@ -350,10 +373,24 @@
             };
           })
           .filter(Boolean);
+
+        if (!otherCategoryLabels[categoryId]) {
+          otherCategoryLabels[categoryId] = categoryId;
+        }
       }
     }
 
-    return { serviceLabels, supportTelegramUrl, regions, otherCategories };
+    // Ensure known categories exist when not present
+    for (const category of ["antiscam", "lifestyle", "digitalSystems"]) {
+      if (!Array.isArray(otherCategories[category])) {
+        otherCategories[category] = [];
+      }
+      if (!otherCategoryLabels[category]) {
+        otherCategoryLabels[category] = category;
+      }
+    }
+
+    return { serviceLabels, supportTelegramUrl, regions, otherCategories, otherCategoryLabels };
   }
 
   function canUseLocalStorage() {
