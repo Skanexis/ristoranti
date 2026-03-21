@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@10..48,500;10..48,600;10..48,700;10..48,800&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./services.css?v=20260321-22" />
+    <link rel="stylesheet" href="./services.css?v=20260321-29" />
   </head>
   <body>
     <div class="bg-ornament" aria-hidden="true">
@@ -71,7 +71,9 @@
               <input id="serviceTopOnly" type="checkbox" />
               Solo top service
             </label>
+            <button id="clearFiltersBtn" type="button" class="switch-btn switch-btn-reset">Mostra tutti</button>
           </div>
+          <p id="serviceCountLabel" class="service-count" aria-live="polite"></p>
         </div>
 
         <article id="spotlightBox" class="spotlight-box" aria-live="polite">
@@ -85,6 +87,10 @@
             <div class="spotlight-price-wrap">
               <p id="spotlightPrice" class="spotlight-price"></p>
               <p id="spotlightPriceNote" class="spotlight-price-note"></p>
+            </div>
+            <div id="spotlightMobileToggles" class="spotlight-mobile-toggles" hidden>
+              <button id="toggleFeaturesBtn" type="button" class="spotlight-toggle-btn" aria-pressed="true">Funzioni</button>
+              <button id="toggleRatesBtn" type="button" class="spotlight-toggle-btn" aria-pressed="false">Tariffe</button>
             </div>
             <section id="spotlightBankPricePanel" class="spotlight-bank-panel" hidden>
               <p id="spotlightBankPriceTitle" class="spotlight-bank-title">Condizioni</p>
@@ -117,7 +123,7 @@
       </section>
     </main>
 
-    <script src="/shared/data-store.js?v=20260321-22"></script>
-    <script src="./services.js?v=20260321-22"></script>
+    <script src="/shared/data-store.js?v=20260321-29"></script>
+    <script src="./services.js?v=20260321-29"></script>
   </body>
 </html>

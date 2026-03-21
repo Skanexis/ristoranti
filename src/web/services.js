@@ -47,6 +47,7 @@ const catalogState = {
   topOnly: false,
   viewMode: "deck",
   activeServiceId: "",
+  spotlightServiceId: "",
 };
 
 let servicesPageData = normalizeServicesPage(DEFAULT_SERVICES_PAGE);
@@ -62,6 +63,14 @@ let spotlightTransitionTimer = null;
 let activeSpotlightId = "";
 let sectionFlowNodes = [];
 let sectionFlowRaf = 0;
+let resizeRaf = 0;
+let lastViewportWidth = typeof window !== "undefined" ? window.innerWidth : 0;
+let mobileSpotlightState = {
+  hasConditions: false,
+  hasFeatures: false,
+  ratesOpen: false,
+  featuresOpen: false,
+};
 
 const els = {
   heroBadge: document.getElementById("heroBadge"),
@@ -77,6 +86,7 @@ const els = {
 
   serviceCategoryFilters: document.getElementById("serviceCategoryFilters"),
   serviceTopOnly: document.getElementById("serviceTopOnly"),
+  clearFiltersBtn: document.getElementById("clearFiltersBtn"),
   modeDeckBtn: document.getElementById("modeDeckBtn"),
   modeStoryBtn: document.getElementById("modeStoryBtn"),
   serviceCountLabel: document.getElementById("serviceCountLabel"),
@@ -88,6 +98,9 @@ const els = {
   spotlightDescription: document.getElementById("spotlightDescription"),
   spotlightPrice: document.getElementById("spotlightPrice"),
   spotlightPriceNote: document.getElementById("spotlightPriceNote"),
+  spotlightMobileToggles: document.getElementById("spotlightMobileToggles"),
+  toggleFeaturesBtn: document.getElementById("toggleFeaturesBtn"),
+  toggleRatesBtn: document.getElementById("toggleRatesBtn"),
   spotlightBankPricePanel: document.getElementById("spotlightBankPricePanel"),
   spotlightBankPriceTitle: document.getElementById("spotlightBankPriceTitle"),
   spotlightBankPriceList: document.getElementById("spotlightBankPriceList"),
@@ -142,6 +155,39 @@ function bindEvents() {
     });
   }
 
+  if (els.clearFiltersBtn) {
+    els.clearFiltersBtn.addEventListener("click", () => {
+      catalogState.category = "all";
+      catalogState.topOnly = false;
+      if (els.serviceTopOnly) {
+        els.serviceTopOnly.checked = false;
+      }
+      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
+    });
+  }
+
+  if (els.toggleFeaturesBtn) {
+    els.toggleFeaturesBtn.addEventListener("click", () => {
+      if (!mobileSpotlightState.hasFeatures) return;
+      mobileSpotlightState.featuresOpen = true;
+      if (mobileSpotlightState.hasConditions) {
+        mobileSpotlightState.ratesOpen = false;
+      }
+      applyMobileSpotlightSections();
+    });
+  }
+
+  if (els.toggleRatesBtn) {
+    els.toggleRatesBtn.addEventListener("click", () => {
+      if (!mobileSpotlightState.hasConditions) return;
+      mobileSpotlightState.ratesOpen = true;
+      if (mobileSpotlightState.hasFeatures) {
+        mobileSpotlightState.featuresOpen = false;
+      }
+      applyMobileSpotlightSections();
+    });
+  }
+
   if (els.serviceCategoryFilters) {
     els.serviceCategoryFilters.addEventListener("click", (event) => {
       const button = event.target.closest("[data-category-filter]");
@@ -183,39 +229,26 @@ function bindEvents() {
 
   if (els.serviceBlocksGrid) {
     els.serviceBlocksGrid.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-service-select]");
-      if (!button) return;
+      const detailsButton = event.target.closest("[data-service-details]");
+      if (detailsButton) {
+        const id = sanitizeText(detailsButton.dataset.serviceDetails);
+        if (!id) return;
 
-      const id = sanitizeText(button.dataset.serviceSelect);
+        catalogState.activeServiceId = id;
+        catalogState.spotlightServiceId = id;
+        renderActiveServiceViews(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
+        scrollSpotlightIntoViewOnMobile();
+        return;
+      }
+
+      const card = event.target.closest("[data-service-select]");
+      if (!card) return;
+
+      const id = sanitizeText(card.dataset.serviceSelect);
       if (!id) return;
 
       catalogState.activeServiceId = id;
-      renderActiveServiceViews(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
-    });
-
-    els.serviceBlocksGrid.addEventListener("pointerover", (event) => {
-      const button = event.target.closest("[data-service-select]");
-      if (!button) return;
-      if (catalogState.viewMode !== "deck") return;
-
-      const id = sanitizeText(button.dataset.serviceSelect);
-      if (!id || id === catalogState.activeServiceId) return;
-
-      catalogState.activeServiceId = id;
-      renderActiveServiceViews(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
-    });
-
-    els.serviceBlocksGrid.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      const button = event.target.closest("[data-service-select]");
-      if (!button) return;
-
-      const id = sanitizeText(button.dataset.serviceSelect);
-      if (!id) return;
-
-      event.preventDefault();
-      catalogState.activeServiceId = id;
-      renderActiveServiceViews(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
+      renderMiniCards(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
     });
   }
 
@@ -267,17 +300,32 @@ function bindEvents() {
   });
 
   window.addEventListener("scroll", updateScrollMeter, { passive: true });
-  window.addEventListener("resize", () => {
-    updateScrollMeter();
-    applyResponsiveDefaults();
-    if (!userSelectedViewMode) {
-      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
-    }
-  });
+  window.addEventListener("resize", handleViewportResize);
 }
 
 function applyResponsiveDefaults() {
   catalogState.viewMode = "deck";
+}
+
+function handleViewportResize() {
+  updateScrollMeter();
+
+  if (resizeRaf) return;
+  resizeRaf = window.requestAnimationFrame(() => {
+    resizeRaf = 0;
+
+    const nextWidth = window.innerWidth;
+    const widthChanged = Math.abs(nextWidth - lastViewportWidth) > 2;
+    lastViewportWidth = nextWidth;
+
+    // On mobile scroll the browser UI can fire resize with height-only changes.
+    // Re-rendering on each of those causes visible "page reload" flicker.
+    if (!widthChanged) return;
+
+    applyResponsiveDefaults();
+    renderServiceCatalog(servicesPageData?.serviceBlocks || []);
+    setupSectionFlowMotion();
+  });
 }
 
 async function loadServicesFromServer() {
@@ -623,6 +671,15 @@ function renderViewSwitch() {
 function renderServiceCount(visible, total) {
   if (!els.serviceCountLabel) return;
 
+  const isMobile = window.matchMedia?.("(max-width: 760px)")?.matches;
+  if (isMobile && total > 1) {
+    els.serviceCountLabel.textContent =
+      visible === total
+        ? `${total} servizi disponibili - scorri le card orizzontalmente`
+        : `${visible} di ${total} servizi - scorri le card orizzontalmente`;
+    return;
+  }
+
   els.serviceCountLabel.textContent =
     visible === total ? `${total} servizi disponibili` : `${visible} di ${total} servizi visualizzati`;
 }
@@ -643,12 +700,18 @@ function getFilteredServiceBlocks(allBlocks) {
 function ensureActiveService(filteredBlocks) {
   if (!Array.isArray(filteredBlocks) || filteredBlocks.length === 0) {
     catalogState.activeServiceId = "";
+    catalogState.spotlightServiceId = "";
     return;
   }
 
   const exists = filteredBlocks.some((block) => block.id === catalogState.activeServiceId);
   if (!exists) {
     catalogState.activeServiceId = filteredBlocks[0].id;
+  }
+
+  const spotlightExists = filteredBlocks.some((block) => block.id === catalogState.spotlightServiceId);
+  if (!spotlightExists) {
+    catalogState.spotlightServiceId = "";
   }
 }
 
@@ -657,10 +720,27 @@ function getActiveBlock(filteredBlocks) {
   return filteredBlocks.find((block) => block.id === catalogState.activeServiceId) || filteredBlocks[0];
 }
 
+function getSpotlightBlock(filteredBlocks) {
+  if (!Array.isArray(filteredBlocks) || filteredBlocks.length === 0) return null;
+  return filteredBlocks.find((block) => block.id === catalogState.spotlightServiceId) || null;
+}
+
 function renderActiveServiceViews(filteredBlocks) {
-  const active = getActiveBlock(filteredBlocks);
-  renderSpotlight(active, filteredBlocks);
   renderMiniCards(filteredBlocks);
+
+  const spotlightBlock = getSpotlightBlock(filteredBlocks);
+  if (spotlightBlock) {
+    renderSpotlight(spotlightBlock, filteredBlocks);
+    return;
+  }
+
+  if (!Array.isArray(filteredBlocks) || filteredBlocks.length === 0) {
+    setSpotlightEmpty();
+    return;
+  }
+
+  const active = getActiveBlock(filteredBlocks);
+  setSpotlightClosed(active, filteredBlocks);
 }
 
 function renderSpotlight(activeBlock, filteredBlocks) {
@@ -688,12 +768,29 @@ function renderSpotlight(activeBlock, filteredBlocks) {
     els.spotlightPriceNote.hidden = !activeBlock.priceNote;
   }
 
-  renderSpotlightConditions(activeBlock);
-  renderSpotlightFeatures(activeBlock);
+  const hasConditions = renderSpotlightConditions(activeBlock);
+  const hasFeatures = renderSpotlightFeatures(activeBlock);
+  mobileSpotlightState.hasConditions = hasConditions;
+  mobileSpotlightState.hasFeatures = hasFeatures;
+  if (hasConditions && hasFeatures) {
+    mobileSpotlightState.featuresOpen = true;
+    mobileSpotlightState.ratesOpen = false;
+  } else if (hasConditions) {
+    mobileSpotlightState.featuresOpen = false;
+    mobileSpotlightState.ratesOpen = true;
+  } else if (hasFeatures) {
+    mobileSpotlightState.featuresOpen = true;
+    mobileSpotlightState.ratesOpen = false;
+  } else {
+    mobileSpotlightState.featuresOpen = false;
+    mobileSpotlightState.ratesOpen = false;
+  }
+  applyMobileSpotlightSections();
   renderStoryMeta(activeBlock, filteredBlocks);
 }
 
 function setSpotlightEmpty() {
+  catalogState.spotlightServiceId = "";
   applyAccentTheme(DEFAULT_ACCENT);
   activeSpotlightId = "";
   if (spotlightTransitionTimer) {
@@ -727,6 +824,11 @@ function setSpotlightEmpty() {
   if (els.spotlightFeatures) {
     els.spotlightFeatures.innerHTML = "";
   }
+  mobileSpotlightState.hasConditions = false;
+  mobileSpotlightState.hasFeatures = false;
+  mobileSpotlightState.featuresOpen = false;
+  mobileSpotlightState.ratesOpen = false;
+  applyMobileSpotlightSections();
   if (els.storyPosition) {
     els.storyPosition.textContent = "0 / 0";
   }
@@ -738,13 +840,67 @@ function setSpotlightEmpty() {
   if (els.storyNextBtn) els.storyNextBtn.disabled = true;
 }
 
+function setSpotlightClosed(activeBlock, filteredBlocks) {
+  activeSpotlightId = "";
+  if (spotlightTransitionTimer) {
+    window.clearTimeout(spotlightTransitionTimer);
+    spotlightTransitionTimer = null;
+  }
+  if (els.spotlightBox) {
+    els.spotlightBox.classList.remove("is-switching");
+  }
+
+  applyAccentTheme(activeBlock?.accent || DEFAULT_ACCENT);
+
+  if (els.spotlightCategory) {
+    els.spotlightCategory.textContent = activeBlock?.category || "Dettagli servizio";
+  }
+  if (els.spotlightFeatured) {
+    els.spotlightFeatured.hidden = true;
+  }
+  if (els.spotlightTitle) {
+    els.spotlightTitle.textContent = activeBlock?.title || "Scheda dettagli";
+  }
+  if (els.spotlightDescription) {
+    els.spotlightDescription.textContent = 'Premi "Dettagli" sulla card per aprire la scheda completa del servizio.';
+  }
+  if (els.spotlightPrice) {
+    els.spotlightPrice.textContent = activeBlock?.price || "";
+  }
+  if (els.spotlightPriceNote) {
+    els.spotlightPriceNote.textContent = "";
+    els.spotlightPriceNote.hidden = true;
+  }
+  if (els.spotlightBankPricePanel) {
+    els.spotlightBankPricePanel.hidden = true;
+    delete els.spotlightBankPricePanel.dataset.kind;
+  }
+  if (els.spotlightBankPriceList) {
+    els.spotlightBankPriceList.innerHTML = "";
+  }
+  if (els.spotlightBankPriceTitle) {
+    els.spotlightBankPriceTitle.textContent = "Condizioni";
+  }
+  if (els.spotlightFeatures) {
+    els.spotlightFeatures.innerHTML = "";
+    els.spotlightFeatures.hidden = true;
+  }
+
+  mobileSpotlightState.hasConditions = false;
+  mobileSpotlightState.hasFeatures = false;
+  mobileSpotlightState.featuresOpen = false;
+  mobileSpotlightState.ratesOpen = false;
+  applyMobileSpotlightSections();
+  renderStoryMeta(activeBlock || null, filteredBlocks);
+}
+
 function renderSpotlightFeatures(block) {
-  if (!els.spotlightFeatures) return;
+  if (!els.spotlightFeatures) return false;
 
   const features = Array.isArray(block?.features) ? block.features : [];
   if (features.length === 0) {
     els.spotlightFeatures.innerHTML = "";
-    return;
+    return false;
   }
 
   const compactViewport = window.matchMedia?.("(max-width: 760px)")?.matches;
@@ -754,10 +910,11 @@ function renderSpotlightFeatures(block) {
   const withMoreHint = hasMore ? [...visibleFeatures, "Altre funzionalita su richiesta"] : visibleFeatures;
 
   els.spotlightFeatures.innerHTML = withMoreHint.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("");
+  return true;
 }
 
 function renderSpotlightConditions(block) {
-  if (!els.spotlightBankPricePanel || !els.spotlightBankPriceList || !els.spotlightBankPriceTitle) return;
+  if (!els.spotlightBankPricePanel || !els.spotlightBankPriceList || !els.spotlightBankPriceTitle) return false;
 
   const exchangeTiers = Array.isArray(block?.fintechMetrics)
     ? block.fintechMetrics
@@ -787,7 +944,7 @@ function renderSpotlightConditions(block) {
     els.spotlightBankPriceList.innerHTML = "";
     els.spotlightBankPricePanel.hidden = true;
     delete els.spotlightBankPricePanel.dataset.kind;
-    return;
+    return false;
   }
 
   const blockId = sanitizeText(block?.id);
@@ -826,6 +983,39 @@ function renderSpotlightConditions(block) {
     )
     .join("");
   els.spotlightBankPricePanel.hidden = false;
+  return true;
+}
+
+function applyMobileSpotlightSections() {
+  const hasConditions = Boolean(mobileSpotlightState.hasConditions);
+  const hasFeatures = Boolean(mobileSpotlightState.hasFeatures);
+  const isMobile = window.matchMedia?.("(max-width: 760px)")?.matches;
+
+  if (els.spotlightMobileToggles) {
+    els.spotlightMobileToggles.hidden = !isMobile || (!hasConditions && !hasFeatures);
+  }
+
+  if (els.toggleFeaturesBtn) {
+    els.toggleFeaturesBtn.hidden = !hasFeatures;
+    const active = hasFeatures && (!isMobile || mobileSpotlightState.featuresOpen);
+    els.toggleFeaturesBtn.classList.toggle("is-active", active);
+    els.toggleFeaturesBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+
+  if (els.toggleRatesBtn) {
+    els.toggleRatesBtn.hidden = !hasConditions;
+    const active = hasConditions && (!isMobile || mobileSpotlightState.ratesOpen);
+    els.toggleRatesBtn.classList.toggle("is-active", active);
+    els.toggleRatesBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+
+  if (els.spotlightFeatures) {
+    els.spotlightFeatures.hidden = !hasFeatures || (isMobile && !mobileSpotlightState.featuresOpen);
+  }
+
+  if (els.spotlightBankPricePanel) {
+    els.spotlightBankPricePanel.hidden = !hasConditions || (isMobile && !mobileSpotlightState.ratesOpen);
+  }
 }
 
 function renderStoryMeta(activeBlock, filteredBlocks) {
@@ -886,7 +1076,7 @@ function renderMiniCards(filteredBlocks) {
       return `
         <article class="service-mini-card ${activeClass}" data-service-select="${escapeHtmlAttr(
           block.id
-        )}" tabindex="0" role="button" aria-label="Apri servizio ${escapeHtmlAttr(block.title)}" style="--card-index:${index};">
+        )}" style="--card-index:${index};">
           <div class="service-mini-top">
             <p class="service-mini-category">${escapeHtml(block.category)}</p>
             ${block.featured ? '<p class="service-mini-featured">Top</p>' : ""}
@@ -894,6 +1084,16 @@ function renderMiniCards(filteredBlocks) {
           <h3 class="service-mini-title">${escapeHtml(block.title)}</h3>
           <p class="service-mini-price">${escapeHtml(block.price)}</p>
           ${note ? `<p class="service-mini-note">${escapeHtml(note)}</p>` : ""}
+          <div class="service-mini-actions">
+            <button
+              type="button"
+              class="service-mini-details-btn"
+              data-service-details="${escapeHtmlAttr(block.id)}"
+              aria-label="Apri dettagli per ${escapeHtmlAttr(block.title)}"
+            >
+              Dettagli
+            </button>
+          </div>
         </article>
       `;
     })
@@ -904,7 +1104,6 @@ function renderMiniCards(filteredBlocks) {
 
 function syncActiveMiniCardInView() {
   if (!els.serviceBlocksGrid) return;
-  if (catalogState.viewMode !== "story") return;
   const hasHorizontalOverflow = els.serviceBlocksGrid.scrollWidth > els.serviceBlocksGrid.clientWidth + 2;
   if (!hasHorizontalOverflow) return;
 
@@ -922,6 +1121,15 @@ function syncActiveMiniCardInView() {
     block: "nearest",
     inline: "center",
   });
+}
+
+function scrollSpotlightIntoViewOnMobile() {
+  if (!els.spotlightBox) return;
+  const isMobile = window.matchMedia?.("(max-width: 760px)")?.matches;
+  if (!isMobile) return;
+
+  const behavior = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth";
+  els.spotlightBox.scrollIntoView({ behavior, block: "start" });
 }
 
 function moveActiveService(step) {
@@ -1203,6 +1411,15 @@ function setupSectionFlowMotion() {
   sectionFlowNodes = Array.from(document.querySelectorAll(".services-shell > .reveal-item"));
   if (sectionFlowNodes.length === 0) return;
 
+  if (window.matchMedia?.("(pointer: coarse)")?.matches) {
+    sectionFlowNodes.forEach((node) => {
+      node.style.setProperty("--reveal-delay", "0ms");
+      node.style.setProperty("--section-shift", "0px");
+      node.style.setProperty("--section-visibility", "1");
+    });
+    return;
+  }
+
   sectionFlowNodes.forEach((node, index) => {
     node.style.setProperty("--reveal-delay", `${Math.min(360, index * 85)}ms`);
   });
@@ -1283,7 +1500,8 @@ function setupCtaMicroInteractions() {
   if (document.body.dataset.ctaMicroBound === "1") return;
   document.body.dataset.ctaMicroBound = "1";
 
-  const rippleSelector = ".hero-link, .hero-btn, .filter-btn, .switch-btn, .story-btn";
+  const rippleSelector =
+    ".hero-link, .hero-btn, .filter-btn, .switch-btn, .story-btn, .service-mini-details-btn";
 
   document.addEventListener(
     "pointerdown",
@@ -1447,7 +1665,7 @@ function applyMagneticTargets() {
 
   const targets = Array.from(
     document.querySelectorAll(
-      ".hero-btn, .hero-link, .filter-btn, .switch-btn, .story-btn, .showcase-dot, .rail-dot"
+      ".hero-btn, .hero-link, .filter-btn, .switch-btn, .story-btn, .service-mini-details-btn, .showcase-dot, .rail-dot"
     )
   );
 
