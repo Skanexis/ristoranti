@@ -153,7 +153,7 @@ const FALLBACK_SERVICES_PAGE = {
       description:
         "Disponibilita di account exchange con listino trasparente per piattaforma, aggiornabile da admin.",
       price: "da 250€",
-      priceNote: "Prezzi aggiornati con maggiorazione +100€",
+      priceNote: "",
       bankPriceList: [
         { bank: "Binance", price: "250€" },
         { bank: "Coinbase", price: "250€" },
@@ -184,7 +184,7 @@ const FALLBACK_SERVICES_PAGE = {
       description:
         "Disponibilita di account bancari e wallet crypto con listino trasparente per provider, gestibile da admin.",
       price: "da 250€",
-      priceNote: "Prezzi aggiornati con maggiorazione +100€",
+      priceNote: "",
       bankPriceList: [
         { bank: "Bitsa", price: "250€" },
         { bank: "Yap", price: "250€" },
@@ -1385,6 +1385,7 @@ function normalizeServiceBlock(block, index = 0) {
 
   const rawId = String(source.id || "").trim();
   const id = slugify(rawId || title || `service-${index + 1}`) || `service-${index + 1}`;
+  const category = String(source.category || "").trim();
   const accentValue = String(source.accent || "")
     .trim()
     .toLowerCase();
@@ -1419,27 +1420,42 @@ function normalizeServiceBlock(block, index = 0) {
     : [];
   const normalizedFintechMetrics = shouldApplyExchangeTierDefaults({
     id,
-    category: String(source.category || "").trim(),
+    category,
     title,
     fintechMetrics,
   })
     ? cloneSimple(EXCHANGE_FINTECH_TIERS)
     : fintechMetrics;
+  const isExchangeAccountsBlock = isExchangeAccountsListBlock(id, category, title);
 
   return {
     id,
-    category: String(source.category || "").trim() || "Servizi",
+    category: category || "Servizi",
     title,
     description: String(source.description || "").trim(),
     price: String(source.price || "").trim() || "da EUR 0",
-    priceNote: String(source.priceNote || "").trim(),
+    priceNote: sanitizeServicePriceNoteText(source.priceNote),
     accent,
     featured: Boolean(source.featured),
     features,
     kpis,
-    fintechMetrics: normalizedFintechMetrics,
+    fintechMetrics: isExchangeAccountsBlock ? [] : normalizedFintechMetrics,
     bankPriceList,
   };
+}
+
+function sanitizeServicePriceNoteText(value) {
+  const note = String(value || "").trim();
+  if (!note) return "";
+
+  const compact = note.toLowerCase().replace(/\s+/g, " ");
+  const hasIncreaseMarker = /(maggiorazion|rincar|aument|supplement|upcharge|mark[\s-]?up)/i.test(compact);
+  const hasPlusEuro = /\+\s*\d{1,4}(?:[.,]\d+)?\s*€?/i.test(note);
+  if (hasIncreaseMarker || hasPlusEuro) {
+    return "";
+  }
+
+  return note;
 }
 
 function shouldApplyExchangeTierDefaults({ id, category, title, fintechMetrics }) {
@@ -1448,11 +1464,30 @@ function shouldApplyExchangeTierDefaults({ id, category, title, fintechMetrics }
   return isLegacyExchangeFintechMetrics(fintechMetrics);
 }
 
-function isExchangeServiceBlock(id, category, title) {
+function isExchangeAccountsListBlock(id, category, title) {
   const haystack = [id, category, title]
     .map((value) => String(value || "").trim().toLowerCase())
     .join(" ");
-  return haystack.includes("exchange");
+
+  return haystack.includes("exchange") && /\baccounts?\b/.test(haystack);
+}
+
+function isExchangeServiceBlock(id, category, title) {
+  const normalizedId = String(id || "")
+    .trim()
+    .toLowerCase();
+  if (normalizedId === "crypto-exchange-services") return true;
+  if (normalizedId === "exchange-accounts-services") return false;
+
+  const haystack = [id, category, title]
+    .map((value) => String(value || "").trim().toLowerCase())
+    .join(" ");
+  const hasExchange = haystack.includes("exchange");
+  const hasCrypto = haystack.includes("crypto");
+  const hasAccounts = /\baccounts?\b/.test(haystack);
+
+  if (!hasExchange || hasAccounts) return false;
+  return hasCrypto || String(category || "").trim().toLowerCase() === "exchange crypto";
 }
 
 function isLegacyExchangeFintechMetrics(fintechMetrics) {
@@ -1913,7 +1948,7 @@ function handleServiceBlockSubmit(event) {
   const title = String(els.serviceBlockTitle?.value || "").trim();
   const description = String(els.serviceBlockDescription?.value || "").trim();
   const price = String(els.serviceBlockPrice?.value || "").trim();
-  const priceNote = String(els.serviceBlockPriceNote?.value || "").trim();
+  const priceNote = sanitizeServicePriceNoteText(els.serviceBlockPriceNote?.value);
   const accent = String(els.serviceBlockAccent?.value || "")
     .trim()
     .toLowerCase();

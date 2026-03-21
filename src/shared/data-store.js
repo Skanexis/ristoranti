@@ -355,7 +355,7 @@
           description:
             "Disponibilita di account exchange con listino trasparente per piattaforma, aggiornabile da admin.",
           price: "da 250€",
-          priceNote: "Prezzi aggiornati con maggiorazione +100€",
+          priceNote: "",
           bankPriceList: [
             { bank: "Binance", price: "250€" },
             { bank: "Coinbase", price: "250€" },
@@ -386,7 +386,7 @@
           description:
             "Disponibilita di account bancari e wallet crypto con listino trasparente per provider, gestibile da admin.",
           price: "da 250€",
-          priceNote: "Prezzi aggiornati con maggiorazione +100€",
+          priceNote: "",
           bankPriceList: [
             { bank: "Bitsa", price: "250€" },
             { bank: "Yap", price: "250€" },
@@ -594,6 +594,28 @@
       .slice(0, 60);
   }
 
+  function sanitizeServicePagePriceNote(value) {
+    const note = sanitizeString(value);
+    if (!note) return "";
+
+    const compact = note.toLowerCase().replace(/\s+/g, " ");
+    const hasIncreaseMarker = /(maggiorazion|rincar|aument|supplement|upcharge|mark[\s-]?up)/i.test(compact);
+    const hasPlusEuro = /\+\s*\d{1,4}(?:[.,]\d+)?\s*€?/i.test(note);
+    if (hasIncreaseMarker || hasPlusEuro) {
+      return "";
+    }
+
+    return note;
+  }
+
+  function isExchangeAccountsListBlock(id, category, title) {
+    const haystack = [id, category, title]
+      .map((value) => sanitizeString(value).toLowerCase())
+      .join(" ");
+
+    return haystack.includes("exchange") && /\baccounts?\b/.test(haystack);
+  }
+
   function hasBankingServiceBlock(serviceBlocks) {
     const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
     return blocks.some((block) => {
@@ -720,16 +742,19 @@
           id = `${id}-${index + 1}`;
         }
         knownBlockIds.add(id);
+        const category = sanitizeString(block?.category) || "Servizi";
+        const fintechMetrics = normalizeServicePageFintechMetrics(block?.fintechMetrics, []);
+        const isExchangeAccountsBlock = isExchangeAccountsListBlock(id, category, title);
 
         return {
           id,
-          category: sanitizeString(block?.category) || "Servizi",
+          category,
           title,
           description: sanitizeString(block?.description),
           price: sanitizeString(block?.price) || "da EUR 0",
-          priceNote: sanitizeString(block?.priceNote),
+          priceNote: sanitizeServicePagePriceNote(block?.priceNote),
           kpis: normalizeServicePageKpis(block?.kpis, []),
-          fintechMetrics: normalizeServicePageFintechMetrics(block?.fintechMetrics, []),
+          fintechMetrics: isExchangeAccountsBlock ? [] : fintechMetrics,
           bankPriceList: normalizeServicePageBankPriceList(block?.bankPriceList, []),
           accent: normalizeServicePageAccent(block?.accent, "amber"),
           featured: Boolean(block?.featured),

@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@10..48,500;10..48,600;10..48,700;10..48,800&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./services.css?v=20260321-17" />
+    <link rel="stylesheet" href="./services.css?v=20260321-22" />
   </head>
   <body>
     <div class="bg-ornament" aria-hidden="true">
@@ -31,7 +31,6 @@
           <div class="hero-content">
             <div class="hero-links">
               <a href="./index.html" class="hero-link">Torna alla home</a>
-              <a href="./admin.html#services-page" class="hero-link hero-link-admin">Gestione admin</a>
             </div>
 
             <p id="heroBadge" class="hero-badge"></p>
@@ -72,14 +71,6 @@
               <input id="serviceTopOnly" type="checkbox" />
               Solo top service
             </label>
-            <div class="view-switch" role="group" aria-label="Modalita visualizzazione">
-              <button id="modeDeckBtn" type="button" class="switch-btn" data-view-mode="deck" aria-pressed="true">
-                Deck
-              </button>
-              <button id="modeStoryBtn" type="button" class="switch-btn" data-view-mode="story" aria-pressed="false">
-                Story
-              </button>
-            </div>
           </div>
         </div>
 
@@ -101,18 +92,6 @@
             </section>
             <ul id="spotlightFeatures" class="spotlight-features"></ul>
           </div>
-
-          <aside class="story-panel" aria-label="Controlli story">
-            <div class="story-controls">
-              <button id="storyPrevBtn" type="button" class="story-btn" aria-label="Servizio precedente">Prev</button>
-              <button id="storyNextBtn" type="button" class="story-btn" aria-label="Servizio successivo">Next</button>
-            </div>
-            <p id="storyPosition" class="story-position"></p>
-            <div class="story-progress" aria-hidden="true">
-              <span id="storyProgressBar"></span>
-            </div>
-            <p class="story-note">La modalita story ruota i servizi automaticamente.</p>
-          </aside>
         </article>
 
         <div id="serviceBlocksGrid" class="service-grid"></div>
@@ -138,7 +117,7 @@
       </section>
     </main>
 
-    <script src="/shared/data-store.js?v=20260321-17"></script>
-    <script src="./services.js?v=20260321-17"></script>
+    <script src="/shared/data-store.js?v=20260321-22"></script>
+    <script src="./services.js?v=20260321-22"></script>
   </body>
 </html>

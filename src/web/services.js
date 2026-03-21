@@ -120,7 +120,6 @@ async function initializePage() {
   setupSceneMotion();
   setupCursorAura();
   setupSpotlightTilt();
-  setupStorySwipeGestures();
   setupCtaMicroInteractions();
   setupSectionFlowMotion();
   renderPage(servicesPageData);
@@ -278,9 +277,7 @@ function bindEvents() {
 }
 
 function applyResponsiveDefaults() {
-  if (userSelectedViewMode) return;
-  const compactViewport = window.matchMedia?.("(max-width: 900px)")?.matches;
-  catalogState.viewMode = compactViewport ? "story" : "deck";
+  catalogState.viewMode = "deck";
 }
 
 async function loadServicesFromServer() {
@@ -561,6 +558,7 @@ function applyCtaLink(element, label, url) {
 }
 
 function renderServiceCatalog(blocks) {
+  catalogState.viewMode = "deck";
   const allBlocks = Array.isArray(blocks) ? blocks : [];
   renderCategoryFilters(allBlocks);
   renderViewSwitch();
@@ -569,7 +567,7 @@ function renderServiceCatalog(blocks) {
   ensureActiveService(filtered);
   renderServiceCount(filtered.length, allBlocks.length);
   renderActiveServiceViews(filtered);
-  syncStoryAutoplay(filtered);
+  stopStoryAutoplay();
   applyMagneticTargets();
 }
 
@@ -792,28 +790,35 @@ function renderSpotlightConditions(block) {
     return;
   }
 
-  const shouldUseExchangeTitle =
-    hasExchangeTiers && /exchange/.test(`${sanitizeText(block?.id)} ${sanitizeText(block?.category)} ${sanitizeText(block?.title)}`.toLowerCase());
-  const isExchangeAccountsList =
-    !hasExchangeTiers &&
-    /exchange/.test(`${sanitizeText(block?.id)} ${sanitizeText(block?.category)} ${sanitizeText(block?.title)}`.toLowerCase());
+  const blockId = sanitizeText(block?.id);
+  const blockCategory = sanitizeText(block?.category);
+  const blockTitle = sanitizeText(block?.title);
+  const isExchangeAccountsList = isExchangeAccountsListBlock(blockId, blockCategory, blockTitle);
+  const isExchangeCommissionService = isExchangeCommissionServiceBlock(blockId, blockCategory, blockTitle);
 
-  const entries = hasExchangeTiers ? exchangeTiers : bankEntries;
-  if (hasExchangeTiers) {
-    els.spotlightBankPriceTitle.textContent = shouldUseExchangeTitle ? "Commissioni applicate" : "Condizioni";
-    els.spotlightBankPricePanel.dataset.kind = "exchange";
-  } else if (isExchangeAccountsList) {
+  let entries = [];
+  if (hasBanks && isExchangeAccountsList) {
+    entries = bankEntries;
     els.spotlightBankPriceTitle.textContent = "Account Exchange disponibili";
     els.spotlightBankPricePanel.dataset.kind = "banks";
-  } else {
+  } else if (hasExchangeTiers && isExchangeCommissionService) {
+    entries = exchangeTiers;
+    els.spotlightBankPriceTitle.textContent = "Commissioni applicate";
+    els.spotlightBankPricePanel.dataset.kind = "exchange";
+  } else if (hasBanks) {
+    entries = bankEntries;
     els.spotlightBankPriceTitle.textContent = "Banche disponibili";
     els.spotlightBankPricePanel.dataset.kind = "banks";
+  } else {
+    entries = exchangeTiers;
+    els.spotlightBankPriceTitle.textContent = "Condizioni";
+    els.spotlightBankPricePanel.dataset.kind = "exchange";
   }
 
   els.spotlightBankPriceList.innerHTML = entries
     .map(
-      (entry) => `
-        <li>
+      (entry, index) => `
+        <li style="--entry-index:${index};">
           <span>${escapeHtml(entry.label)}</span>
           <strong>${escapeHtml(entry.value)}</strong>
         </li>
@@ -900,7 +905,8 @@ function renderMiniCards(filteredBlocks) {
 function syncActiveMiniCardInView() {
   if (!els.serviceBlocksGrid) return;
   if (catalogState.viewMode !== "story") return;
-  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+  const hasHorizontalOverflow = els.serviceBlocksGrid.scrollWidth > els.serviceBlocksGrid.clientWidth + 2;
+  if (!hasHorizontalOverflow) return;
 
   const activeId = sanitizeText(catalogState.activeServiceId);
   if (!activeId) return;
@@ -912,7 +918,7 @@ function syncActiveMiniCardInView() {
   if (!activeCard || typeof activeCard.scrollIntoView !== "function") return;
 
   activeCard.scrollIntoView({
-    behavior: "smooth",
+    behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth",
     block: "nearest",
     inline: "center",
   });
@@ -1527,6 +1533,7 @@ function normalizeServicesPage(input) {
       }
       seenBlockIds.add(id);
 
+      const category = sanitizeText(block?.category) || "Servizi";
       const features = Array.isArray(block?.features)
         ? block.features.map((entry) => sanitizeText(entry)).filter(Boolean).slice(0, 8)
         : [];
@@ -1551,16 +1558,17 @@ function normalizeServicesPage(input) {
             .filter((entry) => entry.bank && entry.price)
             .slice(0, 60)
         : [];
+      const isExchangeAccountsBlock = isExchangeAccountsListBlock(id, category, title);
 
       return {
         id,
-        category: sanitizeText(block?.category) || "Servizi",
+        category,
         title,
         description: sanitizeText(block?.description),
         price: sanitizeText(block?.price) || "da EUR 0",
-        priceNote: sanitizeText(block?.priceNote),
+        priceNote: sanitizeServicePriceNoteText(block?.priceNote),
         kpis,
-        fintechMetrics,
+        fintechMetrics: isExchangeAccountsBlock ? [] : fintechMetrics,
         bankPriceList,
         accent: normalizeAccent(block?.accent),
         featured: Boolean(block?.featured),
@@ -1583,6 +1591,30 @@ function normalizeServicesPage(input) {
     serviceBlocks: normalizedSupplementaryBlocks,
     closing,
   };
+}
+
+function isExchangeAccountsListBlock(id, category, title) {
+  const haystack = [id, category, title]
+    .map((value) => sanitizeText(value).toLowerCase())
+    .join(" ");
+
+  return haystack.includes("exchange") && /\baccounts?\b/.test(haystack);
+}
+
+function isExchangeCommissionServiceBlock(id, category, title) {
+  const normalizedId = sanitizeText(id).toLowerCase();
+  if (normalizedId === "crypto-exchange-services") return true;
+  if (normalizedId === "exchange-accounts-services") return false;
+
+  const haystack = [id, category, title]
+    .map((value) => sanitizeText(value).toLowerCase())
+    .join(" ");
+  const hasExchange = haystack.includes("exchange");
+  const hasCrypto = haystack.includes("crypto");
+  const hasAccounts = /\baccounts?\b/.test(haystack);
+
+  if (!hasExchange || hasAccounts) return false;
+  return hasCrypto || sanitizeText(category).toLowerCase() === "exchange crypto";
 }
 
 function hasBankingServiceBlock(serviceBlocks) {
@@ -1652,6 +1684,20 @@ function normalizeAbsoluteUrl(value, fallback) {
 
 function sanitizeText(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function sanitizeServicePriceNoteText(value) {
+  const note = sanitizeText(value);
+  if (!note) return "";
+
+  const compact = note.toLowerCase().replace(/\s+/g, " ");
+  const hasIncreaseMarker = /(maggiorazion|rincar|aument|supplement|upcharge|mark[\s-]?up)/i.test(compact);
+  const hasPlusEuro = /\+\s*\d{1,4}(?:[.,]\d+)?\s*€?/i.test(note);
+  if (hasIncreaseMarker || hasPlusEuro) {
+    return "";
+  }
+
+  return note;
 }
 
 function slugify(value) {
