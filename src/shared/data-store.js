@@ -211,7 +211,8 @@
         title: "I nostri servizi",
         subtitle:
           "Programmazione bot Telegram e soluzioni Exchange Crypto con condizioni chiare, supporto operativo e gestione professionale.",
-        highlight: "Listino ufficiale aggiornabile da admin, con visualizzazione semplice e immediata.",
+        highlight:
+          "Sviluppo diretto da sviluppatore professionista: soluzioni su misura, codice pulito e supporto tecnico continuo.",
         primaryCtaLabel: "Richiedi preventivo",
         primaryCtaUrl: "https://t.me/SHLC26",
         secondaryCtaLabel: "Contatto diretto",
@@ -264,7 +265,7 @@
           category: "Programmazione",
           title: "Bot per moderazione chat",
           description:
-            "Sviluppiamo bot di moderazione Telegram progettati per garantire ordine, sicurezza e continuita operativa nelle community ad alto traffico.",
+            "Realizzazione professionale di bot di moderazione Telegram su misura, sviluppati direttamente da uno sviluppatore professionista per garantire ordine, sicurezza e continuita operativa.",
           price: "a partire da 65€",
           priceNote: "Mantenimento: 5€ al mese",
           accent: "amber",
@@ -280,7 +281,7 @@
           category: "Programmazione",
           title: "Bot per community Anti-Scam",
           description:
-            "Progettiamo bot dedicati alle community Anti-Scam per automatizzare verifiche, gestione segnalazioni e procedure di moderazione.",
+            "Sviluppo professionale di bot Anti-Scam per community strutturate, con automazioni dedicate a verifiche, gestione segnalazioni e procedure di moderazione avanzata.",
           price: "a partire da 180€",
           priceNote: "Mantenimento: 10€ al mese",
           accent: "rose",
@@ -296,7 +297,7 @@
           category: "Programmazione",
           title: "Bot avanzati con menu multimediale",
           description:
-            "Sviluppo di bot avanzati con architettura modulare, menu multimediale e pannello di controllo intuitivo, ideali per progetti professionali.",
+            "Sviluppo professionale di bot avanzati con architettura modulare, menu multimediale e pannello di controllo intuitivo, pensati per progetti che richiedono standard elevati.",
           price: "a partire da 150€",
           priceNote: "Mantenimento: 10€ al mese",
           accent: "cyan",
@@ -314,7 +315,7 @@
           category: "Programmazione",
           title: "Mini App Telegram + sito web + bot personale",
           description:
-            "Soluzione full-stack integrata: Mini App Telegram, sito web professionale e bot personale per gestire contenuti, richieste e aggiornamenti direttamente da Telegram.",
+            "Soluzione full-stack professionale sviluppata da uno sviluppatore professionista: Mini App Telegram, sito web e bot personale integrati in un unico ecosistema operativo.",
           price: "a partire da 260€",
           priceNote: "Mantenimento: 15€ al mese",
           accent: "emerald",
