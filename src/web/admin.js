@@ -25,6 +25,13 @@ const OTHER_CATEGORY_LABELS = {
   digitalSystems: "Digital Systems",
 };
 const SERVICE_BLOCK_ACCENTS = ["amber", "cyan", "emerald", "rose"];
+const EXCHANGE_FINTECH_TIERS = [
+  { label: "Fino a EUR 500", value: "12%" },
+  { label: "Fino a EUR 1100", value: "10,5%" },
+  { label: "Fino a EUR 5000", value: "9%" },
+  { label: "Fino a EUR 10000", value: "7,5%" },
+  { label: "Oltre EUR 10000", value: "5%" },
+];
 const FALLBACK_SERVICES_PAGE = {
   hero: {
     badge: "YOSUPPORT Digital Studio",
@@ -232,6 +239,7 @@ const els = {
   serviceBlockFeatures: document.getElementById("serviceBlockFeatures"),
   serviceBlockKpis: document.getElementById("serviceBlockKpis"),
   serviceBlockFintechMetrics: document.getElementById("serviceBlockFintechMetrics"),
+  serviceBlockBankPriceList: document.getElementById("serviceBlockBankPriceList"),
   serviceBlockSubmitBtn: document.getElementById("serviceBlockSubmitBtn"),
   serviceBlockCancelBtn: document.getElementById("serviceBlockCancelBtn"),
 
@@ -1243,8 +1251,27 @@ function normalizeServiceBlock(block, index = 0) {
           return { label, value };
         })
         .filter(Boolean)
-        .slice(0, 4)
+        .slice(0, 8)
     : [];
+  const bankPriceList = Array.isArray(source.bankPriceList)
+    ? source.bankPriceList
+        .map((item) => {
+          const bank = String(item?.bank || item?.name || "").trim();
+          const price = String(item?.price || item?.value || "").trim();
+          if (!bank || !price) return null;
+          return { bank, price };
+        })
+        .filter(Boolean)
+        .slice(0, 20)
+    : [];
+  const normalizedFintechMetrics = shouldApplyExchangeTierDefaults({
+    id,
+    category: String(source.category || "").trim(),
+    title,
+    fintechMetrics,
+  })
+    ? cloneSimple(EXCHANGE_FINTECH_TIERS)
+    : fintechMetrics;
 
   return {
     id,
@@ -1257,8 +1284,32 @@ function normalizeServiceBlock(block, index = 0) {
     featured: Boolean(source.featured),
     features,
     kpis,
-    fintechMetrics,
+    fintechMetrics: normalizedFintechMetrics,
+    bankPriceList,
   };
+}
+
+function shouldApplyExchangeTierDefaults({ id, category, title, fintechMetrics }) {
+  if (!isExchangeServiceBlock(id, category, title)) return false;
+  if (!Array.isArray(fintechMetrics) || fintechMetrics.length === 0) return true;
+  return isLegacyExchangeFintechMetrics(fintechMetrics);
+}
+
+function isExchangeServiceBlock(id, category, title) {
+  const haystack = [id, category, title]
+    .map((value) => String(value || "").trim().toLowerCase())
+    .join(" ");
+  return haystack.includes("exchange");
+}
+
+function isLegacyExchangeFintechMetrics(fintechMetrics) {
+  const metrics = Array.isArray(fintechMetrics) ? fintechMetrics : [];
+  if (metrics.length > 3) return false;
+
+  return metrics.every((metric) => {
+    const label = String(metric?.label || "").trim().toLowerCase();
+    return label.startsWith("fee") || label.startsWith("spread") || label.startsWith("sla") || label.startsWith("settlement");
+  });
 }
 
 function renderServicesPageEditor() {
@@ -1318,6 +1369,7 @@ function renderServiceBlocksList() {
       const featureCount = Array.isArray(block.features) ? block.features.length : 0;
       const kpiCount = Array.isArray(block.kpis) ? block.kpis.length : 0;
       const fintechMetricCount = Array.isArray(block.fintechMetrics) ? block.fintechMetrics.length : 0;
+      const bankPriceCount = Array.isArray(block.bankPriceList) ? block.bankPriceList.length : 0;
       const editingClass = block.id === editingServiceBlockId ? "is-editing" : "";
       return `
         <article class="admin-item ${editingClass}" data-service-block-id="${escapeHtmlAttr(block.id)}">
@@ -1331,6 +1383,7 @@ function renderServiceBlocksList() {
             <span class="mini-chip">${featureCount} ${featureCount === 1 ? "feature" : "features"}</span>
             ${kpiCount ? `<span class="mini-chip">${kpiCount} metriche</span>` : ""}
             ${fintechMetricCount ? `<span class="mini-chip">Fintech ${fintechMetricCount}</span>` : ""}
+            ${bankPriceCount ? `<span class="mini-chip">Banche ${bankPriceCount}</span>` : ""}
             ${block.featured ? `<span class="mini-chip">Top service</span>` : ""}
           </div>
           <div class="admin-item-actions">
@@ -1391,6 +1444,11 @@ function fillServiceBlockForm(block) {
       ? block.fintechMetrics.map((item) => `${item.label}|${item.value}`).join("\n")
       : "";
   }
+  if (els.serviceBlockBankPriceList) {
+    els.serviceBlockBankPriceList.value = Array.isArray(block.bankPriceList)
+      ? block.bankPriceList.map((item) => `${item.bank}|${item.price}`).join("\n")
+      : "";
+  }
   updateServiceBlockFormUi();
 }
 
@@ -1413,6 +1471,9 @@ function resetServiceBlockForm() {
   }
   if (els.serviceBlockFintechMetrics) {
     els.serviceBlockFintechMetrics.value = "";
+  }
+  if (els.serviceBlockBankPriceList) {
+    els.serviceBlockBankPriceList.value = "";
   }
   updateServiceBlockFormUi();
   renderServiceBlocksList();
@@ -1467,7 +1528,33 @@ function parseServiceFintechMetricsText(value) {
     .filter(Boolean)
     .map((line, index) => parseFintechMetricLine(line, index))
     .filter(Boolean)
-    .slice(0, 4);
+    .slice(0, 8);
+}
+
+function parseServiceBankPriceListText(value) {
+  return String(value || "")
+    .split(/\r?\n/g)
+    .map((entry) => String(entry || "").trim())
+    .filter(Boolean)
+    .map((line) => parseServiceBankPriceLine(line))
+    .filter(Boolean)
+    .slice(0, 20);
+}
+
+function parseServiceBankPriceLine(line) {
+  const source = String(line || "").trim();
+  if (!source) return null;
+
+  const pipeSeparatorIndex = source.indexOf("|");
+  const colonSeparatorIndex = source.indexOf(":");
+  const separatorIndex = pipeSeparatorIndex > 0 ? pipeSeparatorIndex : colonSeparatorIndex > 0 ? colonSeparatorIndex : -1;
+  if (separatorIndex <= 0) return null;
+
+  const bank = source.slice(0, separatorIndex).trim();
+  const price = source.slice(separatorIndex + 1).trim();
+  if (!bank || !price) return null;
+
+  return { bank, price };
 }
 
 function parseFintechMetricLine(line, index) {
@@ -1491,6 +1578,15 @@ function parseFintechMetricLine(line, index) {
 function inferFintechMetricLine(source, index) {
   const raw = String(source || "").trim();
   if (!raw) return null;
+
+  const percentEndingMatch = raw.match(/^(.*?)(\d+(?:[.,]\d+)?\s*%)$/);
+  if (percentEndingMatch) {
+    const label = String(percentEndingMatch[1] || "").trim().replace(/[:|-]+$/g, "").trim();
+    const value = String(percentEndingMatch[2] || "").trim();
+    if (label && value) {
+      return { label, value };
+    }
+  }
 
   const lower = raw.toLowerCase();
   const presets = [
@@ -1620,6 +1716,7 @@ function handleServiceBlockSubmit(event) {
   const features = parseServiceFeaturesText(els.serviceBlockFeatures?.value || "");
   const kpis = parseServiceKpisText(els.serviceBlockKpis?.value || "");
   const fintechMetrics = parseServiceFintechMetricsText(els.serviceBlockFintechMetrics?.value || "");
+  const bankPriceList = parseServiceBankPriceListText(els.serviceBlockBankPriceList?.value || "");
 
   if (!category || !title || !description || !price) {
     setStatus("Compila categoria, titolo, descrizione e prezzo del blocco servizio.", "error");
@@ -1650,6 +1747,7 @@ function handleServiceBlockSubmit(event) {
     features,
     kpis,
     fintechMetrics,
+    bankPriceList,
   };
 
   if (editingId) {

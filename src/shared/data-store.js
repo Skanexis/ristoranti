@@ -369,11 +369,19 @@
             "Supporto operativo per procedure exchange crypto, flussi di conversione e configurazione processi in ambienti digitali.",
           price: "da EUR 450",
           priceNote: "setup operativo e assistenza flussi",
-          kpis: ["Fee da 0,8%", "Spread 1,2%-2,5%", "Settlement 5-15 min"],
+          kpis: [
+            "Fino a EUR 500: 12%",
+            "Fino a EUR 1100: 10,5%",
+            "Fino a EUR 5000: 9%",
+            "Fino a EUR 10000: 7,5%",
+            "Oltre EUR 10000: 5%",
+          ],
           fintechMetrics: [
-            { label: "Fee", value: "da 0,8%" },
-            { label: "Spread", value: "1,2%-2,5%" },
-            { label: "SLA", value: "5-15 min" },
+            { label: "Fino a EUR 500", value: "12%" },
+            { label: "Fino a EUR 1100", value: "10,5%" },
+            { label: "Fino a EUR 5000", value: "9%" },
+            { label: "Fino a EUR 10000", value: "7,5%" },
+            { label: "Oltre EUR 10000", value: "5%" },
           ],
           accent: "emerald",
           featured: false,
@@ -396,6 +404,11 @@
             { label: "Fee service", value: "da 1,5%" },
             { label: "Cold storage", value: "95%" },
             { label: "Audit accessi", value: "100%" },
+          ],
+          bankPriceList: [
+            { bank: "Revolut Business", price: "EUR 290" },
+            { bank: "N26 Business", price: "EUR 260" },
+            { bank: "Wise Business", price: "EUR 310" },
           ],
           accent: "rose",
           featured: false,
@@ -554,7 +567,23 @@
         };
       })
       .filter(Boolean)
-      .slice(0, 4);
+      .slice(0, 8);
+  }
+
+  function normalizeServicePageBankPriceList(value, fallbackList = []) {
+    const source = Array.isArray(value) ? value : fallbackList;
+    return source
+      .map((entry) => {
+        const bank = sanitizeString(entry?.bank || entry?.name);
+        const price = sanitizeString(entry?.price || entry?.value);
+        if (!bank || !price) return null;
+        return {
+          bank,
+          price,
+        };
+      })
+      .filter(Boolean)
+      .slice(0, 20);
   }
 
   function normalizeServicesPage(rawPage) {
@@ -631,6 +660,7 @@
           priceNote: sanitizeString(block?.priceNote),
           kpis: normalizeServicePageKpis(block?.kpis, []),
           fintechMetrics: normalizeServicePageFintechMetrics(block?.fintechMetrics, []),
+          bankPriceList: normalizeServicePageBankPriceList(block?.bankPriceList, []),
           accent: normalizeServicePageAccent(block?.accent, "amber"),
           featured: Boolean(block?.featured),
           features: normalizeServicePageFeatures(block?.features, []),

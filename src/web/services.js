@@ -21,13 +21,7 @@ const DEFAULT_SERVICES_PAGE = (() => {
       title: "Social network europei piu richiesti",
       subtitle: "Strategie growth su piattaforme ad alta trazione.",
     },
-    socialPlatforms: [
-      { id: "instagram", name: "Instagram", focus: "Reels, Stories e ADV" },
-      { id: "tiktok", name: "TikTok", focus: "Video strategy e community" },
-      { id: "facebook", name: "Facebook", focus: "Campagne local e lead" },
-      { id: "youtube", name: "YouTube", focus: "Long form + Shorts" },
-      { id: "telegram", name: "Telegram", focus: "Community private" },
-    ],
+    socialPlatforms: [],
     serviceBlocks: [],
     closing: {
       title: "Operativita completa",
@@ -38,91 +32,237 @@ const DEFAULT_SERVICES_PAGE = (() => {
 
 const DEFAULT_ACCENT = "amber";
 const SUPPORTED_ACCENTS = ["amber", "cyan", "emerald", "rose"];
+const STORY_INTERVAL_MS = 4200;
+const SHOWCASE_INTERVAL_MS = 3600;
+const ACCENT_RGB_MAP = {
+  amber: "207, 138, 31",
+  cyan: "27, 127, 147",
+  emerald: "55, 123, 86",
+  rose: "184, 80, 105",
+};
+const EXCHANGE_TIER_METRICS = [
+  { label: "Fino a EUR 500", value: "12%" },
+  { label: "Fino a EUR 1100", value: "10,5%" },
+  { label: "Fino a EUR 5000", value: "9%" },
+  { label: "Fino a EUR 10000", value: "7,5%" },
+  { label: "Oltre EUR 10000", value: "5%" },
+];
+
 const catalogState = {
   category: "all",
   topOnly: false,
-  detailsOpen: false,
-  focusMode: false,
+  viewMode: "deck",
+  activeServiceId: "",
 };
 
 let servicesPageData = normalizeServicesPage(DEFAULT_SERVICES_PAGE);
 let revealObserver = null;
-let sectionObserver = null;
-let serviceCardObserver = null;
+let railObserver = null;
+let storyTimer = null;
+let showcaseTimer = null;
+let tickerItems = [];
+let showcaseCards = [];
+let showcaseIndex = 0;
 
 const els = {
-  heroSection: document.getElementById("heroSection"),
   heroBadge: document.getElementById("heroBadge"),
   heroTitle: document.getElementById("heroTitle"),
   heroSubtitle: document.getElementById("heroSubtitle"),
   heroHighlight: document.getElementById("heroHighlight"),
+  heroTicker: document.getElementById("heroTicker"),
+  heroStats: document.getElementById("heroStats"),
   heroPrimaryCta: document.getElementById("heroPrimaryCta"),
   heroSecondaryCta: document.getElementById("heroSecondaryCta"),
-  heroMetrics: document.getElementById("heroMetrics"),
-  servicesSummaryRow: document.getElementById("servicesSummaryRow"),
-  servicesToolbar: document.getElementById("servicesToolbar"),
+  heroShowcaseStack: document.getElementById("heroShowcaseStack"),
+  heroShowcaseDots: document.getElementById("heroShowcaseDots"),
+
   serviceCategoryFilters: document.getElementById("serviceCategoryFilters"),
   serviceTopOnly: document.getElementById("serviceTopOnly"),
-  serviceFocusMode: document.getElementById("serviceFocusMode"),
-  serviceDetailsToggle: document.getElementById("serviceDetailsToggle"),
+  modeDeckBtn: document.getElementById("modeDeckBtn"),
+  modeStoryBtn: document.getElementById("modeStoryBtn"),
   serviceCountLabel: document.getElementById("serviceCountLabel"),
+
+  spotlightBox: document.getElementById("spotlightBox"),
+  spotlightCategory: document.getElementById("spotlightCategory"),
+  spotlightFeatured: document.getElementById("spotlightFeatured"),
+  spotlightTitle: document.getElementById("spotlightTitle"),
+  spotlightDescription: document.getElementById("spotlightDescription"),
+  spotlightPrice: document.getElementById("spotlightPrice"),
+  spotlightPriceNote: document.getElementById("spotlightPriceNote"),
+  spotlightMetrics: document.getElementById("spotlightMetrics"),
+  spotlightBankPricePanel: document.getElementById("spotlightBankPricePanel"),
+  spotlightBankPriceList: document.getElementById("spotlightBankPriceList"),
+  spotlightFeatures: document.getElementById("spotlightFeatures"),
+
+  storyPrevBtn: document.getElementById("storyPrevBtn"),
+  storyNextBtn: document.getElementById("storyNextBtn"),
+  storyPosition: document.getElementById("storyPosition"),
+  storyProgressBar: document.getElementById("storyProgressBar"),
+
   serviceBlocksGrid: document.getElementById("serviceBlocksGrid"),
+
   socialHeading: document.getElementById("socialHeading"),
   socialSubtitle: document.getElementById("socialSubtitle"),
-  socialMarqueeTrack: document.getElementById("socialMarqueeTrack"),
+  socialGrid: document.getElementById("socialGrid"),
+
   closingTitle: document.getElementById("closingTitle"),
   closingDescription: document.getElementById("closingDescription"),
-  sectionRail: document.getElementById("sectionRail"),
-  scrollProgressBar: document.getElementById("scrollProgressBar"),
+
+  scrollMeterBar: document.getElementById("scrollMeterBar"),
+  cursorAura: document.getElementById("cursorAura"),
+  experienceRail: document.getElementById("experienceRail"),
 };
 
 void initializePage();
 
 async function initializePage() {
-  bindCatalogEvents();
-  bindGlobalInteractions();
+  bindEvents();
+  setupSceneMotion();
+  setupCursorAura();
+  setupSpotlightTilt();
   renderPage(servicesPageData);
+  setupExperienceRail();
   setupRevealObserver();
-  setupSectionObserver();
-  setupServiceCardObserver();
-  setupHeroParallax();
-  updateScrollProgress();
+  updateScrollMeter();
 
   await loadServicesFromServer();
   renderPage(servicesPageData);
+  setupExperienceRail();
   observeRevealNodes();
-  observeSections();
-  observeServiceCards();
-  updateScrollProgress();
 }
 
-function bindGlobalInteractions() {
-  window.addEventListener("scroll", updateScrollProgress, { passive: true });
-  window.addEventListener("resize", updateScrollProgress);
+function bindEvents() {
+  if (els.serviceTopOnly) {
+    els.serviceTopOnly.addEventListener("change", () => {
+      catalogState.topOnly = Boolean(els.serviceTopOnly.checked);
+      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
+    });
+  }
 
-  if (els.sectionRail) {
-    els.sectionRail.addEventListener("click", (event) => {
-      const link = event.target.closest("a[data-rail-target]");
-      if (!link) return;
+  if (els.serviceCategoryFilters) {
+    els.serviceCategoryFilters.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-category-filter]");
+      if (!button) return;
 
-      const targetId = String(link.dataset.railTarget || "").trim();
-      if (!targetId) return;
+      const nextCategory = sanitizeText(button.dataset.categoryFilter) || "all";
+      catalogState.category = nextCategory;
+      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
+    });
+  }
 
-      const target = document.getElementById(targetId);
-      if (!target) return;
+  if (els.modeDeckBtn) {
+    els.modeDeckBtn.addEventListener("click", () => {
+      catalogState.viewMode = "deck";
+      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
+    });
+  }
 
-      event.preventDefault();
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (els.modeStoryBtn) {
+    els.modeStoryBtn.addEventListener("click", () => {
+      catalogState.viewMode = "story";
+      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
+    });
+  }
+
+  if (els.storyPrevBtn) {
+    els.storyPrevBtn.addEventListener("click", () => {
+      moveActiveService(-1);
+    });
+  }
+
+  if (els.storyNextBtn) {
+    els.storyNextBtn.addEventListener("click", () => {
+      moveActiveService(1);
     });
   }
 
   if (els.serviceBlocksGrid) {
+    els.serviceBlocksGrid.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-service-select]");
+      if (!button) return;
+
+      const id = sanitizeText(button.dataset.serviceSelect);
+      if (!id) return;
+
+      catalogState.activeServiceId = id;
+      renderActiveServiceViews(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
+    });
+
     els.serviceBlocksGrid.addEventListener("pointerover", (event) => {
-      const card = event.target.closest(".service-card");
-      if (!card) return;
-      setActiveServiceCard(card);
+      const button = event.target.closest("[data-service-select]");
+      if (!button) return;
+      if (catalogState.viewMode !== "deck") return;
+
+      const id = sanitizeText(button.dataset.serviceSelect);
+      if (!id || id === catalogState.activeServiceId) return;
+
+      catalogState.activeServiceId = id;
+      renderActiveServiceViews(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
+    });
+
+    els.serviceBlocksGrid.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const button = event.target.closest("[data-service-select]");
+      if (!button) return;
+
+      const id = sanitizeText(button.dataset.serviceSelect);
+      if (!id) return;
+
+      event.preventDefault();
+      catalogState.activeServiceId = id;
+      renderActiveServiceViews(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
     });
   }
+
+  if (els.spotlightBox) {
+    els.spotlightBox.addEventListener("mouseenter", stopStoryAutoplay);
+    els.spotlightBox.addEventListener("mouseleave", () => syncStoryAutoplay(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || [])));
+  }
+
+  if (els.heroShowcaseStack) {
+    els.heroShowcaseStack.addEventListener("mouseenter", stopShowcaseAutoplay);
+    els.heroShowcaseStack.addEventListener("mouseleave", syncShowcaseAutoplay);
+  }
+
+  if (els.heroShowcaseDots) {
+    els.heroShowcaseDots.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-showcase-dot]");
+      if (!button) return;
+
+      const nextIndex = Number(button.dataset.showcaseDot);
+      if (!Number.isInteger(nextIndex)) return;
+
+      setShowcaseActive(nextIndex);
+      syncShowcaseAutoplay();
+    });
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (catalogState.viewMode !== "story") return;
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      moveActiveService(1);
+      return;
+    }
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      moveActiveService(-1);
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      stopStoryAutoplay();
+      stopShowcaseAutoplay();
+      return;
+    }
+
+    syncStoryAutoplay(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
+    syncShowcaseAutoplay();
+  });
+
+  window.addEventListener("scroll", updateScrollMeter, { passive: true });
+  window.addEventListener("resize", updateScrollMeter);
 }
 
 async function loadServicesFromServer() {
@@ -156,7 +296,7 @@ function renderPage(pageData) {
   if (!pageData) return;
 
   renderHero(pageData);
-  renderServiceCatalog(pageData.serviceBlocks);
+  renderServiceCatalog(pageData.serviceBlocks || []);
   renderSocialSection(pageData.socialProof, pageData.socialPlatforms);
   renderClosing(pageData.closing);
 }
@@ -171,74 +311,214 @@ function renderHero(pageData) {
 
   applyCtaLink(els.heroPrimaryCta, hero.primaryCtaLabel, hero.primaryCtaUrl);
   applyCtaLink(els.heroSecondaryCta, hero.secondaryCtaLabel, hero.secondaryCtaUrl);
-
-  renderHeroMetrics(pageData);
+  renderHeroStats(pageData);
+  renderHeroTicker(pageData);
+  renderHeroShowcase(pageData.serviceBlocks || []);
+  applyMagneticTargets();
 }
 
-function renderHeroMetrics(pageData) {
-  if (!els.heroMetrics) return;
+function renderHeroStats(pageData) {
+  if (!els.heroStats) return;
 
   const blocks = Array.isArray(pageData?.serviceBlocks) ? pageData.serviceBlocks : [];
   const platforms = Array.isArray(pageData?.socialPlatforms) ? pageData.socialPlatforms : [];
   const categories = new Set(blocks.map((block) => sanitizeText(block?.category)).filter(Boolean));
-  const featuredCount = blocks.filter((block) => Boolean(block?.featured)).length;
-  const fintechCount = blocks.filter((block) => isFintechServiceBlock(block)).length;
+  const featured = blocks.filter((block) => Boolean(block?.featured)).length;
 
-  const metrics = [
+  const stats = [
     { label: "Servizi", value: blocks.length },
     { label: "Categorie", value: categories.size },
-    { label: "Top service", value: featuredCount },
-    { label: "Canali social", value: platforms.length },
-    { label: "Fintech", value: fintechCount },
+    { label: "Top", value: featured },
+    { label: "Social", value: platforms.length },
   ];
 
-  els.heroMetrics.innerHTML = metrics
+  els.heroStats.innerHTML = stats
     .map(
-      (metric) => `
-        <article class="hero-metric">
-          <strong data-count-target="${Number(metric.value) || 0}">0</strong>
-          <span>${escapeHtml(metric.label)}</span>
+      (item) => `
+        <article class="hero-stat">
+          <strong>${escapeHtml(String(item.value))}</strong>
+          <span>${escapeHtml(item.label)}</span>
         </article>
       `
     )
     .join("");
 
-  animateMetricCounters(els.heroMetrics.querySelectorAll("[data-count-target]"));
+  animateHeroStatCounters();
 }
 
-function animateMetricCounters(nodes) {
-  const targets = Array.from(nodes || []);
-  if (targets.length === 0) return;
+function animateHeroStatCounters() {
+  if (!els.heroStats) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
-  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  targets.forEach((node) => {
-    const targetValue = Number(node.dataset.countTarget || "0");
-    if (!Number.isFinite(targetValue) || targetValue < 0) {
-      node.textContent = "0";
-      return;
-    }
-
-    if (reducedMotion || targetValue <= 1) {
-      node.textContent = String(targetValue);
-      return;
-    }
+  const numbers = Array.from(els.heroStats.querySelectorAll("strong"));
+  numbers.forEach((node) => {
+    const target = Number(node.textContent || "0");
+    if (!Number.isFinite(target) || target <= 1) return;
 
     const startedAt = performance.now();
-    const duration = 820;
-
+    const duration = 640;
     const tick = (now) => {
       const progress = Math.min(1, (now - startedAt) / duration);
       const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(targetValue * eased);
-      node.textContent = String(current);
-
+      node.textContent = String(Math.round(target * eased));
       if (progress < 1) {
         window.requestAnimationFrame(tick);
       }
     };
-
+    node.textContent = "0";
     window.requestAnimationFrame(tick);
   });
+}
+
+function renderHeroTicker(pageData) {
+  if (!els.heroTicker) return;
+
+  const blocks = Array.isArray(pageData?.serviceBlocks) ? pageData.serviceBlocks : [];
+  const categories = Array.from(new Set(blocks.map((block) => sanitizeText(block?.category)).filter(Boolean)));
+  const headlineItems = [
+    ...categories.slice(0, 6),
+    "Bot Moderazione",
+    "Antiscam Community",
+    "Telegram Mini App",
+    "Web Applications",
+    "Social Growth",
+    "Crypto Exchange",
+  ];
+
+  tickerItems = Array.from(new Set(headlineItems.filter(Boolean)));
+  if (tickerItems.length === 0) {
+    tickerItems = ["Digital Systems", "Telegram Bots", "Web App", "Fintech Services"];
+  }
+
+  const singlePass = tickerItems
+    .map((item) => `<span class="hero-ticker-item">${escapeHtml(item)}</span>`)
+    .join("");
+
+  els.heroTicker.innerHTML = `${singlePass}${singlePass}`;
+}
+
+function renderHeroShowcase(blocks) {
+  if (!els.heroShowcaseStack || !els.heroShowcaseDots) return;
+
+  const allBlocks = Array.isArray(blocks) ? blocks : [];
+  const featured = allBlocks.filter((block) => block?.featured);
+  const ordered = [...featured, ...allBlocks];
+  const seen = new Set();
+  const showcase = ordered
+    .filter((block) => {
+      const id = sanitizeText(block?.id);
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    })
+    .slice(0, 5);
+
+  if (showcase.length === 0) {
+    stopShowcaseAutoplay();
+    showcaseCards = [];
+    showcaseIndex = 0;
+    els.heroShowcaseStack.innerHTML = `
+      <article class="showcase-card is-front">
+        <p class="showcase-card-category">Service setup</p>
+        <h3 class="showcase-card-title">Nessun servizio configurato</h3>
+        <p class="showcase-card-meta">Aggiungi i blocchi dalla sezione admin per attivare la preview interattiva.</p>
+      </article>
+    `;
+    els.heroShowcaseDots.innerHTML = "";
+    return;
+  }
+
+  els.heroShowcaseStack.innerHTML = showcase
+    .map((block, index) => {
+      const accent = normalizeAccent(block.accent);
+      const accentRgb = ACCENT_RGB_MAP[accent] || ACCENT_RGB_MAP[DEFAULT_ACCENT];
+      const meta =
+        sanitizeText(block.priceNote) ||
+        sanitizeText(block.features?.[0]) ||
+        sanitizeText(block.description).slice(0, 90) ||
+        "Setup modulare su richiesta";
+
+      return `
+        <article class="showcase-card" data-showcase-index="${index}" style="--showcase-accent-rgb:${accentRgb};">
+          <div class="showcase-card-head">
+            <p class="showcase-card-category">${escapeHtml(block.category)}</p>
+            <p class="showcase-card-price">${escapeHtml(block.price)}</p>
+          </div>
+          <h3 class="showcase-card-title">${escapeHtml(block.title)}</h3>
+          <p class="showcase-card-meta">${escapeHtml(meta)}</p>
+        </article>
+      `;
+    })
+    .join("");
+
+  els.heroShowcaseDots.innerHTML = showcase
+    .map(
+      (block, index) => `
+        <button
+          type="button"
+          class="showcase-dot"
+          data-showcase-dot="${index}"
+          role="tab"
+          aria-label="Apri preview ${escapeHtmlAttr(block.title)}"
+        ></button>
+      `
+    )
+    .join("");
+
+  showcaseCards = Array.from(els.heroShowcaseStack.querySelectorAll(".showcase-card"));
+  showcaseIndex = Math.max(0, Math.min(showcaseIndex, showcaseCards.length - 1));
+  setShowcaseActive(showcaseIndex);
+  syncShowcaseAutoplay();
+}
+
+function setShowcaseActive(nextIndex) {
+  if (!Array.isArray(showcaseCards) || showcaseCards.length === 0) return;
+  const total = showcaseCards.length;
+  const normalized = ((nextIndex % total) + total) % total;
+  showcaseIndex = normalized;
+
+  showcaseCards.forEach((card, index) => {
+    const deltaForward = (index - normalized + total) % total;
+    const deltaBackward = (normalized - index + total) % total;
+    const isFront = deltaForward === 0;
+    const isNext = !isFront && deltaForward === 1;
+    const isBack = !isFront && !isNext && deltaBackward === 1;
+
+    card.classList.toggle("is-front", isFront);
+    card.classList.toggle("is-next", isNext);
+    card.classList.toggle("is-back", isBack);
+    card.classList.toggle("is-hidden", !isFront && !isNext && !isBack);
+  });
+
+  if (!els.heroShowcaseDots) return;
+  const dots = Array.from(els.heroShowcaseDots.querySelectorAll(".showcase-dot"));
+  dots.forEach((dot, index) => {
+    const active = index === normalized;
+    dot.classList.toggle("is-active", active);
+    dot.setAttribute("aria-selected", active ? "true" : "false");
+  });
+}
+
+function syncShowcaseAutoplay() {
+  stopShowcaseAutoplay();
+
+  if (!Array.isArray(showcaseCards) || showcaseCards.length <= 1) {
+    return;
+  }
+
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    return;
+  }
+
+  showcaseTimer = window.setInterval(() => {
+    setShowcaseActive(showcaseIndex + 1);
+  }, SHOWCASE_INTERVAL_MS);
+}
+
+function stopShowcaseAutoplay() {
+  if (!showcaseTimer) return;
+  window.clearInterval(showcaseTimer);
+  showcaseTimer = null;
 }
 
 function applyCtaLink(element, label, url) {
@@ -256,97 +536,24 @@ function applyCtaLink(element, label, url) {
   element.href = url;
 }
 
-function bindCatalogEvents() {
-  if (els.serviceTopOnly) {
-    els.serviceTopOnly.addEventListener("change", () => {
-      catalogState.topOnly = Boolean(els.serviceTopOnly.checked);
-      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
-      observeServiceCards();
-    });
-  }
-
-  if (els.serviceCategoryFilters) {
-    els.serviceCategoryFilters.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-category-filter]");
-      if (!button) return;
-
-      const nextCategory = String(button.dataset.categoryFilter || "all").trim();
-      catalogState.category = nextCategory || "all";
-      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
-      observeServiceCards();
-    });
-  }
-
-  if (els.serviceDetailsToggle) {
-    els.serviceDetailsToggle.addEventListener("click", () => {
-      catalogState.detailsOpen = !catalogState.detailsOpen;
-      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
-      observeServiceCards();
-    });
-  }
-
-  if (els.serviceFocusMode) {
-    els.serviceFocusMode.addEventListener("click", () => {
-      catalogState.focusMode = !catalogState.focusMode;
-      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
-      observeServiceCards();
-    });
-  }
-}
-
 function renderServiceCatalog(blocks) {
-  const normalizedBlocks = Array.isArray(blocks) ? blocks : [];
-  renderCategoryFilters(normalizedBlocks);
-  renderServiceSummary(normalizedBlocks);
-  updateDetailsToggleUi();
-  updateFocusToggleUi();
-  renderServiceBlocks(getFilteredServiceBlocks(normalizedBlocks), normalizedBlocks.length);
-}
-
-function renderServiceSummary(blocks) {
-  if (!els.servicesSummaryRow) return;
-
   const allBlocks = Array.isArray(blocks) ? blocks : [];
-  const categories = new Set(allBlocks.map((block) => sanitizeText(block?.category)).filter(Boolean));
-  const topCount = allBlocks.filter((block) => Boolean(block?.featured)).length;
-  const fintechCount = allBlocks.filter((block) => isFintechServiceBlock(block)).length;
-  const percentSignals = allBlocks.reduce((acc, block) => {
-    const kpis = Array.isArray(block?.kpis) ? block.kpis : [];
-    const metrics = Array.isArray(block?.fintechMetrics)
-      ? block.fintechMetrics.map((item) => item?.value)
-      : [];
-    const merged = [...kpis, ...metrics].map((item) => sanitizeText(item)).filter(Boolean);
-    return acc + merged.filter((item) => item.includes("%")).length;
-  }, 0);
+  renderCategoryFilters(allBlocks);
+  renderViewSwitch();
 
-  const pills = [
-    { label: "Blocchi", value: allBlocks.length },
-    { label: "Categorie", value: categories.size },
-    { label: "Top", value: topCount },
-    { label: "Fintech", value: fintechCount },
-    { label: "Segnali %", value: percentSignals },
-  ];
-
-  els.servicesSummaryRow.innerHTML = pills
-    .map(
-      (pill) => `
-        <span class="services-summary-pill">
-          ${escapeHtml(pill.label)} <strong>${escapeHtml(String(pill.value))}</strong>
-        </span>
-      `
-    )
-    .join("");
+  const filtered = getFilteredServiceBlocks(allBlocks);
+  ensureActiveService(filtered);
+  renderServiceCount(filtered.length, allBlocks.length);
+  renderActiveServiceViews(filtered);
+  syncStoryAutoplay(filtered);
+  applyMagneticTargets();
 }
 
 function renderCategoryFilters(allBlocks) {
   if (!els.serviceCategoryFilters) return;
 
   const categories = Array.from(
-    new Set(
-      (Array.isArray(allBlocks) ? allBlocks : [])
-        .map((block) => sanitizeText(block?.category))
-        .filter(Boolean)
-    )
+    new Set(allBlocks.map((block) => sanitizeText(block?.category)).filter(Boolean))
   ).sort((a, b) => a.localeCompare(b, "it", { sensitivity: "base" }));
 
   const available = ["all", ...categories];
@@ -362,7 +569,7 @@ function renderCategoryFilters(allBlocks) {
       return `
         <button
           type="button"
-          class="service-filter-btn ${isActive ? "is-active" : ""}"
+          class="filter-btn ${isActive ? "is-active" : ""}"
           data-category-filter="${escapeHtmlAttr(category)}"
           aria-pressed="${isActive ? "true" : "false"}"
         >
@@ -375,6 +582,27 @@ function renderCategoryFilters(allBlocks) {
   if (els.serviceTopOnly) {
     els.serviceTopOnly.checked = catalogState.topOnly;
   }
+}
+
+function renderViewSwitch() {
+  if (els.modeDeckBtn) {
+    const active = catalogState.viewMode === "deck";
+    els.modeDeckBtn.classList.toggle("is-active", active);
+    els.modeDeckBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+
+  if (els.modeStoryBtn) {
+    const active = catalogState.viewMode === "story";
+    els.modeStoryBtn.classList.toggle("is-active", active);
+    els.modeStoryBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+}
+
+function renderServiceCount(visible, total) {
+  if (!els.serviceCountLabel) return;
+
+  els.serviceCountLabel.textContent =
+    visible === total ? `${total} servizi disponibili` : `${visible} di ${total} servizi visualizzati`;
 }
 
 function getFilteredServiceBlocks(allBlocks) {
@@ -390,119 +618,608 @@ function getFilteredServiceBlocks(allBlocks) {
   return byCategory.filter((block) => Boolean(block?.featured));
 }
 
-function updateDetailsToggleUi() {
-  if (!els.serviceDetailsToggle) return;
-  const open = Boolean(catalogState.detailsOpen);
-  els.serviceDetailsToggle.textContent = open ? "Chiudi dettagli" : "Apri dettagli";
-  els.serviceDetailsToggle.setAttribute("aria-pressed", open ? "true" : "false");
-}
-
-function updateFocusToggleUi() {
-  if (!els.serviceFocusMode) return;
-  const focusMode = Boolean(catalogState.focusMode);
-  els.serviceFocusMode.textContent = focusMode ? "Modalita griglia" : "Modalita focus";
-  els.serviceFocusMode.setAttribute("aria-pressed", focusMode ? "true" : "false");
-}
-
-function renderServiceBlocks(blocks, totalCount = blocks.length) {
-  if (!els.serviceBlocksGrid) return;
-
-  const normalizedBlocks = Array.isArray(blocks) ? blocks : [];
-
-  if (els.serviceCountLabel) {
-    const visible = Number(normalizedBlocks.length) || 0;
-    const total = Number(totalCount) || 0;
-    els.serviceCountLabel.textContent =
-      visible === total ? `${total} servizi disponibili` : `${visible} di ${total} servizi visualizzati`;
+function ensureActiveService(filteredBlocks) {
+  if (!Array.isArray(filteredBlocks) || filteredBlocks.length === 0) {
+    catalogState.activeServiceId = "";
+    return;
   }
 
-  els.serviceBlocksGrid.classList.toggle("is-focus-mode", Boolean(catalogState.focusMode));
+  const exists = filteredBlocks.some((block) => block.id === catalogState.activeServiceId);
+  if (!exists) {
+    catalogState.activeServiceId = filteredBlocks[0].id;
+  }
+}
 
-  if (normalizedBlocks.length === 0) {
+function getActiveBlock(filteredBlocks) {
+  if (!Array.isArray(filteredBlocks) || filteredBlocks.length === 0) return null;
+  return filteredBlocks.find((block) => block.id === catalogState.activeServiceId) || filteredBlocks[0];
+}
+
+function renderActiveServiceViews(filteredBlocks) {
+  const active = getActiveBlock(filteredBlocks);
+  renderSpotlight(active, filteredBlocks);
+  renderMiniCards(filteredBlocks);
+}
+
+function renderSpotlight(activeBlock, filteredBlocks) {
+  if (!activeBlock) {
+    setSpotlightEmpty();
+    return;
+  }
+
+  applyAccentTheme(activeBlock.accent);
+
+  if (els.spotlightCategory) {
+    els.spotlightCategory.textContent = activeBlock.category;
+  }
+
+  if (els.spotlightFeatured) {
+    els.spotlightFeatured.hidden = !activeBlock.featured;
+  }
+
+  if (els.spotlightTitle) els.spotlightTitle.textContent = activeBlock.title;
+  if (els.spotlightDescription) els.spotlightDescription.textContent = activeBlock.description;
+  if (els.spotlightPrice) els.spotlightPrice.textContent = activeBlock.price;
+  if (els.spotlightPriceNote) {
+    els.spotlightPriceNote.textContent = activeBlock.priceNote || "";
+    els.spotlightPriceNote.hidden = !activeBlock.priceNote;
+  }
+
+  renderSpotlightMetrics(activeBlock);
+  renderSpotlightBankPriceList(activeBlock);
+  renderSpotlightFeatures(activeBlock);
+  renderStoryMeta(activeBlock, filteredBlocks);
+}
+
+function setSpotlightEmpty() {
+  applyAccentTheme(DEFAULT_ACCENT);
+  if (els.spotlightCategory) els.spotlightCategory.textContent = "";
+  if (els.spotlightFeatured) els.spotlightFeatured.hidden = true;
+  if (els.spotlightTitle) els.spotlightTitle.textContent = "Nessun servizio";
+  if (els.spotlightDescription) {
+    els.spotlightDescription.textContent = "Nessun blocco disponibile con i filtri selezionati.";
+  }
+  if (els.spotlightPrice) els.spotlightPrice.textContent = "";
+  if (els.spotlightPriceNote) {
+    els.spotlightPriceNote.textContent = "";
+    els.spotlightPriceNote.hidden = true;
+  }
+  if (els.spotlightMetrics) {
+    els.spotlightMetrics.innerHTML = "";
+  }
+  if (els.spotlightBankPricePanel) {
+    els.spotlightBankPricePanel.hidden = true;
+  }
+  if (els.spotlightBankPriceList) {
+    els.spotlightBankPriceList.innerHTML = "";
+  }
+  if (els.spotlightFeatures) {
+    els.spotlightFeatures.innerHTML = "";
+  }
+  if (els.storyPosition) {
+    els.storyPosition.textContent = "0 / 0";
+  }
+  if (els.storyProgressBar) {
+    els.storyProgressBar.classList.remove("is-autoplay");
+    els.storyProgressBar.style.width = "0%";
+  }
+  if (els.storyPrevBtn) els.storyPrevBtn.disabled = true;
+  if (els.storyNextBtn) els.storyNextBtn.disabled = true;
+}
+
+function renderSpotlightMetrics(block) {
+  if (!els.spotlightMetrics) return;
+
+  const fintechMode = isFintechServiceBlock(block);
+  const metrics = fintechMode
+    ? getFintechMetrics(block).map((entry) => ({ label: entry.label, value: entry.value }))
+    : (block.kpis || []).map((entry, index) => ({ label: `KPI ${index + 1}`, value: entry }));
+
+  if (!Array.isArray(metrics) || metrics.length === 0) {
+    els.spotlightMetrics.innerHTML = "";
+    return;
+  }
+
+  els.spotlightMetrics.innerHTML = metrics
+    .map((metric) => {
+      const percentClass = metric.value.includes("%") ? "is-percent" : "";
+      return `
+        <article class="metric-chip ${percentClass}">
+          <span>${escapeHtml(metric.label)}</span>
+          <strong>${escapeHtml(metric.value)}</strong>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderSpotlightFeatures(block) {
+  if (!els.spotlightFeatures) return;
+
+  const features = Array.isArray(block?.features) ? block.features : [];
+  if (features.length === 0) {
+    els.spotlightFeatures.innerHTML = "";
+    return;
+  }
+
+  els.spotlightFeatures.innerHTML = features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("");
+}
+
+function renderSpotlightBankPriceList(block) {
+  if (!els.spotlightBankPricePanel || !els.spotlightBankPriceList) return;
+
+  const entries = Array.isArray(block?.bankPriceList)
+    ? block.bankPriceList
+        .map((entry) => ({
+          bank: sanitizeText(entry?.bank || entry?.name),
+          price: sanitizeText(entry?.price || entry?.value),
+        }))
+        .filter((entry) => entry.bank && entry.price)
+        .slice(0, 20)
+    : [];
+
+  if (entries.length === 0) {
+    els.spotlightBankPriceList.innerHTML = "";
+    els.spotlightBankPricePanel.hidden = true;
+    return;
+  }
+
+  els.spotlightBankPriceList.innerHTML = entries
+    .map(
+      (entry) => `
+        <li>
+          <span>${escapeHtml(entry.bank)}</span>
+          <strong>${escapeHtml(entry.price)}</strong>
+        </li>
+      `
+    )
+    .join("");
+  els.spotlightBankPricePanel.hidden = false;
+}
+
+function renderStoryMeta(activeBlock, filteredBlocks) {
+  const blocks = Array.isArray(filteredBlocks) ? filteredBlocks : [];
+  const total = blocks.length;
+  const index = Math.max(
+    0,
+    blocks.findIndex((block) => block.id === activeBlock?.id)
+  );
+
+  if (els.storyPosition) {
+    els.storyPosition.textContent = `${total === 0 ? 0 : index + 1} / ${total}`;
+  }
+
+  if (els.storyProgressBar) {
+    if (catalogState.viewMode !== "story") {
+      const percent = total <= 0 ? 0 : ((index + 1) / total) * 100;
+      els.storyProgressBar.classList.remove("is-autoplay");
+      els.storyProgressBar.style.width = `${percent.toFixed(2)}%`;
+    } else if (!storyTimer) {
+      els.storyProgressBar.classList.remove("is-autoplay");
+      els.storyProgressBar.style.width = "0%";
+    }
+  }
+
+  const disableNavigation = total <= 1;
+  if (els.storyPrevBtn) els.storyPrevBtn.disabled = disableNavigation;
+  if (els.storyNextBtn) els.storyNextBtn.disabled = disableNavigation;
+}
+
+function renderMiniCards(filteredBlocks) {
+  if (!els.serviceBlocksGrid) return;
+
+  const blocks = Array.isArray(filteredBlocks) ? filteredBlocks : [];
+
+  els.serviceBlocksGrid.classList.toggle("is-deck-mode", catalogState.viewMode === "deck");
+  els.serviceBlocksGrid.classList.toggle("is-story-mode", catalogState.viewMode === "story");
+
+  if (blocks.length === 0) {
     els.serviceBlocksGrid.innerHTML = `
-      <article class="service-card" data-accent="${DEFAULT_ACCENT}">
-        <p class="service-description">Nessun servizio corrisponde ai filtri selezionati.</p>
+      <article class="service-mini-card">
+        <p class="service-mini-title">Nessun servizio disponibile</p>
       </article>
     `;
     return;
   }
 
-  els.serviceBlocksGrid.innerHTML = normalizedBlocks
+  els.serviceBlocksGrid.innerHTML = blocks
     .map((block, index) => {
-      const fintechMode = isFintechServiceBlock(block);
-      const fintechMetrics = fintechMode ? getFintechMetrics(block) : [];
-
-      const featuresHtml = block.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("");
-
-      const kpisHtml = fintechMode
-        ? ""
-        : (block.kpis || [])
-            .map((kpi) => {
-              const percentClass = /%/.test(kpi) ? "is-percent" : "";
-              return `<span class="service-kpi-chip ${percentClass}">${escapeHtml(kpi)}</span>`;
-            })
-            .join("");
-
-      const fintechMetricsHtml = fintechMetrics
-        .map(
-          (metric) => `
-            <div class="service-fintech-cell">
-              <span class="service-fintech-label">${escapeHtml(metric.label)}</span>
-              <strong class="service-fintech-value ${/%/.test(metric.value) ? "is-percent" : ""}">${escapeHtml(metric.value)}</strong>
-            </div>
-          `
-        )
-        .join("");
+      const activeClass = block.id === catalogState.activeServiceId ? "is-active" : "";
+      const miniMetrics = isFintechServiceBlock(block)
+        ? getFintechMetrics(block).map((metric) => metric.value).slice(0, 2)
+        : (block.kpis || []).slice(0, 2);
 
       return `
-        <article
-          class="service-card ${block.featured ? "is-featured" : ""} ${fintechMode ? "is-fintech" : ""}"
-          data-accent="${escapeHtmlAttr(block.accent)}"
-          style="--card-index:${index};"
-        >
-          <div class="service-head">
-            <div class="service-chip-row">
-              <p class="service-category">${escapeHtml(block.category)}</p>
-              ${block.featured ? `<p class="service-featured">Top service</p>` : ""}
-            </div>
-            <h3 class="service-title">${escapeHtml(block.title)}</h3>
-            <p class="service-description">${escapeHtml(block.description)}</p>
+        <article class="service-mini-card ${activeClass}" data-service-select="${escapeHtmlAttr(
+          block.id
+        )}" tabindex="0" role="button" aria-label="Apri servizio ${escapeHtmlAttr(block.title)}" style="--card-index:${index};">
+          <div class="service-mini-top">
+            <p class="service-mini-category">${escapeHtml(block.category)}</p>
+            ${block.featured ? '<p class="service-mini-featured">Top</p>' : ""}
           </div>
-
-          <div class="service-price-wrap">
-            <p class="service-price">${escapeHtml(block.price)}</p>
-            ${block.priceNote ? `<p class="service-price-note">${escapeHtml(block.priceNote)}</p>` : ""}
+          <h3 class="service-mini-title">${escapeHtml(block.title)}</h3>
+          <p class="service-mini-price">${escapeHtml(block.price)}</p>
+          <div class="service-mini-kpis">
+            ${miniMetrics.map((metric) => `<span class="mini-kpi">${escapeHtml(metric)}</span>`).join("")}
           </div>
-
-          ${fintechMetricsHtml ? `<div class="service-fintech-row">${fintechMetricsHtml}</div>` : ""}
-          ${kpisHtml ? `<div class="service-kpi-row">${kpisHtml}</div>` : ""}
-
-          ${
-            featuresHtml
-              ? `<details class="service-details" ${catalogState.detailsOpen ? "open" : ""}><summary>Dettagli inclusi</summary><ul class="service-features">${featuresHtml}</ul></details>`
-              : ""
-          }
         </article>
       `;
     })
     .join("");
+}
 
-  const firstCard = els.serviceBlocksGrid.querySelector(".service-card");
-  if (firstCard) {
-    setActiveServiceCard(firstCard);
+function moveActiveService(step) {
+  const filtered = getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []);
+  if (!Array.isArray(filtered) || filtered.length <= 1) return;
+
+  const currentIndex = filtered.findIndex((block) => block.id === catalogState.activeServiceId);
+  const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+  const nextIndex = (safeIndex + step + filtered.length) % filtered.length;
+
+  catalogState.activeServiceId = filtered[nextIndex].id;
+  renderActiveServiceViews(filtered);
+
+  if (catalogState.viewMode === "story" && storyTimer) {
+    restartStoryProgressAnimation();
   }
+}
+
+function syncStoryAutoplay(filteredBlocks) {
+  stopStoryAutoplay();
+
+  if (catalogState.viewMode !== "story") {
+    return;
+  }
+
+  const blocks = Array.isArray(filteredBlocks) ? filteredBlocks : [];
+  if (blocks.length <= 1) {
+    return;
+  }
+
+  restartStoryProgressAnimation();
+
+  storyTimer = window.setInterval(() => {
+    moveActiveService(1);
+  }, STORY_INTERVAL_MS);
+}
+
+function stopStoryAutoplay() {
+  if (storyTimer) {
+    window.clearInterval(storyTimer);
+    storyTimer = null;
+  }
+
+  if (els.storyProgressBar) {
+    els.storyProgressBar.classList.remove("is-autoplay");
+  }
+}
+
+function restartStoryProgressAnimation() {
+  if (!els.storyProgressBar) return;
+  const bar = els.storyProgressBar;
+  bar.classList.remove("is-autoplay");
+  bar.style.animationDuration = `${STORY_INTERVAL_MS}ms`;
+  bar.style.width = "0%";
+  void bar.offsetWidth;
+  bar.classList.add("is-autoplay");
+}
+
+function renderSocialSection(socialProof, platforms) {
+  if (els.socialHeading) {
+    els.socialHeading.textContent = socialProof.title;
+  }
+  if (els.socialSubtitle) {
+    els.socialSubtitle.textContent = socialProof.subtitle;
+  }
+
+  if (!els.socialGrid) return;
+
+  if (!Array.isArray(platforms) || platforms.length === 0) {
+    els.socialGrid.innerHTML = `
+      <article class="social-card">
+        <h3>Nessuna piattaforma configurata</h3>
+        <p>Aggiorna i social dalla sezione admin.</p>
+      </article>
+    `;
+    return;
+  }
+
+  els.socialGrid.innerHTML = platforms
+    .map(
+      (platform) => `
+        <article class="social-card">
+          <h3>${escapeHtml(platform.name)}</h3>
+          ${platform.focus ? `<p>${escapeHtml(platform.focus)}</p>` : ""}
+        </article>
+      `
+    )
+    .join("");
+}
+
+function renderClosing(closing) {
+  if (els.closingTitle) {
+    els.closingTitle.textContent = closing.title;
+  }
+  if (els.closingDescription) {
+    els.closingDescription.textContent = closing.description;
+  }
+}
+
+function updateScrollMeter() {
+  if (!els.scrollMeterBar) return;
+
+  const root = document.documentElement;
+  const scrollTop = root.scrollTop || document.body.scrollTop;
+  const maxScroll = Math.max(1, root.scrollHeight - root.clientHeight);
+  const percent = (scrollTop / maxScroll) * 100;
+  const clamped = Math.max(0, Math.min(100, percent));
+  els.scrollMeterBar.style.width = `${clamped.toFixed(2)}%`;
+  document.body.style.setProperty("--scroll-progress", (clamped / 100).toFixed(4));
+}
+
+function setupSceneMotion() {
+  document.body.style.setProperty("--pointer-x", "0");
+  document.body.style.setProperty("--pointer-y", "0");
+
+  if (window.matchMedia?.("(pointer: coarse)")?.matches) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+  let rafId = 0;
+  let nextX = 0;
+  let nextY = 0;
+
+  const flush = () => {
+    rafId = 0;
+    document.body.style.setProperty("--pointer-x", nextX.toFixed(4));
+    document.body.style.setProperty("--pointer-y", nextY.toFixed(4));
+  };
+
+  window.addEventListener(
+    "pointermove",
+    (event) => {
+      const width = Math.max(1, window.innerWidth);
+      const height = Math.max(1, window.innerHeight);
+      nextX = ((event.clientX / width) * 2 - 1) * 0.75;
+      nextY = ((event.clientY / height) * 2 - 1) * 0.75;
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(flush);
+      }
+    },
+    { passive: true }
+  );
+
+  window.addEventListener("pointerleave", () => {
+    nextX = 0;
+    nextY = 0;
+    if (!rafId) {
+      rafId = window.requestAnimationFrame(flush);
+    }
+  });
+}
+
+function setupExperienceRail() {
+  if (!els.experienceRail) return;
+
+  const sections = Array.from(document.querySelectorAll("[data-rail-label]"));
+  if (sections.length === 0) {
+    els.experienceRail.innerHTML = "";
+    return;
+  }
+
+  const items = sections.map((section, index) => {
+    const fallbackId = `services-section-${index + 1}`;
+    if (!sanitizeText(section.id)) {
+      section.id = fallbackId;
+    }
+    return {
+      id: section.id,
+      label: sanitizeText(section.dataset.railLabel) || `Sezione ${index + 1}`,
+    };
+  });
+
+  els.experienceRail.innerHTML = `
+    <p class="rail-title">Flow</p>
+    <div class="rail-list">
+      ${items
+        .map(
+          (item) => `
+            <button
+              type="button"
+              class="rail-dot"
+              data-rail-target="${escapeHtmlAttr(item.id)}"
+              data-rail-label="${escapeHtmlAttr(item.label)}"
+              aria-label="Vai a ${escapeHtmlAttr(item.label)}"
+            ></button>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+
+  if (els.experienceRail.dataset.bound !== "1") {
+    els.experienceRail.dataset.bound = "1";
+    els.experienceRail.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-rail-target]");
+      if (!button) return;
+
+      const targetId = sanitizeText(button.dataset.railTarget);
+      if (!targetId) return;
+
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      const behavior = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth";
+      target.scrollIntoView({ behavior, block: "start" });
+      setActiveExperienceRail(targetId);
+    });
+  }
+
+  if (!("IntersectionObserver" in window)) {
+    setActiveExperienceRail(items[0]?.id || "");
+    applyMagneticTargets();
+    return;
+  }
+
+  railObserver?.disconnect();
+  railObserver = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (visible?.target?.id) {
+        setActiveExperienceRail(visible.target.id);
+      }
+    },
+    {
+      rootMargin: "-16% 0px -52% 0px",
+      threshold: [0.25, 0.5, 0.75],
+    }
+  );
+
+  sections.forEach((section) => railObserver?.observe(section));
+  setActiveExperienceRail(items[0]?.id || "");
+  applyMagneticTargets();
+}
+
+function setActiveExperienceRail(sectionId) {
+  if (!els.experienceRail) return;
+  const current = sanitizeText(sectionId);
+  if (!current) return;
+
+  Array.from(els.experienceRail.querySelectorAll(".rail-dot")).forEach((dot) => {
+    const active = sanitizeText(dot.dataset.railTarget) === current;
+    dot.classList.toggle("is-active", active);
+    dot.setAttribute("aria-current", active ? "true" : "false");
+  });
+}
+
+function setupRevealObserver() {
+  if (!("IntersectionObserver" in window)) {
+    document.querySelectorAll(".reveal-item").forEach((node) => node.classList.add("is-visible"));
+    return;
+  }
+
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        revealObserver?.unobserve(entry.target);
+      });
+    },
+    {
+      rootMargin: "0px 0px -12% 0px",
+      threshold: 0.16,
+    }
+  );
+
+  observeRevealNodes();
+}
+
+function observeRevealNodes() {
+  if (!revealObserver) return;
+  document.querySelectorAll(".reveal-item").forEach((node) => revealObserver.observe(node));
+}
+
+function applyAccentTheme(accent) {
+  const nextAccent = SUPPORTED_ACCENTS.includes(sanitizeText(accent).toLowerCase())
+    ? sanitizeText(accent).toLowerCase()
+    : DEFAULT_ACCENT;
+  document.body.dataset.accentTheme = nextAccent;
+}
+
+function setupCursorAura() {
+  if (!els.cursorAura) return;
+  if (window.matchMedia?.("(pointer: coarse)")?.matches) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+  const aura = els.cursorAura;
+
+  window.addEventListener(
+    "pointermove",
+    (event) => {
+      const x = event.clientX;
+      const y = event.clientY;
+      aura.style.transform = `translate(${(x - 110).toFixed(2)}px, ${(y - 110).toFixed(2)}px)`;
+      aura.classList.add("is-active");
+    },
+    { passive: true }
+  );
+
+  window.addEventListener("pointerleave", () => {
+    aura.classList.remove("is-active");
+  });
+}
+
+function setupSpotlightTilt() {
+  if (!els.spotlightBox) return;
+  if (window.matchMedia?.("(pointer: coarse)")?.matches) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+  const box = els.spotlightBox;
+
+  box.addEventListener("pointermove", (event) => {
+    const rect = box.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+
+    const rotateY = (x - 0.5) * 4.8;
+    const rotateX = (0.5 - y) * 4.8;
+    box.style.transform = `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+    box.classList.add("is-hovered");
+  });
+
+  box.addEventListener("pointerleave", () => {
+    box.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)";
+    box.classList.remove("is-hovered");
+  });
+}
+
+function applyMagneticTargets() {
+  if (window.matchMedia?.("(pointer: coarse)")?.matches) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+  const targets = Array.from(
+    document.querySelectorAll(
+      ".hero-btn, .hero-link, .filter-btn, .switch-btn, .story-btn, .showcase-dot, .rail-dot"
+    )
+  );
+
+  targets.forEach((node) => {
+    if (node.dataset.magneticBound === "1") return;
+    node.dataset.magneticBound = "1";
+    node.classList.add("magnetic-target");
+
+    node.addEventListener("pointermove", (event) => {
+      const rect = node.getBoundingClientRect();
+      const offsetX = event.clientX - (rect.left + rect.width / 2);
+      const offsetY = event.clientY - (rect.top + rect.height / 2);
+
+      const shiftX = Math.max(-8, Math.min(8, offsetX * 0.09));
+      const shiftY = Math.max(-8, Math.min(8, offsetY * 0.09));
+      node.style.transform = `translate(${shiftX.toFixed(2)}px, ${shiftY.toFixed(2)}px)`;
+    });
+
+    node.addEventListener("pointerleave", () => {
+      node.style.transform = "translate(0px, 0px)";
+    });
+  });
 }
 
 function isFintechServiceBlock(block) {
   const category = sanitizeText(block?.category).toLowerCase();
   const id = sanitizeText(block?.id).toLowerCase();
   const hasFintechMetrics = Array.isArray(block?.fintechMetrics) && block.fintechMetrics.length > 0;
+  const hasBankPricing = Array.isArray(block?.bankPriceList) && block.bankPriceList.length > 0;
   if (hasFintechMetrics) return true;
+  if (hasBankPricing) return true;
 
   return category.includes("fintech") || id.includes("exchange") || id.includes("wallet") || id.includes("bank");
 }
 
 function getFintechMetrics(block) {
+  const exchangeService = isExchangeServiceBlock(block);
   const rawMetrics = Array.isArray(block?.fintechMetrics) ? block.fintechMetrics : [];
   const normalized = rawMetrics
     .map((metric) => ({
@@ -510,13 +1227,34 @@ function getFintechMetrics(block) {
       value: sanitizeText(metric?.value),
     }))
     .filter((metric) => metric.label && metric.value)
-    .slice(0, 4);
+    .slice(0, 8);
+
+  if (exchangeService && (normalized.length === 0 || isLegacyExchangeFintechMetrics(normalized))) {
+    return EXCHANGE_TIER_METRICS.map((entry) => ({ ...entry }));
+  }
 
   if (normalized.length > 0) {
     return normalized;
   }
 
   return inferFintechMetricsFromKpis(Array.isArray(block?.kpis) ? block.kpis : []);
+}
+
+function isExchangeServiceBlock(block) {
+  const id = sanitizeText(block?.id).toLowerCase();
+  const category = sanitizeText(block?.category).toLowerCase();
+  const title = sanitizeText(block?.title).toLowerCase();
+  return id.includes("exchange") || category.includes("exchange") || title.includes("exchange");
+}
+
+function isLegacyExchangeFintechMetrics(metrics) {
+  const list = Array.isArray(metrics) ? metrics : [];
+  if (list.length > 3) return false;
+
+  return list.every((metric) => {
+    const label = sanitizeText(metric?.label).toLowerCase();
+    return label.startsWith("fee") || label.startsWith("spread") || label.startsWith("sla") || label.startsWith("settlement");
+  });
 }
 
 function inferFintechMetricsFromKpis(kpis) {
@@ -534,6 +1272,15 @@ function inferFintechMetricsFromKpis(kpis) {
     .map((entry, index) => {
       const text = sanitizeText(entry);
       if (!text) return null;
+
+      const percentEndingMatch = text.match(/^(.*?)(\d+(?:[.,]\d+)?\s*%)$/);
+      if (percentEndingMatch) {
+        const label = sanitizeText(percentEndingMatch[1]).replace(/[:|-]+$/g, "").trim();
+        const value = sanitizeText(percentEndingMatch[2]);
+        if (label && value) {
+          return { label, value };
+        }
+      }
 
       if (text.includes("|")) {
         const [labelPart, ...valueParts] = text.split("|");
@@ -569,185 +1316,7 @@ function inferFintechMetricsFromKpis(kpis) {
       };
     })
     .filter(Boolean)
-    .slice(0, 4);
-}
-
-function renderSocialSection(socialProof, platforms) {
-  if (els.socialHeading) {
-    els.socialHeading.textContent = socialProof.title;
-  }
-  if (els.socialSubtitle) {
-    els.socialSubtitle.textContent = socialProof.subtitle;
-  }
-
-  if (!els.socialMarqueeTrack) return;
-
-  if (!Array.isArray(platforms) || platforms.length === 0) {
-    els.socialMarqueeTrack.innerHTML = `
-      <article class="social-chip">
-        <p class="social-chip-title">Nessuna piattaforma configurata</p>
-        <p class="social-chip-copy">Inserisci i canali social dal pannello admin.</p>
-      </article>
-    `;
-    return;
-  }
-
-  els.socialMarqueeTrack.innerHTML = platforms
-    .map(
-      (platform, index) => `
-        <article class="social-chip" data-platform-id="${escapeHtmlAttr(platform.id)}" style="--social-index:${index};">
-          <p class="social-chip-title">${escapeHtml(platform.name)}</p>
-          ${platform.focus ? `<p class="social-chip-copy">${escapeHtml(platform.focus)}</p>` : ""}
-        </article>
-      `
-    )
-    .join("");
-}
-
-function renderClosing(closing) {
-  if (els.closingTitle) {
-    els.closingTitle.textContent = closing.title;
-  }
-  if (els.closingDescription) {
-    els.closingDescription.textContent = closing.description;
-  }
-}
-
-function setupRevealObserver() {
-  if (!("IntersectionObserver" in window)) {
-    document.querySelectorAll(".reveal-item").forEach((node) => node.classList.add("is-visible"));
-    return;
-  }
-
-  revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("is-visible");
-        revealObserver?.unobserve(entry.target);
-      });
-    },
-    {
-      rootMargin: "0px 0px -10% 0px",
-      threshold: 0.14,
-    }
-  );
-
-  observeRevealNodes();
-}
-
-function observeRevealNodes() {
-  if (!revealObserver) return;
-  document.querySelectorAll(".reveal-item").forEach((node) => revealObserver.observe(node));
-}
-
-function setupSectionObserver() {
-  if (!("IntersectionObserver" in window)) return;
-
-  sectionObserver = new IntersectionObserver(
-    (entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-      if (!visible) return;
-      const activeId = visible.target.id;
-      updateRailActiveState(activeId);
-    },
-    {
-      rootMargin: "-20% 0px -40% 0px",
-      threshold: [0.2, 0.4, 0.6],
-    }
-  );
-
-  observeSections();
-}
-
-function observeSections() {
-  if (!sectionObserver) return;
-  document.querySelectorAll("[data-section]").forEach((node) => sectionObserver.observe(node));
-}
-
-function updateRailActiveState(activeSectionId) {
-  if (!els.sectionRail) return;
-  const links = Array.from(els.sectionRail.querySelectorAll("a[data-rail-target]"));
-  links.forEach((link) => {
-    const isActive = link.dataset.railTarget === activeSectionId;
-    link.classList.toggle("is-active", isActive);
-  });
-}
-
-function setupServiceCardObserver() {
-  if (!("IntersectionObserver" in window)) return;
-
-  serviceCardObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        entry.target.dataset.ratio = String(entry.intersectionRatio || 0);
-      });
-
-      const cards = Array.from(document.querySelectorAll(".service-card"));
-      if (cards.length === 0) return;
-
-      const candidate = cards
-        .map((card) => ({ card, ratio: Number(card.dataset.ratio || "0") }))
-        .sort((a, b) => b.ratio - a.ratio)[0];
-
-      if (candidate && candidate.ratio >= 0.45) {
-        setActiveServiceCard(candidate.card);
-      }
-    },
-    {
-      rootMargin: "-20% 0px -25% 0px",
-      threshold: [0.2, 0.45, 0.7],
-    }
-  );
-}
-
-function observeServiceCards() {
-  if (!serviceCardObserver) return;
-  serviceCardObserver.disconnect();
-  document.querySelectorAll(".service-card").forEach((card) => serviceCardObserver.observe(card));
-}
-
-function setActiveServiceCard(activeCard) {
-  const cards = Array.from(document.querySelectorAll(".service-card"));
-  cards.forEach((card) => {
-    card.classList.toggle("is-active", card === activeCard);
-  });
-}
-
-function setupHeroParallax() {
-  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  if (reducedMotion || !els.heroSection) return;
-
-  const metricsCard = els.heroSection.querySelector(".hero-metrics-card");
-  if (!metricsCard) return;
-
-  els.heroSection.addEventListener("pointermove", (event) => {
-    const rect = els.heroSection.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-
-    const shiftX = (x - 0.5) * 8;
-    const shiftY = (y - 0.5) * 8;
-    metricsCard.style.transform = `translate(${shiftX.toFixed(2)}px, ${shiftY.toFixed(2)}px)`;
-  });
-
-  els.heroSection.addEventListener("pointerleave", () => {
-    metricsCard.style.transform = "translate(0px, 0px)";
-  });
-}
-
-function updateScrollProgress() {
-  if (!els.scrollProgressBar) return;
-
-  const root = document.documentElement;
-  const scrollTop = root.scrollTop || document.body.scrollTop;
-  const maxScroll = Math.max(1, root.scrollHeight - root.clientHeight);
-  const percent = Math.max(0, Math.min(100, (scrollTop / maxScroll) * 100));
-
-  els.scrollProgressBar.style.width = `${percent.toFixed(2)}%`;
+    .slice(0, 8);
 }
 
 function normalizeServicesPage(input) {
@@ -824,7 +1393,16 @@ function normalizeServicesPage(input) {
               value: sanitizeText(metric?.value),
             }))
             .filter((metric) => metric.label && metric.value)
-            .slice(0, 4)
+            .slice(0, 8)
+        : [];
+      const bankPriceList = Array.isArray(block?.bankPriceList)
+        ? block.bankPriceList
+            .map((entry) => ({
+              bank: sanitizeText(entry?.bank || entry?.name),
+              price: sanitizeText(entry?.price || entry?.value),
+            }))
+            .filter((entry) => entry.bank && entry.price)
+            .slice(0, 20)
         : [];
 
       return {
@@ -836,6 +1414,7 @@ function normalizeServicesPage(input) {
         priceNote: sanitizeText(block?.priceNote),
         kpis,
         fintechMetrics,
+        bankPriceList,
         accent: normalizeAccent(block?.accent),
         featured: Boolean(block?.featured),
         features,
@@ -877,7 +1456,7 @@ function normalizeAbsoluteUrl(value, fallback) {
       return parsed.toString();
     }
   } catch {
-    // Ignore invalid url.
+    // Ignore invalid URL.
   }
 
   return sanitizeText(fallback);

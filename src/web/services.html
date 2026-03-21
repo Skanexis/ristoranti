@@ -11,36 +11,39 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@10..48,500;10..48,600;10..48,700;10..48,800&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./services.css?v=20260321-5" />
+    <link rel="stylesheet" href="./services.css?v=20260321-9" />
   </head>
   <body>
-    <div class="page-noise" aria-hidden="true"></div>
-    <div class="scroll-progress" aria-hidden="true"><span id="scrollProgressBar"></span></div>
+    <div class="bg-ornament" aria-hidden="true">
+      <span class="blob blob-one"></span>
+      <span class="blob blob-two"></span>
+      <span class="blob blob-three"></span>
+    </div>
+    <div class="scroll-meter" aria-hidden="true"><span id="scrollMeterBar"></span></div>
+    <div id="cursorAura" class="cursor-aura" aria-hidden="true"></div>
+    <nav id="experienceRail" class="experience-rail" aria-label="Navigazione rapida delle sezioni"></nav>
 
-    <aside class="section-rail" id="sectionRail" aria-label="Navigazione sezioni">
-      <a href="#heroSection" data-rail-target="heroSection">Hero</a>
-      <a href="#servicesSection" data-rail-target="servicesSection">Servizi</a>
-      <a href="#socialSection" data-rail-target="socialSection">Social</a>
-      <a href="#workflowSection" data-rail-target="workflowSection">Metodo</a>
-      <a href="#closingSection" data-rail-target="closingSection">Finale</a>
-    </aside>
-
-    <main class="services-app">
-      <header id="heroSection" class="hero reveal-item" data-section="heroSection">
-        <div class="hero-top-links">
-          <a href="./index.html" class="hero-back-link">Torna alla home</a>
-          <a href="./admin.html#services-page" class="hero-admin-link">Gestione admin</a>
-        </div>
-
+    <main class="services-shell">
+      <header id="heroSection" class="hero reveal-item" data-rail-label="Hero">
         <div class="hero-layout">
-          <div class="hero-copy">
+          <div class="hero-content">
+            <div class="hero-links">
+              <a href="./index.html" class="hero-link">Torna alla home</a>
+              <a href="./admin.html#services-page" class="hero-link hero-link-admin">Gestione admin</a>
+            </div>
+
             <p id="heroBadge" class="hero-badge"></p>
             <h1 id="heroTitle" class="hero-title"></h1>
             <p id="heroSubtitle" class="hero-subtitle"></p>
             <p id="heroHighlight" class="hero-highlight"></p>
+            <div class="hero-ticker-wrap" aria-label="Capabilities">
+              <div id="heroTicker" class="hero-ticker"></div>
+            </div>
+
+            <div id="heroStats" class="hero-stats" aria-live="polite"></div>
 
             <div class="hero-actions">
               <a
@@ -60,94 +63,122 @@
             </div>
           </div>
 
-          <aside class="hero-metrics-card" aria-label="Metriche live pagina servizi">
-            <p class="hero-metrics-kicker">Snapshot live</p>
-            <div id="heroMetrics" class="hero-metrics-grid"></div>
-            <p class="hero-metrics-note">Prezzi, blocchi e metriche si aggiornano dall'admin center.</p>
+          <aside class="hero-showcase" aria-label="Anteprima servizi">
+            <p class="showcase-kicker">Live service showcase</p>
+            <div id="heroShowcaseStack" class="showcase-stack"></div>
+            <div id="heroShowcaseDots" class="showcase-dots" role="tablist" aria-label="Seleziona anteprima"></div>
           </aside>
         </div>
       </header>
 
-      <section id="servicesSection" class="services-section reveal-item" data-section="servicesSection" aria-labelledby="serviceBlocksHeading">
+      <section id="catalogSection" class="catalog reveal-item" aria-labelledby="catalogHeading" data-rail-label="Servizi">
         <div class="section-head">
-          <p class="section-kicker">Catalogo servizi</p>
-          <h2 id="serviceBlocksHeading">Soluzioni attive</h2>
-          <p>Struttura a blocchi con navigazione rapida, filtri e visualizzazione focus.</p>
+          <p class="section-kicker">Service engine</p>
+          <h2 id="catalogHeading">Naviga i servizi in modo dinamico</h2>
+          <p>Passa da vista deck a vista story e controlla ogni blocco con preview dettagliata.</p>
         </div>
 
-        <div id="servicesSummaryRow" class="services-summary-row" aria-live="polite"></div>
-
-        <div id="servicesToolbar" class="services-toolbar">
-          <div id="serviceCategoryFilters" class="service-filter-row" role="tablist" aria-label="Filtro categoria"></div>
-          <div class="toolbar-actions">
-            <label class="top-only-toggle">
+        <div class="catalog-toolbar">
+          <div id="serviceCategoryFilters" class="filter-row" role="tablist" aria-label="Filtro categoria"></div>
+          <div class="toolbar-controls">
+            <label class="top-toggle">
               <input id="serviceTopOnly" type="checkbox" />
               Solo top service
             </label>
-            <button
-              id="serviceFocusMode"
-              type="button"
-              class="service-filter-btn service-filter-btn-ghost"
-              aria-pressed="false"
-            >
-              Modalita focus
-            </button>
-            <button
-              id="serviceDetailsToggle"
-              type="button"
-              class="service-filter-btn service-filter-btn-ghost"
-              aria-pressed="false"
-            >
-              Apri dettagli
-            </button>
+            <div class="view-switch" role="group" aria-label="Modalita visualizzazione">
+              <button id="modeDeckBtn" type="button" class="switch-btn" data-view-mode="deck" aria-pressed="true">
+                Deck
+              </button>
+              <button id="modeStoryBtn" type="button" class="switch-btn" data-view-mode="story" aria-pressed="false">
+                Story
+              </button>
+            </div>
           </div>
         </div>
 
-        <p id="serviceCountLabel" class="service-count-label" aria-live="polite"></p>
+        <p id="serviceCountLabel" class="count-label" aria-live="polite"></p>
+
+        <article id="spotlightBox" class="spotlight-box" aria-live="polite">
+          <div class="spotlight-main">
+            <div class="spotlight-top">
+              <p id="spotlightCategory" class="spotlight-category"></p>
+              <p id="spotlightFeatured" class="spotlight-featured" hidden>Top service</p>
+            </div>
+            <h3 id="spotlightTitle" class="spotlight-title"></h3>
+            <p id="spotlightDescription" class="spotlight-description"></p>
+            <div class="spotlight-price-wrap">
+              <p id="spotlightPrice" class="spotlight-price"></p>
+              <p id="spotlightPriceNote" class="spotlight-price-note"></p>
+            </div>
+            <div id="spotlightMetrics" class="spotlight-metrics"></div>
+            <section id="spotlightBankPricePanel" class="spotlight-bank-panel" hidden>
+              <p class="spotlight-bank-title">Banche disponibili</p>
+              <ul id="spotlightBankPriceList" class="spotlight-bank-list"></ul>
+            </section>
+            <ul id="spotlightFeatures" class="spotlight-features"></ul>
+          </div>
+
+          <aside class="story-panel" aria-label="Controlli story">
+            <div class="story-controls">
+              <button id="storyPrevBtn" type="button" class="story-btn" aria-label="Servizio precedente">Prev</button>
+              <button id="storyNextBtn" type="button" class="story-btn" aria-label="Servizio successivo">Next</button>
+            </div>
+            <p id="storyPosition" class="story-position"></p>
+            <div class="story-progress" aria-hidden="true">
+              <span id="storyProgressBar"></span>
+            </div>
+            <p class="story-note">In modalita story la selezione ruota automaticamente.</p>
+          </aside>
+        </article>
+
         <div id="serviceBlocksGrid" class="service-grid"></div>
       </section>
 
-      <section id="socialSection" class="social-section reveal-item" data-section="socialSection" aria-labelledby="socialHeading">
+      <section
+        id="socialSection"
+        class="social-section reveal-item"
+        aria-labelledby="socialHeading"
+        data-rail-label="Social"
+      >
         <div class="section-head">
           <p class="section-kicker">Social growth</p>
           <h2 id="socialHeading"></h2>
           <p id="socialSubtitle"></p>
         </div>
-
-        <div id="socialMarqueeTrack" class="social-grid" aria-label="Piattaforme social disponibili"></div>
+        <div id="socialGrid" class="social-grid"></div>
       </section>
 
-      <section id="workflowSection" class="workflow-section reveal-item" data-section="workflowSection" aria-labelledby="workflowHeading">
+      <section id="workflowSection" class="workflow reveal-item" aria-labelledby="workflowHeading" data-rail-label="Metodo">
         <div class="section-head">
           <p class="section-kicker">Metodo</p>
           <h2 id="workflowHeading">Come lavoriamo</h2>
         </div>
         <div class="workflow-grid">
-          <article class="workflow-step">
+          <article class="workflow-card">
             <p class="workflow-index">01</p>
             <h3>Analisi</h3>
-            <p>Raccolta obiettivi, requisiti operativi e priorita di business.</p>
+            <p>Definizione obiettivi, rischi e perimetro operativo.</p>
           </article>
-          <article class="workflow-step">
+          <article class="workflow-card">
             <p class="workflow-index">02</p>
             <h3>Sviluppo</h3>
-            <p>Implementazione modulare con demo frequenti e feedback continuo.</p>
+            <p>Build iterativa con demo e miglioramenti progressivi.</p>
           </article>
-          <article class="workflow-step">
+          <article class="workflow-card">
             <p class="workflow-index">03</p>
             <h3>Deploy</h3>
-            <p>Rilascio assistito, monitoraggio e passaggio in gestione ordinaria.</p>
+            <p>Rilascio assistito, tuning e supporto continuativo.</p>
           </article>
         </div>
       </section>
 
-      <section id="closingSection" class="closing-section reveal-item" data-section="closingSection" aria-labelledby="closingTitle">
+      <section id="closingSection" class="closing reveal-item" aria-labelledby="closingTitle" data-rail-label="Closing">
         <h2 id="closingTitle"></h2>
         <p id="closingDescription"></p>
       </section>
     </main>
 
-    <script src="/shared/data-store.js?v=20260321-5"></script>
-    <script src="./services.js?v=20260321-5"></script>
+    <script src="/shared/data-store.js?v=20260321-9"></script>
+    <script src="./services.js?v=20260321-9"></script>
   </body>
 </html>
