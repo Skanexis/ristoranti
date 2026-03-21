@@ -26,21 +26,21 @@ const OTHER_CATEGORY_LABELS = {
 };
 const SERVICE_BLOCK_ACCENTS = ["amber", "cyan", "emerald", "rose"];
 const EXCHANGE_FINTECH_TIERS = [
-  { label: "Fino a EUR 500", value: "12%" },
-  { label: "Fino a EUR 1100", value: "10,5%" },
-  { label: "Fino a EUR 5000", value: "9%" },
-  { label: "Fino a EUR 10000", value: "7,5%" },
-  { label: "Oltre EUR 10000", value: "5%" },
+  { label: "Fino a 750€", value: "11%" },
+  { label: "Fino a 1.500€", value: "9%" },
+  { label: "Fino a 5.000€", value: "5%" },
+  { label: "Fino a 10.000€", value: "3,5%" },
 ];
 const FALLBACK_SERVICES_PAGE = {
   hero: {
-    badge: "YOSUPPORT Digital Studio",
+    badge: "Servizi Professionali",
     title: "I nostri servizi",
-    subtitle: "Soluzioni complete tra bot Telegram, web platform e servizi digitali operativi.",
-    highlight: "Prezzi e blocchi servizi sono gestibili dall'admin center.",
+    subtitle:
+      "Programmazione bot Telegram e soluzioni Exchange Crypto con condizioni chiare, supporto operativo e gestione professionale.",
+    highlight: "Listino ufficiale aggiornabile da admin, con visualizzazione semplice e immediata.",
     primaryCtaLabel: "Richiedi preventivo",
     primaryCtaUrl: "https://t.me/SHLC26",
-    secondaryCtaLabel: "Contatta supporto",
+    secondaryCtaLabel: "Contatto diretto",
     secondaryCtaUrl: "https://t.me/SHLC26",
   },
   socialProof: {
@@ -59,25 +59,175 @@ const FALLBACK_SERVICES_PAGE = {
   serviceBlocks: [
     {
       id: "chat-moderation-bots",
-      category: "Bot Telegram",
-      title: "Sviluppo bot per moderazione chat",
+      category: "Programmazione",
+      title: "Bot per moderazione chat",
       description:
-        "Bot dedicati alla moderazione automatica con filtri anti-spam, regole personalizzate e log eventi in tempo reale.",
-      price: "da EUR 390",
-      priceNote: "setup base + policy personalizzate",
-      kpis: ["Delivery da 48h", "Policy su misura", "Uptime 99,9%"],
+        "Sviluppo di bot dedicati alla moderazione di chat e community, progettati per migliorare controllo, ordine e gestione degli utenti.",
+      price: "a partire da 65€",
+      priceNote: "Mantenimento: 5€ al mese",
       accent: "amber",
       featured: true,
       features: [
-        "Filtri keyword, flood e anti-link",
-        "Ruoli admin e permessi granulari",
-        "Report giornalieri automatici",
+        "Moderazione automatica dei messaggi",
+        "Gestione regole e permessi base",
+        "Supporto operativo continuativo",
+      ],
+    },
+    {
+      id: "advanced-multimedia-menu-bots",
+      category: "Programmazione",
+      title: "Bot avanzati con menu multimediale",
+      description:
+        "Realizzazione di bot completi con funzionalità avanzate, ideali per community strutturate e progetti professionali.",
+      price: "a partire da 150€",
+      priceNote: "Mantenimento: 10€ al mese",
+      accent: "cyan",
+      featured: true,
+      features: [
+        "Menu multimediale",
+        "Chat pulita",
+        "Gestione categorie e sottocategorie",
+        "Pannello amministrativo semplice e intuitivo",
+        "Organizzazione chiara di contenuti e sezioni",
+      ],
+    },
+    {
+      id: "antiscam-community-bots",
+      category: "Programmazione",
+      title: "Bot per community Anti-Scam",
+      description:
+        "Sviluppo di bot specifici per community anti-truffa, pensati per supportare moderazione, controllo e gestione operativa della community.",
+      price: "a partire da 180€",
+      priceNote: "Mantenimento: 10€ al mese",
+      accent: "rose",
+      featured: false,
+      features: [
+        "Moderazione operativa dedicata",
+        "Controllo segnalazioni community",
+        "Supporto anti-truffa strutturato",
+      ],
+    },
+    {
+      id: "telegram-miniapp-web-bot-suite",
+      category: "Programmazione",
+      title: "Mini App Telegram + sito web + bot personale",
+      description:
+        "Soluzione completa per chi desidera un sistema moderno, veloce e pratico: Mini App Telegram, sito web e bot personale per gestione rapida via Telegram.",
+      price: "a partire da 260€",
+      priceNote: "Mantenimento: 15€ al mese",
+      accent: "emerald",
+      featured: true,
+      features: [
+        "Mini App Telegram integrata",
+        "Sito web professionale",
+        "Bot personale per amministrazione rapida",
+        "Workflow operativo semplificato",
+      ],
+    },
+    {
+      id: "crypto-exchange-services",
+      category: "Exchange Crypto",
+      title: "Servizio Exchange Crypto",
+      description:
+        "Servizio di exchange crypto con commissioni calcolate in base all'importo dell'operazione e condizioni trasparenti.",
+      price: "Commissioni variabili per importo",
+      priceNote: "Importo minimo: 350€",
+      fintechMetrics: [
+        { label: "Fino a 750€", value: "11%" },
+        { label: "Fino a 1.500€", value: "9%" },
+        { label: "Fino a 5.000€", value: "5%" },
+        { label: "Fino a 10.000€", value: "3,5%" },
+      ],
+      accent: "emerald",
+      featured: true,
+      features: [
+        "Commissioni per fascia di importo",
+        "Condizioni operative chiare",
+        "Gestione professionale dell'operazione",
+      ],
+    },
+    {
+      id: "exchange-accounts-services",
+      category: "Account Exchange",
+      title: "Account Exchange disponibili",
+      description:
+        "Disponibilita di account exchange con listino trasparente per piattaforma, aggiornabile da admin.",
+      price: "da 250€",
+      priceNote: "Prezzi aggiornati con maggiorazione +100€",
+      bankPriceList: [
+        { bank: "Binance", price: "250€" },
+        { bank: "Coinbase", price: "250€" },
+        { bank: "Kucoin", price: "250€" },
+        { bank: "Crypto", price: "250€" },
+        { bank: "Bitnovo", price: "250€" },
+        { bank: "Nexo", price: "250€" },
+        { bank: "Kraken", price: "250€" },
+        { bank: "Wirex", price: "250€" },
+        { bank: "Trade Republic (Emulatore)", price: "250€" },
+        { bank: "Bybit", price: "250€" },
+        { bank: "Bitget", price: "250€" },
+        { bank: "Robinhood", price: "250€" },
+        { bank: "Exchange nome a scelta", price: "300€" },
+      ],
+      accent: "cyan",
+      featured: false,
+      features: [
+        "Elenco exchange disponibili con prezzo per piattaforma",
+        "Listino aggiornabile dalla sezione admin",
+        "Supporto operativo nella scelta del provider",
+      ],
+    },
+    {
+      id: "bank-accounts-and-crypto-wallets",
+      category: "Account Bancari",
+      title: "Servizi account bancari e crypto wallet",
+      description:
+        "Disponibilita di account bancari e wallet crypto con listino trasparente per provider, gestibile da admin.",
+      price: "da 250€",
+      priceNote: "Prezzi aggiornati con maggiorazione +100€",
+      bankPriceList: [
+        { bank: "Bitsa", price: "250€" },
+        { bank: "Yap", price: "250€" },
+        { bank: "Paysera", price: "250€" },
+        { bank: "Tinaba", price: "250€" },
+        { bank: "Wise", price: "300€" },
+        { bank: "Bankera", price: "300€" },
+        { bank: "Isybank", price: "350€" },
+        { bank: "Buddybank", price: "350€" },
+        { bank: "Illimity", price: "350€" },
+        { bank: "BBVA", price: "350€" },
+        { bank: "Hype", price: "400€" },
+        { bank: "Hello bank!", price: "400€" },
+        { bank: "Fineco", price: "400€" },
+        { bank: "UniCredit", price: "400€" },
+        { bank: "Intesa Sanpaolo", price: "400€" },
+        { bank: "iCard", price: "400€" },
+        { bank: "N26 (Emulatore)", price: "400€" },
+        { bank: "BPER", price: "400€" },
+        { bank: "Credit Agricole", price: "400€" },
+        { bank: "Credem", price: "400€" },
+        { bank: "Banco BPM", price: "400€" },
+        { bank: "Yuh", price: "400€" },
+        { bank: "Bunq (Emulatore)", price: "400€" },
+        { bank: "Vivid (Emulatore)", price: "400€" },
+        { bank: "Findomestic", price: "450€" },
+        { bank: "Mediolanum", price: "450€" },
+        { bank: "Postepay", price: "500€" },
+        { bank: "Revolut (Emulatore)", price: "500€" },
+        { bank: "Conto nome a scelta", price: "800€+" },
+      ],
+      accent: "rose",
+      featured: false,
+      features: [
+        "Elenco banche disponibili con prezzo per provider",
+        "Listino aggiornabile dalla sezione admin",
+        "Supporto operativo in fase di selezione",
       ],
     },
   ],
   closing: {
-    title: "Operatività completa",
-    description: "Dalla strategia al deploy: ogni progetto è seguito end-to-end.",
+    title: "Servizio chiaro e professionale",
+    description: "Ogni soluzione è presentata in modo trasparente, con prezzi chiari e supporto continuo.",
   },
 };
 
@@ -1215,7 +1365,10 @@ function ensureServicesPageConfig() {
     normalizedBlocks.push(block);
   });
 
-  source.serviceBlocks = normalizedBlocks.length ? normalizedBlocks : cloneSimple(defaults.serviceBlocks || []);
+  const normalizedSupplementaryBlocks = ensureSupplementaryServiceBlocks(normalizedBlocks, defaults.serviceBlocks || []);
+  source.serviceBlocks = normalizedSupplementaryBlocks.length
+    ? normalizedSupplementaryBlocks
+    : cloneSimple(defaults.serviceBlocks || []);
 
   source.closing = {
     title: String(closingRaw.title || "").trim() || String(closingDefaults.title || "").trim(),
@@ -1262,7 +1415,7 @@ function normalizeServiceBlock(block, index = 0) {
           return { bank, price };
         })
         .filter(Boolean)
-        .slice(0, 20)
+        .slice(0, 60)
     : [];
   const normalizedFintechMetrics = shouldApplyExchangeTierDefaults({
     id,
@@ -1310,6 +1463,58 @@ function isLegacyExchangeFintechMetrics(fintechMetrics) {
     const label = String(metric?.label || "").trim().toLowerCase();
     return label.startsWith("fee") || label.startsWith("spread") || label.startsWith("sla") || label.startsWith("settlement");
   });
+}
+
+function hasBankingServiceBlock(serviceBlocks) {
+  const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+  return blocks.some((block) => {
+    const id = String(block?.id || "")
+      .trim()
+      .toLowerCase();
+    return id === "bank-accounts-and-crypto-wallets" || id === "banking-wallet-services";
+  });
+}
+
+function hasExchangeAccountsServiceBlock(serviceBlocks) {
+  const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+  return blocks.some((block) => {
+    const id = String(block?.id || "")
+      .trim()
+      .toLowerCase();
+    return id === "exchange-accounts-services";
+  });
+}
+
+function ensureSupplementaryServiceBlocks(serviceBlocks, defaultBlocks) {
+  const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+  const defaults = Array.isArray(defaultBlocks) ? defaultBlocks : [];
+  const nextBlocks = [...blocks];
+
+  if (!hasExchangeAccountsServiceBlock(nextBlocks)) {
+    const defaultExchangeAccounts = defaults.find(
+      (block) =>
+        String(block?.id || "")
+          .trim()
+          .toLowerCase() === "exchange-accounts-services"
+    );
+    if (defaultExchangeAccounts) {
+      nextBlocks.push(cloneSimple(defaultExchangeAccounts));
+    }
+  }
+
+  if (!hasBankingServiceBlock(nextBlocks)) {
+    const defaultBanking = defaults.find(
+      (block) =>
+        String(block?.id || "")
+          .trim()
+          .toLowerCase() === "bank-accounts-and-crypto-wallets"
+    );
+    if (defaultBanking) {
+      nextBlocks.push(cloneSimple(defaultBanking));
+    }
+  }
+
+  return nextBlocks;
 }
 
 function renderServicesPageEditor() {
@@ -1538,7 +1743,7 @@ function parseServiceBankPriceListText(value) {
     .filter(Boolean)
     .map((line) => parseServiceBankPriceLine(line))
     .filter(Boolean)
-    .slice(0, 20);
+    .slice(0, 60);
 }
 
 function parseServiceBankPriceLine(line) {

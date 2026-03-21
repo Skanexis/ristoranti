@@ -8,13 +8,14 @@ const DEFAULT_SERVICES_PAGE = (() => {
 
   return {
     hero: {
-      badge: "YOSUPPORT Digital Studio",
+      badge: "Servizi Professionali",
       title: "I nostri servizi",
-      subtitle: "Soluzioni complete tra bot Telegram, web platform e servizi digitali operativi.",
-      highlight: "Prezzi e blocchi servizi sono gestibili dall'admin center.",
+      subtitle:
+        "Programmazione bot Telegram e soluzioni Exchange Crypto con condizioni chiare, supporto operativo e gestione professionale.",
+      highlight: "Listino ufficiale aggiornabile da admin, con visualizzazione semplice e immediata.",
       primaryCtaLabel: "Richiedi preventivo",
       primaryCtaUrl: "https://t.me/SHLC26",
-      secondaryCtaLabel: "Contatta supporto",
+      secondaryCtaLabel: "Contatto diretto",
       secondaryCtaUrl: "https://t.me/SHLC26",
     },
     socialProof: {
@@ -24,8 +25,8 @@ const DEFAULT_SERVICES_PAGE = (() => {
     socialPlatforms: [],
     serviceBlocks: [],
     closing: {
-      title: "Operativita completa",
-      description: "Dalla strategia al deploy: ogni progetto e seguito end-to-end.",
+      title: "Servizio chiaro e professionale",
+      description: "Ogni soluzione e presentata in modo trasparente, con prezzi chiari e supporto continuo.",
     },
   };
 })();
@@ -40,13 +41,6 @@ const ACCENT_RGB_MAP = {
   emerald: "55, 123, 86",
   rose: "184, 80, 105",
 };
-const EXCHANGE_TIER_METRICS = [
-  { label: "Fino a EUR 500", value: "12%" },
-  { label: "Fino a EUR 1100", value: "10,5%" },
-  { label: "Fino a EUR 5000", value: "9%" },
-  { label: "Fino a EUR 10000", value: "7,5%" },
-  { label: "Oltre EUR 10000", value: "5%" },
-];
 
 const catalogState = {
   category: "all",
@@ -63,6 +57,11 @@ let showcaseTimer = null;
 let tickerItems = [];
 let showcaseCards = [];
 let showcaseIndex = 0;
+let userSelectedViewMode = false;
+let spotlightTransitionTimer = null;
+let activeSpotlightId = "";
+let sectionFlowNodes = [];
+let sectionFlowRaf = 0;
 
 const els = {
   heroBadge: document.getElementById("heroBadge"),
@@ -89,8 +88,8 @@ const els = {
   spotlightDescription: document.getElementById("spotlightDescription"),
   spotlightPrice: document.getElementById("spotlightPrice"),
   spotlightPriceNote: document.getElementById("spotlightPriceNote"),
-  spotlightMetrics: document.getElementById("spotlightMetrics"),
   spotlightBankPricePanel: document.getElementById("spotlightBankPricePanel"),
+  spotlightBankPriceTitle: document.getElementById("spotlightBankPriceTitle"),
   spotlightBankPriceList: document.getElementById("spotlightBankPriceList"),
   spotlightFeatures: document.getElementById("spotlightFeatures"),
 
@@ -116,10 +115,14 @@ const els = {
 void initializePage();
 
 async function initializePage() {
+  applyResponsiveDefaults();
   bindEvents();
   setupSceneMotion();
   setupCursorAura();
   setupSpotlightTilt();
+  setupStorySwipeGestures();
+  setupCtaMicroInteractions();
+  setupSectionFlowMotion();
   renderPage(servicesPageData);
   setupExperienceRail();
   setupRevealObserver();
@@ -127,6 +130,7 @@ async function initializePage() {
 
   await loadServicesFromServer();
   renderPage(servicesPageData);
+  setupSectionFlowMotion();
   setupExperienceRail();
   observeRevealNodes();
 }
@@ -152,6 +156,7 @@ function bindEvents() {
 
   if (els.modeDeckBtn) {
     els.modeDeckBtn.addEventListener("click", () => {
+      userSelectedViewMode = true;
       catalogState.viewMode = "deck";
       renderServiceCatalog(servicesPageData?.serviceBlocks || []);
     });
@@ -159,6 +164,7 @@ function bindEvents() {
 
   if (els.modeStoryBtn) {
     els.modeStoryBtn.addEventListener("click", () => {
+      userSelectedViewMode = true;
       catalogState.viewMode = "story";
       renderServiceCatalog(servicesPageData?.serviceBlocks || []);
     });
@@ -262,7 +268,19 @@ function bindEvents() {
   });
 
   window.addEventListener("scroll", updateScrollMeter, { passive: true });
-  window.addEventListener("resize", updateScrollMeter);
+  window.addEventListener("resize", () => {
+    updateScrollMeter();
+    applyResponsiveDefaults();
+    if (!userSelectedViewMode) {
+      renderServiceCatalog(servicesPageData?.serviceBlocks || []);
+    }
+  });
+}
+
+function applyResponsiveDefaults() {
+  if (userSelectedViewMode) return;
+  const compactViewport = window.matchMedia?.("(max-width: 900px)")?.matches;
+  catalogState.viewMode = compactViewport ? "story" : "deck";
 }
 
 async function loadServicesFromServer() {
@@ -306,8 +324,14 @@ function renderHero(pageData) {
 
   if (els.heroBadge) els.heroBadge.textContent = hero.badge;
   if (els.heroTitle) els.heroTitle.textContent = hero.title;
-  if (els.heroSubtitle) els.heroSubtitle.textContent = hero.subtitle;
-  if (els.heroHighlight) els.heroHighlight.textContent = hero.highlight;
+  if (els.heroSubtitle) {
+    els.heroSubtitle.textContent = hero.subtitle;
+    els.heroSubtitle.hidden = !sanitizeText(hero.subtitle);
+  }
+  if (els.heroHighlight) {
+    els.heroHighlight.textContent = hero.highlight;
+    els.heroHighlight.hidden = !sanitizeText(hero.highlight);
+  }
 
   applyCtaLink(els.heroPrimaryCta, hero.primaryCtaLabel, hero.primaryCtaUrl);
   applyCtaLink(els.heroSecondaryCta, hero.secondaryCtaLabel, hero.secondaryCtaUrl);
@@ -647,6 +671,7 @@ function renderSpotlight(activeBlock, filteredBlocks) {
     return;
   }
 
+  triggerSpotlightTransition(activeBlock.id);
   applyAccentTheme(activeBlock.accent);
 
   if (els.spotlightCategory) {
@@ -665,14 +690,21 @@ function renderSpotlight(activeBlock, filteredBlocks) {
     els.spotlightPriceNote.hidden = !activeBlock.priceNote;
   }
 
-  renderSpotlightMetrics(activeBlock);
-  renderSpotlightBankPriceList(activeBlock);
+  renderSpotlightConditions(activeBlock);
   renderSpotlightFeatures(activeBlock);
   renderStoryMeta(activeBlock, filteredBlocks);
 }
 
 function setSpotlightEmpty() {
   applyAccentTheme(DEFAULT_ACCENT);
+  activeSpotlightId = "";
+  if (spotlightTransitionTimer) {
+    window.clearTimeout(spotlightTransitionTimer);
+    spotlightTransitionTimer = null;
+  }
+  if (els.spotlightBox) {
+    els.spotlightBox.classList.remove("is-switching");
+  }
   if (els.spotlightCategory) els.spotlightCategory.textContent = "";
   if (els.spotlightFeatured) els.spotlightFeatured.hidden = true;
   if (els.spotlightTitle) els.spotlightTitle.textContent = "Nessun servizio";
@@ -684,14 +716,15 @@ function setSpotlightEmpty() {
     els.spotlightPriceNote.textContent = "";
     els.spotlightPriceNote.hidden = true;
   }
-  if (els.spotlightMetrics) {
-    els.spotlightMetrics.innerHTML = "";
-  }
   if (els.spotlightBankPricePanel) {
     els.spotlightBankPricePanel.hidden = true;
+    delete els.spotlightBankPricePanel.dataset.kind;
   }
   if (els.spotlightBankPriceList) {
     els.spotlightBankPriceList.innerHTML = "";
+  }
+  if (els.spotlightBankPriceTitle) {
+    els.spotlightBankPriceTitle.textContent = "Condizioni";
   }
   if (els.spotlightFeatures) {
     els.spotlightFeatures.innerHTML = "";
@@ -707,32 +740,6 @@ function setSpotlightEmpty() {
   if (els.storyNextBtn) els.storyNextBtn.disabled = true;
 }
 
-function renderSpotlightMetrics(block) {
-  if (!els.spotlightMetrics) return;
-
-  const fintechMode = isFintechServiceBlock(block);
-  const metrics = fintechMode
-    ? getFintechMetrics(block).map((entry) => ({ label: entry.label, value: entry.value }))
-    : (block.kpis || []).map((entry, index) => ({ label: `KPI ${index + 1}`, value: entry }));
-
-  if (!Array.isArray(metrics) || metrics.length === 0) {
-    els.spotlightMetrics.innerHTML = "";
-    return;
-  }
-
-  els.spotlightMetrics.innerHTML = metrics
-    .map((metric) => {
-      const percentClass = metric.value.includes("%") ? "is-percent" : "";
-      return `
-        <article class="metric-chip ${percentClass}">
-          <span>${escapeHtml(metric.label)}</span>
-          <strong>${escapeHtml(metric.value)}</strong>
-        </article>
-      `;
-    })
-    .join("");
-}
-
 function renderSpotlightFeatures(block) {
   if (!els.spotlightFeatures) return;
 
@@ -742,34 +749,73 @@ function renderSpotlightFeatures(block) {
     return;
   }
 
-  els.spotlightFeatures.innerHTML = features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("");
+  const compactViewport = window.matchMedia?.("(max-width: 760px)")?.matches;
+  const maxVisible = compactViewport ? 4 : 6;
+  const visibleFeatures = features.slice(0, maxVisible);
+  const hasMore = features.length > maxVisible;
+  const withMoreHint = hasMore ? [...visibleFeatures, "Altre funzionalita su richiesta"] : visibleFeatures;
+
+  els.spotlightFeatures.innerHTML = withMoreHint.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("");
 }
 
-function renderSpotlightBankPriceList(block) {
-  if (!els.spotlightBankPricePanel || !els.spotlightBankPriceList) return;
+function renderSpotlightConditions(block) {
+  if (!els.spotlightBankPricePanel || !els.spotlightBankPriceList || !els.spotlightBankPriceTitle) return;
 
-  const entries = Array.isArray(block?.bankPriceList)
-    ? block.bankPriceList
+  const exchangeTiers = Array.isArray(block?.fintechMetrics)
+    ? block.fintechMetrics
         .map((entry) => ({
-          bank: sanitizeText(entry?.bank || entry?.name),
-          price: sanitizeText(entry?.price || entry?.value),
+          label: sanitizeText(entry?.label),
+          value: sanitizeText(entry?.value),
         }))
-        .filter((entry) => entry.bank && entry.price)
-        .slice(0, 20)
+        .filter((entry) => entry.label && entry.value)
+        .slice(0, 8)
     : [];
 
-  if (entries.length === 0) {
+  const bankEntries = Array.isArray(block?.bankPriceList)
+    ? block.bankPriceList
+        .map((entry) => ({
+          label: sanitizeText(entry?.bank || entry?.name),
+          value: sanitizeText(entry?.price || entry?.value),
+        }))
+        .filter((entry) => entry.label && entry.value)
+        .slice(0, 60)
+    : [];
+
+  const hasExchangeTiers = exchangeTiers.length > 0;
+  const hasBanks = bankEntries.length > 0;
+
+  if (!hasExchangeTiers && !hasBanks) {
+    els.spotlightBankPriceTitle.textContent = "Condizioni";
     els.spotlightBankPriceList.innerHTML = "";
     els.spotlightBankPricePanel.hidden = true;
+    delete els.spotlightBankPricePanel.dataset.kind;
     return;
+  }
+
+  const shouldUseExchangeTitle =
+    hasExchangeTiers && /exchange/.test(`${sanitizeText(block?.id)} ${sanitizeText(block?.category)} ${sanitizeText(block?.title)}`.toLowerCase());
+  const isExchangeAccountsList =
+    !hasExchangeTiers &&
+    /exchange/.test(`${sanitizeText(block?.id)} ${sanitizeText(block?.category)} ${sanitizeText(block?.title)}`.toLowerCase());
+
+  const entries = hasExchangeTiers ? exchangeTiers : bankEntries;
+  if (hasExchangeTiers) {
+    els.spotlightBankPriceTitle.textContent = shouldUseExchangeTitle ? "Commissioni applicate" : "Condizioni";
+    els.spotlightBankPricePanel.dataset.kind = "exchange";
+  } else if (isExchangeAccountsList) {
+    els.spotlightBankPriceTitle.textContent = "Account Exchange disponibili";
+    els.spotlightBankPricePanel.dataset.kind = "banks";
+  } else {
+    els.spotlightBankPriceTitle.textContent = "Banche disponibili";
+    els.spotlightBankPricePanel.dataset.kind = "banks";
   }
 
   els.spotlightBankPriceList.innerHTML = entries
     .map(
       (entry) => `
         <li>
-          <span>${escapeHtml(entry.bank)}</span>
-          <strong>${escapeHtml(entry.price)}</strong>
+          <span>${escapeHtml(entry.label)}</span>
+          <strong>${escapeHtml(entry.value)}</strong>
         </li>
       `
     )
@@ -825,9 +871,12 @@ function renderMiniCards(filteredBlocks) {
   els.serviceBlocksGrid.innerHTML = blocks
     .map((block, index) => {
       const activeClass = block.id === catalogState.activeServiceId ? "is-active" : "";
-      const miniMetrics = isFintechServiceBlock(block)
-        ? getFintechMetrics(block).map((metric) => metric.value).slice(0, 2)
-        : (block.kpis || []).slice(0, 2);
+      const noteSource =
+        sanitizeText(block?.priceNote) ||
+        (Array.isArray(block?.features) && sanitizeText(block.features[0])) ||
+        sanitizeText(block?.description);
+      const note =
+        noteSource.length > 84 ? `${noteSource.slice(0, 82).trim()}...` : noteSource;
 
       return `
         <article class="service-mini-card ${activeClass}" data-service-select="${escapeHtmlAttr(
@@ -839,13 +888,34 @@ function renderMiniCards(filteredBlocks) {
           </div>
           <h3 class="service-mini-title">${escapeHtml(block.title)}</h3>
           <p class="service-mini-price">${escapeHtml(block.price)}</p>
-          <div class="service-mini-kpis">
-            ${miniMetrics.map((metric) => `<span class="mini-kpi">${escapeHtml(metric)}</span>`).join("")}
-          </div>
+          ${note ? `<p class="service-mini-note">${escapeHtml(note)}</p>` : ""}
         </article>
       `;
     })
     .join("");
+
+  syncActiveMiniCardInView();
+}
+
+function syncActiveMiniCardInView() {
+  if (!els.serviceBlocksGrid) return;
+  if (catalogState.viewMode !== "story") return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+  const activeId = sanitizeText(catalogState.activeServiceId);
+  if (!activeId) return;
+  const escapedId =
+    typeof CSS !== "undefined" && typeof CSS.escape === "function"
+      ? CSS.escape(activeId)
+      : activeId.replace(/["\\]/g, "\\$&");
+  const activeCard = els.serviceBlocksGrid.querySelector(`[data-service-select="${escapedId}"]`);
+  if (!activeCard || typeof activeCard.scrollIntoView !== "function") return;
+
+  activeCard.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest",
+    inline: "center",
+  });
 }
 
 function moveActiveService(step) {
@@ -910,6 +980,7 @@ function renderSocialSection(socialProof, platforms) {
   }
   if (els.socialSubtitle) {
     els.socialSubtitle.textContent = socialProof.subtitle;
+    els.socialSubtitle.hidden = !sanitizeText(socialProof.subtitle);
   }
 
   if (!els.socialGrid) return;
@@ -1000,7 +1071,7 @@ function setupSceneMotion() {
 function setupExperienceRail() {
   if (!els.experienceRail) return;
 
-  const sections = Array.from(document.querySelectorAll("[data-rail-label]"));
+  const sections = Array.from(document.querySelectorAll(".services-shell [data-rail-label]"));
   if (sections.length === 0) {
     els.experienceRail.innerHTML = "";
     return;
@@ -1027,7 +1098,7 @@ function setupExperienceRail() {
               type="button"
               class="rail-dot"
               data-rail-target="${escapeHtmlAttr(item.id)}"
-              data-rail-label="${escapeHtmlAttr(item.label)}"
+              data-rail-tooltip="${escapeHtmlAttr(item.label)}"
               aria-label="Vai a ${escapeHtmlAttr(item.label)}"
             ></button>
           `
@@ -1122,6 +1193,56 @@ function observeRevealNodes() {
   document.querySelectorAll(".reveal-item").forEach((node) => revealObserver.observe(node));
 }
 
+function setupSectionFlowMotion() {
+  sectionFlowNodes = Array.from(document.querySelectorAll(".services-shell > .reveal-item"));
+  if (sectionFlowNodes.length === 0) return;
+
+  sectionFlowNodes.forEach((node, index) => {
+    node.style.setProperty("--reveal-delay", `${Math.min(360, index * 85)}ms`);
+  });
+
+  const requestUpdate = () => {
+    if (sectionFlowRaf) return;
+    sectionFlowRaf = window.requestAnimationFrame(updateSectionFlowMotion);
+  };
+
+  if (document.body.dataset.sectionFlowBound !== "1") {
+    document.body.dataset.sectionFlowBound = "1";
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+  }
+
+  requestUpdate();
+}
+
+function updateSectionFlowMotion() {
+  sectionFlowRaf = 0;
+  if (!Array.isArray(sectionFlowNodes) || sectionFlowNodes.length === 0) return;
+
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    sectionFlowNodes.forEach((node) => {
+      node.style.setProperty("--section-shift", "0px");
+      node.style.setProperty("--section-visibility", "1");
+    });
+    return;
+  }
+
+  const viewport = Math.max(1, window.innerHeight);
+  const halfViewport = viewport / 2;
+
+  sectionFlowNodes.forEach((node) => {
+    const rect = node.getBoundingClientRect();
+    const centerY = rect.top + rect.height / 2;
+    const distance = (centerY - halfViewport) / halfViewport;
+    const clampedDistance = Math.max(-1.2, Math.min(1.2, distance));
+    const shift = Math.max(-20, Math.min(20, clampedDistance * -15));
+    const visibility = Math.max(0, Math.min(1, 1 - Math.abs(clampedDistance) * 0.82));
+
+    node.style.setProperty("--section-shift", `${shift.toFixed(2)}px`);
+    node.style.setProperty("--section-visibility", visibility.toFixed(3));
+  });
+}
+
 function applyAccentTheme(accent) {
   const nextAccent = SUPPORTED_ACCENTS.includes(sanitizeText(accent).toLowerCase())
     ? sanitizeText(accent).toLowerCase()
@@ -1152,6 +1273,43 @@ function setupCursorAura() {
   });
 }
 
+function setupCtaMicroInteractions() {
+  if (document.body.dataset.ctaMicroBound === "1") return;
+  document.body.dataset.ctaMicroBound = "1";
+
+  const rippleSelector = ".hero-link, .hero-btn, .filter-btn, .switch-btn, .story-btn";
+
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+      const target = event.target instanceof Element ? event.target.closest(rippleSelector) : null;
+      if (!(target instanceof HTMLElement)) return;
+
+      const rect = target.getBoundingClientRect();
+      const width = Math.max(1, rect.width);
+      const height = Math.max(1, rect.height);
+      const size = Math.max(width, height) * 1.65;
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      target.style.setProperty("--ripple-size", `${size.toFixed(2)}px`);
+      target.style.setProperty("--ripple-x", `${x.toFixed(2)}px`);
+      target.style.setProperty("--ripple-y", `${y.toFixed(2)}px`);
+
+      target.classList.remove("is-rippling");
+      void target.offsetWidth;
+      target.classList.add("is-rippling");
+
+      window.setTimeout(() => {
+        target.classList.remove("is-rippling");
+      }, 760);
+    },
+    { passive: true }
+  );
+}
+
 function setupSpotlightTilt() {
   if (!els.spotlightBox) return;
   if (window.matchMedia?.("(pointer: coarse)")?.matches) return;
@@ -1163,17 +1321,118 @@ function setupSpotlightTilt() {
     const rect = box.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
+    const xPercent = Math.max(0, Math.min(1, x)) * 100;
+    const yPercent = Math.max(0, Math.min(1, y)) * 100;
 
-    const rotateY = (x - 0.5) * 4.8;
-    const rotateX = (0.5 - y) * 4.8;
+    const rotateY = (x - 0.5) * 2.4;
+    const rotateX = (0.5 - y) * 2.4;
     box.style.transform = `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+    box.style.setProperty("--glow-x", `${xPercent.toFixed(2)}%`);
+    box.style.setProperty("--glow-y", `${yPercent.toFixed(2)}%`);
     box.classList.add("is-hovered");
   });
 
   box.addEventListener("pointerleave", () => {
     box.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)";
+    box.style.setProperty("--glow-x", "50%");
+    box.style.setProperty("--glow-y", "50%");
     box.classList.remove("is-hovered");
   });
+}
+
+function setupStorySwipeGestures() {
+  if (!els.spotlightBox) return;
+  if (els.spotlightBox.dataset.storySwipeBound === "1") return;
+
+  const surface = els.spotlightBox;
+  surface.dataset.storySwipeBound = "1";
+
+  let pointerId = null;
+  let startX = 0;
+  let startY = 0;
+  let startedAt = 0;
+
+  const reset = () => {
+    pointerId = null;
+    startX = 0;
+    startY = 0;
+    startedAt = 0;
+    surface.classList.remove("is-grabbing");
+  };
+
+  surface.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    if (event.target instanceof Element && event.target.closest("button, a, input, label")) return;
+
+    pointerId = event.pointerId;
+    startX = event.clientX;
+    startY = event.clientY;
+    startedAt = performance.now();
+    surface.classList.add("is-grabbing");
+
+    if (catalogState.viewMode === "story") {
+      stopStoryAutoplay();
+    }
+  });
+
+  const onPointerUp = (event) => {
+    if (pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - startX;
+    const deltaY = event.clientY - startY;
+    const elapsed = Math.max(1, performance.now() - startedAt);
+    const velocity = Math.abs(deltaX) / elapsed;
+
+    reset();
+
+    if (catalogState.viewMode !== "story") return;
+
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    const horizontalIntent = absX > absY * 1.2;
+    const distanceSwipe = absX >= 44;
+    const flickSwipe = absX >= 28 && velocity >= 0.52;
+
+    if (horizontalIntent && (distanceSwipe || flickSwipe)) {
+      moveActiveService(deltaX < 0 ? 1 : -1);
+    }
+
+    syncStoryAutoplay(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
+  };
+
+  surface.addEventListener("pointerup", onPointerUp);
+  surface.addEventListener("pointercancel", () => {
+    if (pointerId === null) return;
+    reset();
+    syncStoryAutoplay(getFilteredServiceBlocks(servicesPageData?.serviceBlocks || []));
+  });
+}
+
+function triggerSpotlightTransition(nextId) {
+  const safeId = sanitizeText(nextId);
+  if (!safeId || !els.spotlightBox) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    activeSpotlightId = safeId;
+    return;
+  }
+  if (!activeSpotlightId) {
+    activeSpotlightId = safeId;
+    return;
+  }
+  if (activeSpotlightId === safeId) return;
+
+  activeSpotlightId = safeId;
+  if (spotlightTransitionTimer) {
+    window.clearTimeout(spotlightTransitionTimer);
+    spotlightTransitionTimer = null;
+  }
+
+  els.spotlightBox.classList.remove("is-switching");
+  void els.spotlightBox.offsetWidth;
+  els.spotlightBox.classList.add("is-switching");
+  spotlightTransitionTimer = window.setTimeout(() => {
+    els.spotlightBox?.classList.remove("is-switching");
+  }, 360);
 }
 
 function applyMagneticTargets() {
@@ -1196,8 +1455,8 @@ function applyMagneticTargets() {
       const offsetX = event.clientX - (rect.left + rect.width / 2);
       const offsetY = event.clientY - (rect.top + rect.height / 2);
 
-      const shiftX = Math.max(-8, Math.min(8, offsetX * 0.09));
-      const shiftY = Math.max(-8, Math.min(8, offsetY * 0.09));
+      const shiftX = Math.max(-4, Math.min(4, offsetX * 0.05));
+      const shiftY = Math.max(-4, Math.min(4, offsetY * 0.05));
       node.style.transform = `translate(${shiftX.toFixed(2)}px, ${shiftY.toFixed(2)}px)`;
     });
 
@@ -1205,118 +1464,6 @@ function applyMagneticTargets() {
       node.style.transform = "translate(0px, 0px)";
     });
   });
-}
-
-function isFintechServiceBlock(block) {
-  const category = sanitizeText(block?.category).toLowerCase();
-  const id = sanitizeText(block?.id).toLowerCase();
-  const hasFintechMetrics = Array.isArray(block?.fintechMetrics) && block.fintechMetrics.length > 0;
-  const hasBankPricing = Array.isArray(block?.bankPriceList) && block.bankPriceList.length > 0;
-  if (hasFintechMetrics) return true;
-  if (hasBankPricing) return true;
-
-  return category.includes("fintech") || id.includes("exchange") || id.includes("wallet") || id.includes("bank");
-}
-
-function getFintechMetrics(block) {
-  const exchangeService = isExchangeServiceBlock(block);
-  const rawMetrics = Array.isArray(block?.fintechMetrics) ? block.fintechMetrics : [];
-  const normalized = rawMetrics
-    .map((metric) => ({
-      label: sanitizeText(metric?.label),
-      value: sanitizeText(metric?.value),
-    }))
-    .filter((metric) => metric.label && metric.value)
-    .slice(0, 8);
-
-  if (exchangeService && (normalized.length === 0 || isLegacyExchangeFintechMetrics(normalized))) {
-    return EXCHANGE_TIER_METRICS.map((entry) => ({ ...entry }));
-  }
-
-  if (normalized.length > 0) {
-    return normalized;
-  }
-
-  return inferFintechMetricsFromKpis(Array.isArray(block?.kpis) ? block.kpis : []);
-}
-
-function isExchangeServiceBlock(block) {
-  const id = sanitizeText(block?.id).toLowerCase();
-  const category = sanitizeText(block?.category).toLowerCase();
-  const title = sanitizeText(block?.title).toLowerCase();
-  return id.includes("exchange") || category.includes("exchange") || title.includes("exchange");
-}
-
-function isLegacyExchangeFintechMetrics(metrics) {
-  const list = Array.isArray(metrics) ? metrics : [];
-  if (list.length > 3) return false;
-
-  return list.every((metric) => {
-    const label = sanitizeText(metric?.label).toLowerCase();
-    return label.startsWith("fee") || label.startsWith("spread") || label.startsWith("sla") || label.startsWith("settlement");
-  });
-}
-
-function inferFintechMetricsFromKpis(kpis) {
-  const knownLabels = [
-    { probe: "fee service", label: "Fee service" },
-    { probe: "fee", label: "Fee" },
-    { probe: "spread", label: "Spread" },
-    { probe: "settlement", label: "Settlement" },
-    { probe: "sla", label: "SLA" },
-    { probe: "cold storage", label: "Cold storage" },
-    { probe: "audit accessi", label: "Audit accessi" },
-  ];
-
-  return kpis
-    .map((entry, index) => {
-      const text = sanitizeText(entry);
-      if (!text) return null;
-
-      const percentEndingMatch = text.match(/^(.*?)(\d+(?:[.,]\d+)?\s*%)$/);
-      if (percentEndingMatch) {
-        const label = sanitizeText(percentEndingMatch[1]).replace(/[:|-]+$/g, "").trim();
-        const value = sanitizeText(percentEndingMatch[2]);
-        if (label && value) {
-          return { label, value };
-        }
-      }
-
-      if (text.includes("|")) {
-        const [labelPart, ...valueParts] = text.split("|");
-        const label = sanitizeText(labelPart);
-        const value = sanitizeText(valueParts.join("|"));
-        if (label && value) {
-          return { label, value };
-        }
-      }
-
-      if (text.includes(":")) {
-        const [labelPart, ...valueParts] = text.split(":");
-        const label = sanitizeText(labelPart);
-        const value = sanitizeText(valueParts.join(":"));
-        if (label && value) {
-          return { label, value };
-        }
-      }
-
-      const lower = text.toLowerCase();
-      const match = knownLabels.find((candidate) => lower.startsWith(candidate.probe));
-      if (match) {
-        const stripped = text.slice(match.probe.length).replace(/^[-:\s]+/, "").trim();
-        return {
-          label: match.label,
-          value: stripped || text,
-        };
-      }
-
-      return {
-        label: `Metrica ${index + 1}`,
-        value: text,
-      };
-    })
-    .filter(Boolean)
-    .slice(0, 8);
 }
 
 function normalizeServicesPage(input) {
@@ -1402,7 +1549,7 @@ function normalizeServicesPage(input) {
               price: sanitizeText(entry?.price || entry?.value),
             }))
             .filter((entry) => entry.bank && entry.price)
-            .slice(0, 20)
+            .slice(0, 60)
         : [];
 
       return {
@@ -1427,13 +1574,54 @@ function normalizeServicesPage(input) {
     description: sanitizeText(closingRaw.description) || sanitizeText(defaults.closing?.description) || "",
   };
 
+  const normalizedSupplementaryBlocks = ensureSupplementaryServiceBlocks(serviceBlocks, defaults.serviceBlocks || []);
+
   return {
     hero,
     socialProof,
     socialPlatforms,
-    serviceBlocks,
+    serviceBlocks: normalizedSupplementaryBlocks,
     closing,
   };
+}
+
+function hasBankingServiceBlock(serviceBlocks) {
+  const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+  return blocks.some((block) => {
+    const id = sanitizeText(block?.id).toLowerCase();
+    return id === "bank-accounts-and-crypto-wallets" || id === "banking-wallet-services";
+  });
+}
+
+function hasExchangeAccountsServiceBlock(serviceBlocks) {
+  const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+  return blocks.some((block) => sanitizeText(block?.id).toLowerCase() === "exchange-accounts-services");
+}
+
+function ensureSupplementaryServiceBlocks(serviceBlocks, defaultBlocks) {
+  const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+  const defaults = Array.isArray(defaultBlocks) ? defaultBlocks : [];
+  const nextBlocks = [...blocks];
+
+  if (!hasExchangeAccountsServiceBlock(nextBlocks)) {
+    const defaultExchangeAccounts = defaults.find(
+      (block) => sanitizeText(block?.id).toLowerCase() === "exchange-accounts-services"
+    );
+    if (defaultExchangeAccounts) {
+      nextBlocks.push(JSON.parse(JSON.stringify(defaultExchangeAccounts)));
+    }
+  }
+
+  if (!hasBankingServiceBlock(nextBlocks)) {
+    const defaultBanking = defaults.find(
+      (block) => sanitizeText(block?.id).toLowerCase() === "bank-accounts-and-crypto-wallets"
+    );
+    if (defaultBanking) {
+      nextBlocks.push(JSON.parse(JSON.stringify(defaultBanking)));
+    }
+  }
+
+  return nextBlocks;
 }
 
 function normalizeAccent(value) {

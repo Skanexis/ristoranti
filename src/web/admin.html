@@ -290,7 +290,7 @@
                           <p id="serviceBlockFormTitle" class="form-mode">Nuovo blocco servizio</p>
                           <label>
                             ID blocco
-                            <input id="serviceBlockId" type="text" maxlength="80" placeholder="es. telegram-miniapp-websites" />
+                            <input id="serviceBlockId" type="text" maxlength="80" placeholder="es. chat-moderation-bots" />
                           </label>
                           <label>
                             Categoria
@@ -307,11 +307,11 @@
                           <div class="admin-grid admin-grid-gap">
                             <label>
                               Prezzo
-                              <input id="serviceBlockPrice" type="text" maxlength="64" placeholder="da EUR 390" required />
+                              <input id="serviceBlockPrice" type="text" maxlength="64" placeholder="a partire da 65€" required />
                             </label>
                             <label>
                               Nota prezzo
-                              <input id="serviceBlockPriceNote" type="text" maxlength="120" placeholder="setup base + policy personalizzate" />
+                              <input id="serviceBlockPriceNote" type="text" maxlength="120" placeholder="Mantenimento: 5€ al mese" />
                             </label>
                             <label>
                               Colore blocco
@@ -344,7 +344,7 @@
                             <textarea
                               id="serviceBlockFintechMetrics"
                               rows="4"
-                              placeholder="Fino a EUR 500|12%&#10;Fino a EUR 1100|10,5%&#10;Fino a EUR 5000|9%"
+                              placeholder="Fino a 750€|11%&#10;Fino a 1.500€|9%&#10;Fino a 5.000€|5%&#10;Fino a 10.000€|3,5%"
                             ></textarea>
                           </label>
                           <label>
@@ -352,7 +352,7 @@
                             <textarea
                               id="serviceBlockBankPriceList"
                               rows="5"
-                              placeholder="Revolut Business|EUR 290&#10;N26 Business|EUR 260&#10;Wise Business|EUR 310"
+                              placeholder="Bitsa|250€&#10;Wise|300€&#10;UniCredit|400€&#10;Postepay|500€&#10;Conto nome a scelta|800€+"
                             ></textarea>
                           </label>
                           <div class="admin-form-actions">
@@ -707,7 +707,7 @@
       <option value="WhatsApp"></option>
     </datalist>
 
-    <script src="/shared/data-store.js?v=20260321-9"></script>
-    <script src="./admin.js?v=20260321-9"></script>
+    <script src="/shared/data-store.js?v=20260321-14"></script>
+    <script src="./admin.js?v=20260321-14"></script>
   </body>
 </html>

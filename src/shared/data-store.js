@@ -207,19 +207,19 @@
     },
     servicesPage: {
       hero: {
-        badge: "YOSUPPORT Digital Studio",
+        badge: "Servizi Professionali",
         title: "I nostri servizi",
         subtitle:
-          "Progettiamo ecosistemi digitali completi: bot Telegram avanzati, piattaforme web e strumenti operativi su misura.",
-        highlight: "Soluzioni minimal, veloci e amministrabili in tempo reale.",
+          "Programmazione bot Telegram e soluzioni Exchange Crypto con condizioni chiare, supporto operativo e gestione professionale.",
+        highlight: "Listino ufficiale aggiornabile da admin, con visualizzazione semplice e immediata.",
         primaryCtaLabel: "Richiedi preventivo",
         primaryCtaUrl: "https://t.me/SHLC26",
-        secondaryCtaLabel: "Parla con un consulente",
+        secondaryCtaLabel: "Contatto diretto",
         secondaryCtaUrl: "https://t.me/SHLC26",
       },
       socialProof: {
-        title: "Social network europei più richiesti",
-        subtitle: "Piani di crescita brand su canali ad alta trazione in Europa.",
+        title: "Canali digitali europei più richiesti",
+        subtitle: "Supporto operativo e presenza multi-canale per progetti professionali.",
       },
       socialPlatforms: [
         {
@@ -261,168 +261,176 @@
       serviceBlocks: [
         {
           id: "chat-moderation-bots",
-          category: "Bot Telegram",
-          title: "Sviluppo bot per moderazione chat",
+          category: "Programmazione",
+          title: "Bot per moderazione chat",
           description:
-            "Bot dedicati alla moderazione automatica con filtri anti-spam, regole personalizzate e log eventi in tempo reale.",
-          price: "da EUR 390",
-          priceNote: "setup base + policy personalizzate",
-          kpis: ["Delivery da 48h", "Policy su misura", "Uptime 99,9%"],
+            "Sviluppo di bot dedicati alla moderazione di chat e community, progettati per migliorare controllo, ordine e gestione degli utenti.",
+          price: "a partire da 65€",
+          priceNote: "Mantenimento: 5€ al mese",
           accent: "amber",
           featured: true,
           features: [
-            "Filtri keyword, flood e anti-link",
-            "Ruoli admin e permessi granulari",
-            "Report giornalieri automatici",
+            "Moderazione automatica dei messaggi",
+            "Gestione regole e permessi base",
+            "Supporto operativo continuativo",
           ],
         },
         {
           id: "antiscam-community-bots",
-          category: "Bot Telegram",
-          title: "Sviluppo bot per community antiscam",
+          category: "Programmazione",
+          title: "Bot per community Anti-Scam",
           description:
-            "Automazioni dedicate all'identificazione precoce di tentativi fraudolenti e alla gestione sicura delle segnalazioni utenti.",
-          price: "da EUR 640",
-          priceNote: "include configurazione workflow anti-frode",
-          kpis: ["False positive < 2%", "Alert real-time", "Escalation 24/7"],
+            "Sviluppo di bot specifici per community anti-truffa, pensati per supportare moderazione, controllo e gestione operativa della community.",
+          price: "a partire da 180€",
+          priceNote: "Mantenimento: 10€ al mese",
           accent: "rose",
-          featured: true,
-          features: [
-            "Blacklist/whitelist dinamiche",
-            "Sistema ticket e raccolta prove",
-            "Alert immediati agli amministratori",
-          ],
-        },
-        {
-          id: "clean-chat-multimedia-bots",
-          category: "Bot Telegram",
-          title: "Bot con chat pulita e menu multimediale",
-          description:
-            "Bot evoluti con menu multimediale, gestione contenuti, onboarding guidato e funzioni modulari espandibili.",
-          price: "da EUR 520",
-          priceNote: "menu, comandi custom e onboarding",
-          kpis: ["Onboarding < 60s", "Menu multimediale", "Comandi modulari"],
-          accent: "cyan",
           featured: false,
           features: [
-            "Menu visuale con pulsanti dinamici",
-            "Gestione media (foto, video, GIF)",
-            "Funzioni estendibili su richiesta",
+            "Moderazione operativa dedicata",
+            "Controllo segnalazioni community",
+            "Supporto anti-truffa strutturato",
           ],
         },
         {
-          id: "telegram-miniapp-websites",
-          category: "Web Telegram",
-          title: "Siti web integrati in Telegram Mini App",
+          id: "advanced-multimedia-menu-bots",
+          category: "Programmazione",
+          title: "Bot avanzati con menu multimediale",
           description:
-            "Realizzazione siti e portali con integrazione Mini App Telegram e gestione amministrativa tramite bot privato dedicato.",
-          price: "da EUR 850",
-          priceNote: "mini app + pannello admin via bot",
-          kpis: ["Admin via bot", "UX mobile-first", "Deploy assistito"],
+            "Realizzazione di bot completi con funzionalità avanzate, ideali per community strutturate e progetti professionali.",
+          price: "a partire da 150€",
+          priceNote: "Mantenimento: 10€ al mese",
+          accent: "cyan",
+          featured: true,
+          features: [
+            "Menu multimediale",
+            "Chat pulita",
+            "Gestione categorie e sottocategorie",
+            "Pannello amministrativo semplice e intuitivo",
+            "Organizzazione chiara di contenuti e sezioni",
+          ],
+        },
+        {
+          id: "telegram-miniapp-web-bot-suite",
+          category: "Programmazione",
+          title: "Mini App Telegram + sito web + bot personale",
+          description:
+            "Soluzione completa per chi desidera un sistema moderno, veloce e pratico: Mini App Telegram, sito web e bot personale per gestione rapida via Telegram.",
+          price: "a partire da 260€",
+          priceNote: "Mantenimento: 15€ al mese",
           accent: "emerald",
           featured: true,
           features: [
-            "UX responsive per mobile Telegram",
-            "Workflow admin tramite bot personale",
-            "Deploy e manutenzione operativa",
-          ],
-        },
-        {
-          id: "full-web-applications",
-          category: "Web Development",
-          title: "Sviluppo web application e utilities",
-          description:
-            "Progetti full-stack, dashboard operative, automazioni business e utility digitali disegnate su obiettivi concreti.",
-          price: "da EUR 1200",
-          priceNote: "analisi, sviluppo e rilascio",
-          kpis: ["Stack full-stack", "Scalabilità pronta", "Roadmap sprint"],
-          accent: "cyan",
-          featured: false,
-          features: [
-            "Architettura modulare e scalabile",
-            "Dashboard KPI e ruoli utente",
-            "Integrazione API e strumenti esterni",
-          ],
-        },
-        {
-          id: "social-media-growth",
-          category: "Growth",
-          title: "Servizi di crescita social media",
-          description:
-            "Piani di crescita multi-canale su social europei principali con strategia editoriale, ADV e monitoraggio continuo.",
-          price: "da EUR 300 / mese",
-          priceNote: "pacchetti mensili personalizzabili",
-          kpis: ["CTR +18% medio", "KPI mensili", "ADV ottimizzata"],
-          accent: "amber",
-          featured: false,
-          features: [
-            "Analisi target e competitor",
-            "Calendario contenuti e ADV",
-            "Report performance periodico",
+            "Mini App Telegram integrata",
+            "Sito web professionale",
+            "Bot personale per amministrazione rapida",
+            "Workflow operativo semplificato",
           ],
         },
         {
           id: "crypto-exchange-services",
-          category: "Fintech",
-          title: "Servizi exchange criptovalute",
+          category: "Exchange Crypto",
+          title: "Servizio Exchange Crypto",
           description:
-            "Supporto operativo per procedure exchange crypto, flussi di conversione e configurazione processi in ambienti digitali.",
-          price: "da EUR 450",
-          priceNote: "setup operativo e assistenza flussi",
-          kpis: [
-            "Fino a EUR 500: 12%",
-            "Fino a EUR 1100: 10,5%",
-            "Fino a EUR 5000: 9%",
-            "Fino a EUR 10000: 7,5%",
-            "Oltre EUR 10000: 5%",
-          ],
+            "Servizio di exchange crypto con commissioni calcolate in base all'importo dell'operazione e condizioni trasparenti.",
+          price: "Commissioni variabili per importo",
+          priceNote: "Importo minimo: 350€",
           fintechMetrics: [
-            { label: "Fino a EUR 500", value: "12%" },
-            { label: "Fino a EUR 1100", value: "10,5%" },
-            { label: "Fino a EUR 5000", value: "9%" },
-            { label: "Fino a EUR 10000", value: "7,5%" },
-            { label: "Oltre EUR 10000", value: "5%" },
+            { label: "Fino a 750€", value: "11%" },
+            { label: "Fino a 1.500€", value: "9%" },
+            { label: "Fino a 5.000€", value: "5%" },
+            { label: "Fino a 10.000€", value: "3,5%" },
           ],
           accent: "emerald",
-          featured: false,
+          featured: true,
           features: [
-            "Setup flussi deposito/prelievo",
-            "Procedure operative guidate",
-            "Supporto documentale tecnico",
+            "Commissioni per fascia di importo",
+            "Condizioni operative chiare",
+            "Gestione professionale dell'operazione",
           ],
         },
         {
-          id: "banking-wallet-services",
-          category: "Fintech",
+          id: "exchange-accounts-services",
+          category: "Account Exchange",
+          title: "Account Exchange disponibili",
+          description:
+            "Disponibilita di account exchange con listino trasparente per piattaforma, aggiornabile da admin.",
+          price: "da 250€",
+          priceNote: "Prezzi aggiornati con maggiorazione +100€",
+          bankPriceList: [
+            { bank: "Binance", price: "250€" },
+            { bank: "Coinbase", price: "250€" },
+            { bank: "Kucoin", price: "250€" },
+            { bank: "Crypto", price: "250€" },
+            { bank: "Bitnovo", price: "250€" },
+            { bank: "Nexo", price: "250€" },
+            { bank: "Kraken", price: "250€" },
+            { bank: "Wirex", price: "250€" },
+            { bank: "Trade Republic (Emulatore)", price: "250€" },
+            { bank: "Bybit", price: "250€" },
+            { bank: "Bitget", price: "250€" },
+            { bank: "Robinhood", price: "250€" },
+            { bank: "Exchange nome a scelta", price: "300€" },
+          ],
+          accent: "cyan",
+          featured: false,
+          features: [
+            "Elenco exchange disponibili con prezzo per piattaforma",
+            "Listino aggiornabile dalla sezione admin",
+            "Supporto operativo nella scelta del provider",
+          ],
+        },
+        {
+          id: "bank-accounts-and-crypto-wallets",
+          category: "Account Bancari",
           title: "Servizi account bancari e crypto wallet",
           description:
-            "Assistenza tecnica per configurazione account business e wallet crypto, con attenzione a sicurezza e gestione operativa.",
-          price: "da EUR 590",
-          priceNote: "onboarding tecnico e sicurezza base",
-          kpis: ["Fee service da 1,5%", "Cold storage 95%", "Audit accessi 100%"],
-          fintechMetrics: [
-            { label: "Fee service", value: "da 1,5%" },
-            { label: "Cold storage", value: "95%" },
-            { label: "Audit accessi", value: "100%" },
-          ],
+            "Disponibilita di account bancari e wallet crypto con listino trasparente per provider, gestibile da admin.",
+          price: "da 250€",
+          priceNote: "Prezzi aggiornati con maggiorazione +100€",
           bankPriceList: [
-            { bank: "Revolut Business", price: "EUR 290" },
-            { bank: "N26 Business", price: "EUR 260" },
-            { bank: "Wise Business", price: "EUR 310" },
+            { bank: "Bitsa", price: "250€" },
+            { bank: "Yap", price: "250€" },
+            { bank: "Paysera", price: "250€" },
+            { bank: "Tinaba", price: "250€" },
+            { bank: "Wise", price: "300€" },
+            { bank: "Bankera", price: "300€" },
+            { bank: "Isybank", price: "350€" },
+            { bank: "Buddybank", price: "350€" },
+            { bank: "Illimity", price: "350€" },
+            { bank: "BBVA", price: "350€" },
+            { bank: "Hype", price: "400€" },
+            { bank: "Hello bank!", price: "400€" },
+            { bank: "Fineco", price: "400€" },
+            { bank: "UniCredit", price: "400€" },
+            { bank: "Intesa Sanpaolo", price: "400€" },
+            { bank: "iCard", price: "400€" },
+            { bank: "N26 (Emulatore)", price: "400€" },
+            { bank: "BPER", price: "400€" },
+            { bank: "Credit Agricole", price: "400€" },
+            { bank: "Credem", price: "400€" },
+            { bank: "Banco BPM", price: "400€" },
+            { bank: "Yuh", price: "400€" },
+            { bank: "Bunq (Emulatore)", price: "400€" },
+            { bank: "Vivid (Emulatore)", price: "400€" },
+            { bank: "Findomestic", price: "450€" },
+            { bank: "Mediolanum", price: "450€" },
+            { bank: "Postepay", price: "500€" },
+            { bank: "Revolut (Emulatore)", price: "500€" },
+            { bank: "Conto nome a scelta", price: "800€+" },
           ],
           accent: "rose",
           featured: false,
           features: [
-            "Setup wallet custodial/non-custodial",
-            "Procedure sicurezza operative",
-            "Checklist di gestione accessi",
+            "Elenco banche disponibili con prezzo per provider",
+            "Listino aggiornabile dalla sezione admin",
+            "Supporto operativo in fase di selezione",
           ],
         },
       ],
       closing: {
-        title: "Operatività end-to-end",
+        title: "Servizio chiaro e professionale",
         description:
-          "Dalla fase strategica al rilascio: ogni servizio è progettato per essere controllabile, scalabile e semplice da amministrare.",
+          "Ogni soluzione è presentata in modo trasparente, con prezzi chiari, mantenimento definito e supporto continuo.",
       },
     },
   };
@@ -583,7 +591,65 @@
         };
       })
       .filter(Boolean)
-      .slice(0, 20);
+      .slice(0, 60);
+  }
+
+  function hasBankingServiceBlock(serviceBlocks) {
+    const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+    return blocks.some((block) => {
+      const id = sanitizeString(block?.id).toLowerCase();
+      return id === "bank-accounts-and-crypto-wallets" || id === "banking-wallet-services";
+    });
+  }
+
+  function hasExchangeAccountsServiceBlock(serviceBlocks) {
+    const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+    return blocks.some((block) => sanitizeString(block?.id).toLowerCase() === "exchange-accounts-services");
+  }
+
+  function ensureSupplementaryServiceBlocks(serviceBlocks, defaultBlocks) {
+    const blocks = Array.isArray(serviceBlocks) ? serviceBlocks : [];
+    const defaults = Array.isArray(defaultBlocks) ? defaultBlocks : [];
+    const nextBlocks = [...blocks];
+
+    if (!hasExchangeAccountsServiceBlock(nextBlocks)) {
+      const defaultExchangeAccounts = defaults.find(
+        (block) => sanitizeString(block?.id).toLowerCase() === "exchange-accounts-services"
+      );
+      if (defaultExchangeAccounts) {
+        nextBlocks.push(clone(defaultExchangeAccounts));
+      }
+    }
+
+    if (!hasBankingServiceBlock(nextBlocks)) {
+      const defaultBanking = defaults.find(
+        (block) => sanitizeString(block?.id).toLowerCase() === "bank-accounts-and-crypto-wallets"
+      );
+      if (defaultBanking) {
+        nextBlocks.push(clone(defaultBanking));
+      }
+    }
+
+    return nextBlocks;
+  }
+
+  function shouldApplyOfficialServicesPreset(rawBlocks) {
+    if (!Array.isArray(rawBlocks) || rawBlocks.length === 0) return true;
+
+    const ids = rawBlocks
+      .map((block) => sanitizeString(block?.id).toLowerCase())
+      .filter(Boolean);
+    if (ids.length === 0) return true;
+
+    const legacyMarkers = [
+      "clean-chat-multimedia-bots",
+      "telegram-miniapp-websites",
+      "full-web-applications",
+      "social-media-growth",
+      "banking-wallet-services",
+    ];
+
+    return ids.some((id) => legacyMarkers.includes(id));
   }
 
   function normalizeServicesPage(rawPage) {
@@ -635,7 +701,11 @@
 
     const normalizedSocialPlatforms = socialPlatforms.length ? socialPlatforms : clone(defaults.socialPlatforms);
 
-    const serviceBlocksInput = Array.isArray(page.serviceBlocks) ? page.serviceBlocks : defaults.serviceBlocks;
+    const serviceBlocksInput = shouldApplyOfficialServicesPreset(page.serviceBlocks)
+      ? defaults.serviceBlocks
+      : Array.isArray(page.serviceBlocks)
+        ? page.serviceBlocks
+        : defaults.serviceBlocks;
     const knownBlockIds = new Set();
     const serviceBlocks = serviceBlocksInput
       .map((block, index) => {
@@ -668,7 +738,10 @@
       })
       .filter(Boolean);
 
-    const normalizedServiceBlocks = serviceBlocks.length ? serviceBlocks : clone(defaults.serviceBlocks);
+    const normalizedSupplementaryBlocks = ensureSupplementaryServiceBlocks(serviceBlocks, defaults.serviceBlocks);
+    const normalizedServiceBlocks = normalizedSupplementaryBlocks.length
+      ? normalizedSupplementaryBlocks
+      : clone(defaults.serviceBlocks);
 
     const closing = {
       title: sanitizeString(closingRaw.title) || defaults.closing.title,
