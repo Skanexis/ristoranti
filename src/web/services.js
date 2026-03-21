@@ -68,8 +68,6 @@ let lastViewportWidth = typeof window !== "undefined" ? window.innerWidth : 0;
 let mobileSpotlightState = {
   hasConditions: false,
   hasFeatures: false,
-  ratesOpen: false,
-  featuresOpen: false,
 };
 
 const els = {
@@ -98,11 +96,7 @@ const els = {
   spotlightDescription: document.getElementById("spotlightDescription"),
   spotlightPrice: document.getElementById("spotlightPrice"),
   spotlightPriceNote: document.getElementById("spotlightPriceNote"),
-  spotlightMobileToggles: document.getElementById("spotlightMobileToggles"),
-  toggleFeaturesBtn: document.getElementById("toggleFeaturesBtn"),
-  toggleRatesBtn: document.getElementById("toggleRatesBtn"),
   spotlightBankPricePanel: document.getElementById("spotlightBankPricePanel"),
-  spotlightBankPriceTitle: document.getElementById("spotlightBankPriceTitle"),
   spotlightBankPriceList: document.getElementById("spotlightBankPriceList"),
   spotlightFeatures: document.getElementById("spotlightFeatures"),
 
@@ -163,28 +157,6 @@ function bindEvents() {
         els.serviceTopOnly.checked = false;
       }
       renderServiceCatalog(servicesPageData?.serviceBlocks || []);
-    });
-  }
-
-  if (els.toggleFeaturesBtn) {
-    els.toggleFeaturesBtn.addEventListener("click", () => {
-      if (!mobileSpotlightState.hasFeatures) return;
-      mobileSpotlightState.featuresOpen = true;
-      if (mobileSpotlightState.hasConditions) {
-        mobileSpotlightState.ratesOpen = false;
-      }
-      applyMobileSpotlightSections();
-    });
-  }
-
-  if (els.toggleRatesBtn) {
-    els.toggleRatesBtn.addEventListener("click", () => {
-      if (!mobileSpotlightState.hasConditions) return;
-      mobileSpotlightState.ratesOpen = true;
-      if (mobileSpotlightState.hasFeatures) {
-        mobileSpotlightState.featuresOpen = false;
-      }
-      applyMobileSpotlightSections();
     });
   }
 
@@ -772,19 +744,6 @@ function renderSpotlight(activeBlock, filteredBlocks) {
   const hasFeatures = renderSpotlightFeatures(activeBlock);
   mobileSpotlightState.hasConditions = hasConditions;
   mobileSpotlightState.hasFeatures = hasFeatures;
-  if (hasConditions && hasFeatures) {
-    mobileSpotlightState.featuresOpen = true;
-    mobileSpotlightState.ratesOpen = false;
-  } else if (hasConditions) {
-    mobileSpotlightState.featuresOpen = false;
-    mobileSpotlightState.ratesOpen = true;
-  } else if (hasFeatures) {
-    mobileSpotlightState.featuresOpen = true;
-    mobileSpotlightState.ratesOpen = false;
-  } else {
-    mobileSpotlightState.featuresOpen = false;
-    mobileSpotlightState.ratesOpen = false;
-  }
   applyMobileSpotlightSections();
   renderStoryMeta(activeBlock, filteredBlocks);
 }
@@ -818,16 +777,11 @@ function setSpotlightEmpty() {
   if (els.spotlightBankPriceList) {
     els.spotlightBankPriceList.innerHTML = "";
   }
-  if (els.spotlightBankPriceTitle) {
-    els.spotlightBankPriceTitle.textContent = "Condizioni";
-  }
   if (els.spotlightFeatures) {
     els.spotlightFeatures.innerHTML = "";
   }
   mobileSpotlightState.hasConditions = false;
   mobileSpotlightState.hasFeatures = false;
-  mobileSpotlightState.featuresOpen = false;
-  mobileSpotlightState.ratesOpen = false;
   applyMobileSpotlightSections();
   if (els.storyPosition) {
     els.storyPosition.textContent = "0 / 0";
@@ -878,9 +832,6 @@ function setSpotlightClosed(activeBlock, filteredBlocks) {
   if (els.spotlightBankPriceList) {
     els.spotlightBankPriceList.innerHTML = "";
   }
-  if (els.spotlightBankPriceTitle) {
-    els.spotlightBankPriceTitle.textContent = "Condizioni";
-  }
   if (els.spotlightFeatures) {
     els.spotlightFeatures.innerHTML = "";
     els.spotlightFeatures.hidden = true;
@@ -888,8 +839,6 @@ function setSpotlightClosed(activeBlock, filteredBlocks) {
 
   mobileSpotlightState.hasConditions = false;
   mobileSpotlightState.hasFeatures = false;
-  mobileSpotlightState.featuresOpen = false;
-  mobileSpotlightState.ratesOpen = false;
   applyMobileSpotlightSections();
   renderStoryMeta(activeBlock || null, filteredBlocks);
 }
@@ -914,7 +863,7 @@ function renderSpotlightFeatures(block) {
 }
 
 function renderSpotlightConditions(block) {
-  if (!els.spotlightBankPricePanel || !els.spotlightBankPriceList || !els.spotlightBankPriceTitle) return false;
+  if (!els.spotlightBankPricePanel || !els.spotlightBankPriceList) return false;
 
   const exchangeTiers = Array.isArray(block?.fintechMetrics)
     ? block.fintechMetrics
@@ -940,7 +889,6 @@ function renderSpotlightConditions(block) {
   const hasBanks = bankEntries.length > 0;
 
   if (!hasExchangeTiers && !hasBanks) {
-    els.spotlightBankPriceTitle.textContent = "Condizioni";
     els.spotlightBankPriceList.innerHTML = "";
     els.spotlightBankPricePanel.hidden = true;
     delete els.spotlightBankPricePanel.dataset.kind;
@@ -956,19 +904,15 @@ function renderSpotlightConditions(block) {
   let entries = [];
   if (hasBanks && isExchangeAccountsList) {
     entries = bankEntries;
-    els.spotlightBankPriceTitle.textContent = "Account Exchange disponibili";
     els.spotlightBankPricePanel.dataset.kind = "banks";
   } else if (hasExchangeTiers && isExchangeCommissionService) {
     entries = exchangeTiers;
-    els.spotlightBankPriceTitle.textContent = "Commissioni applicate";
     els.spotlightBankPricePanel.dataset.kind = "exchange";
   } else if (hasBanks) {
     entries = bankEntries;
-    els.spotlightBankPriceTitle.textContent = "Banche disponibili";
     els.spotlightBankPricePanel.dataset.kind = "banks";
   } else {
     entries = exchangeTiers;
-    els.spotlightBankPriceTitle.textContent = "Condizioni";
     els.spotlightBankPricePanel.dataset.kind = "exchange";
   }
 
@@ -989,32 +933,13 @@ function renderSpotlightConditions(block) {
 function applyMobileSpotlightSections() {
   const hasConditions = Boolean(mobileSpotlightState.hasConditions);
   const hasFeatures = Boolean(mobileSpotlightState.hasFeatures);
-  const isMobile = window.matchMedia?.("(max-width: 760px)")?.matches;
-
-  if (els.spotlightMobileToggles) {
-    els.spotlightMobileToggles.hidden = !isMobile || (!hasConditions && !hasFeatures);
-  }
-
-  if (els.toggleFeaturesBtn) {
-    els.toggleFeaturesBtn.hidden = !hasFeatures;
-    const active = hasFeatures && (!isMobile || mobileSpotlightState.featuresOpen);
-    els.toggleFeaturesBtn.classList.toggle("is-active", active);
-    els.toggleFeaturesBtn.setAttribute("aria-pressed", active ? "true" : "false");
-  }
-
-  if (els.toggleRatesBtn) {
-    els.toggleRatesBtn.hidden = !hasConditions;
-    const active = hasConditions && (!isMobile || mobileSpotlightState.ratesOpen);
-    els.toggleRatesBtn.classList.toggle("is-active", active);
-    els.toggleRatesBtn.setAttribute("aria-pressed", active ? "true" : "false");
-  }
 
   if (els.spotlightFeatures) {
-    els.spotlightFeatures.hidden = !hasFeatures || (isMobile && !mobileSpotlightState.featuresOpen);
+    els.spotlightFeatures.hidden = !hasFeatures;
   }
 
   if (els.spotlightBankPricePanel) {
-    els.spotlightBankPricePanel.hidden = !hasConditions || (isMobile && !mobileSpotlightState.ratesOpen);
+    els.spotlightBankPricePanel.hidden = !hasConditions;
   }
 }
 
