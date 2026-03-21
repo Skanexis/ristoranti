@@ -21,6 +21,36 @@
 
       * { box-sizing: border-box; }
 
+      html,
+      body {
+        -webkit-touch-callout: none;
+      }
+
+      body,
+      body * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      input,
+      textarea,
+      select,
+      button,
+      [contenteditable],
+      [contenteditable="true"] {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+      }
+
+      img,
+      svg {
+        -webkit-user-drag: none;
+        user-drag: none;
+      }
+
       body {
         margin: 0;
         font-family: "Plus Jakarta Sans", sans-serif;
@@ -155,7 +185,7 @@
     <main class="legal-wrap">
       <section class="legal-top">
         <h1>Privacy, Termini e Disclaimer</h1>
-        <a class="legal-back" href="./index.html">Torna al sito</a>
+        <a class="legal-back" href="/">Torna al sito</a>
       </section>
 
       <article class="legal-content">

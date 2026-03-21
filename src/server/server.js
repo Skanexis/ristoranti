@@ -401,12 +401,21 @@ async function handleStaticRequest(req, res, pathname) {
     return;
   }
 
+  const canonicalRedirect = getCanonicalPageRedirect(pathname);
+  if (canonicalRedirect) {
+    sendRedirect(res, canonicalRedirect, 301);
+    return;
+  }
+
   let relativePath = pathname;
   if (relativePath === "/") {
     relativePath = "/index.html";
   }
   if (relativePath === "/admin" || relativePath === "/admin/") {
     relativePath = "/admin.html";
+  }
+  if (relativePath === "/legal" || relativePath === "/legal/") {
+    relativePath = "/legal.html";
   }
   if (
     relativePath === "/services" ||
@@ -494,6 +503,39 @@ function sendJson(res, statusCode, payload, extraHeaders = {}) {
   const body = JSON.stringify(payload);
   res.writeHead(statusCode, headers);
   res.end(body);
+}
+
+function sendRedirect(res, location, statusCode = 301) {
+  const safeLocation = typeof location === "string" && location ? location : "/";
+  res.writeHead(statusCode, {
+    Location: safeLocation,
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "same-origin",
+  });
+  res.end();
+}
+
+function getCanonicalPageRedirect(pathname) {
+  switch (pathname) {
+    case "/index.html":
+      return "/";
+    case "/admin.html":
+    case "/admin/":
+      return "/admin";
+    case "/legal.html":
+    case "/legal/":
+      return "/legal";
+    case "/services.html":
+    case "/services/":
+      return "/services";
+    case "/servizi/":
+      return "/servizi";
+    case "/i-nostri-servizi/":
+      return "/i-nostri-servizi";
+    default:
+      return "";
+  }
 }
 
 function requireAdminSession(req, res) {
