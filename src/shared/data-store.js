@@ -205,6 +205,213 @@
       lifestyle: "Lifestyle",
       digitalSystems: "Digital Systems",
     },
+    servicesPage: {
+      hero: {
+        badge: "YOSUPPORT Digital Studio",
+        title: "I nostri servizi",
+        subtitle:
+          "Progettiamo ecosistemi digitali completi: bot Telegram avanzati, piattaforme web e strumenti operativi su misura.",
+        highlight: "Soluzioni minimal, veloci e amministrabili in tempo reale.",
+        primaryCtaLabel: "Richiedi preventivo",
+        primaryCtaUrl: "https://t.me/SHLC26",
+        secondaryCtaLabel: "Parla con un consulente",
+        secondaryCtaUrl: "https://t.me/SHLC26",
+      },
+      socialProof: {
+        title: "Social network europei più richiesti",
+        subtitle: "Piani di crescita brand su canali ad alta trazione in Europa.",
+      },
+      socialPlatforms: [
+        {
+          id: "instagram",
+          name: "Instagram",
+          focus: "Reels, Stories, ADV performance e branding visuale",
+        },
+        {
+          id: "tiktok",
+          name: "TikTok",
+          focus: "Strategie short video e posizionamento organico",
+        },
+        {
+          id: "facebook",
+          name: "Facebook",
+          focus: "Campagne geolocalizzate e community management",
+        },
+        {
+          id: "youtube",
+          name: "YouTube",
+          focus: "Long-form, Shorts e funnel contenuti",
+        },
+        {
+          id: "telegram",
+          name: "Telegram",
+          focus: "Canali premium, community private e automazioni",
+        },
+        {
+          id: "linkedin",
+          name: "LinkedIn",
+          focus: "Lead generation B2B e autorevolezza professionale",
+        },
+        {
+          id: "x",
+          name: "X",
+          focus: "Comunicazione real-time e amplificazione topic",
+        },
+      ],
+      serviceBlocks: [
+        {
+          id: "chat-moderation-bots",
+          category: "Bot Telegram",
+          title: "Sviluppo bot per moderazione chat",
+          description:
+            "Bot dedicati alla moderazione automatica con filtri anti-spam, regole personalizzate e log eventi in tempo reale.",
+          price: "da EUR 390",
+          priceNote: "setup base + policy personalizzate",
+          kpis: ["Delivery da 48h", "Policy su misura", "Uptime 99,9%"],
+          accent: "amber",
+          featured: true,
+          features: [
+            "Filtri keyword, flood e anti-link",
+            "Ruoli admin e permessi granulari",
+            "Report giornalieri automatici",
+          ],
+        },
+        {
+          id: "antiscam-community-bots",
+          category: "Bot Telegram",
+          title: "Sviluppo bot per community antiscam",
+          description:
+            "Automazioni dedicate all'identificazione precoce di tentativi fraudolenti e alla gestione sicura delle segnalazioni utenti.",
+          price: "da EUR 640",
+          priceNote: "include configurazione workflow anti-frode",
+          kpis: ["False positive < 2%", "Alert real-time", "Escalation 24/7"],
+          accent: "rose",
+          featured: true,
+          features: [
+            "Blacklist/whitelist dinamiche",
+            "Sistema ticket e raccolta prove",
+            "Alert immediati agli amministratori",
+          ],
+        },
+        {
+          id: "clean-chat-multimedia-bots",
+          category: "Bot Telegram",
+          title: "Bot con chat pulita e menu multimediale",
+          description:
+            "Bot evoluti con menu multimediale, gestione contenuti, onboarding guidato e funzioni modulari espandibili.",
+          price: "da EUR 520",
+          priceNote: "menu, comandi custom e onboarding",
+          kpis: ["Onboarding < 60s", "Menu multimediale", "Comandi modulari"],
+          accent: "cyan",
+          featured: false,
+          features: [
+            "Menu visuale con pulsanti dinamici",
+            "Gestione media (foto, video, GIF)",
+            "Funzioni estendibili su richiesta",
+          ],
+        },
+        {
+          id: "telegram-miniapp-websites",
+          category: "Web Telegram",
+          title: "Siti web integrati in Telegram Mini App",
+          description:
+            "Realizzazione siti e portali con integrazione Mini App Telegram e gestione amministrativa tramite bot privato dedicato.",
+          price: "da EUR 850",
+          priceNote: "mini app + pannello admin via bot",
+          kpis: ["Admin via bot", "UX mobile-first", "Deploy assistito"],
+          accent: "emerald",
+          featured: true,
+          features: [
+            "UX responsive per mobile Telegram",
+            "Workflow admin tramite bot personale",
+            "Deploy e manutenzione operativa",
+          ],
+        },
+        {
+          id: "full-web-applications",
+          category: "Web Development",
+          title: "Sviluppo web application e utilities",
+          description:
+            "Progetti full-stack, dashboard operative, automazioni business e utility digitali disegnate su obiettivi concreti.",
+          price: "da EUR 1200",
+          priceNote: "analisi, sviluppo e rilascio",
+          kpis: ["Stack full-stack", "Scalabilità pronta", "Roadmap sprint"],
+          accent: "cyan",
+          featured: false,
+          features: [
+            "Architettura modulare e scalabile",
+            "Dashboard KPI e ruoli utente",
+            "Integrazione API e strumenti esterni",
+          ],
+        },
+        {
+          id: "social-media-growth",
+          category: "Growth",
+          title: "Servizi di crescita social media",
+          description:
+            "Piani di crescita multi-canale su social europei principali con strategia editoriale, ADV e monitoraggio continuo.",
+          price: "da EUR 300 / mese",
+          priceNote: "pacchetti mensili personalizzabili",
+          kpis: ["CTR +18% medio", "KPI mensili", "ADV ottimizzata"],
+          accent: "amber",
+          featured: false,
+          features: [
+            "Analisi target e competitor",
+            "Calendario contenuti e ADV",
+            "Report performance periodico",
+          ],
+        },
+        {
+          id: "crypto-exchange-services",
+          category: "Fintech",
+          title: "Servizi exchange criptovalute",
+          description:
+            "Supporto operativo per procedure exchange crypto, flussi di conversione e configurazione processi in ambienti digitali.",
+          price: "da EUR 450",
+          priceNote: "setup operativo e assistenza flussi",
+          kpis: ["Fee da 0,8%", "Spread 1,2%-2,5%", "Settlement 5-15 min"],
+          fintechMetrics: [
+            { label: "Fee", value: "da 0,8%" },
+            { label: "Spread", value: "1,2%-2,5%" },
+            { label: "SLA", value: "5-15 min" },
+          ],
+          accent: "emerald",
+          featured: false,
+          features: [
+            "Setup flussi deposito/prelievo",
+            "Procedure operative guidate",
+            "Supporto documentale tecnico",
+          ],
+        },
+        {
+          id: "banking-wallet-services",
+          category: "Fintech",
+          title: "Servizi account bancari e crypto wallet",
+          description:
+            "Assistenza tecnica per configurazione account business e wallet crypto, con attenzione a sicurezza e gestione operativa.",
+          price: "da EUR 590",
+          priceNote: "onboarding tecnico e sicurezza base",
+          kpis: ["Fee service da 1,5%", "Cold storage 95%", "Audit accessi 100%"],
+          fintechMetrics: [
+            { label: "Fee service", value: "da 1,5%" },
+            { label: "Cold storage", value: "95%" },
+            { label: "Audit accessi", value: "100%" },
+          ],
+          accent: "rose",
+          featured: false,
+          features: [
+            "Setup wallet custodial/non-custodial",
+            "Procedure sicurezza operative",
+            "Checklist di gestione accessi",
+          ],
+        },
+      ],
+      closing: {
+        title: "Operatività end-to-end",
+        description:
+          "Dalla fase strategica al rilascio: ogni servizio è progettato per essere controllabile, scalabile e semplice da amministrare.",
+      },
+    },
   };
 
   function clone(data) {
@@ -292,6 +499,159 @@
     }
 
     return DEFAULT_DATA.supportTelegramUrl;
+  }
+
+  function normalizeAbsoluteUrl(value, fallback) {
+    const candidate = sanitizeString(value);
+    if (!candidate) return sanitizeString(fallback);
+
+    try {
+      const parsed = new URL(candidate);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        return parsed.toString();
+      }
+    } catch {
+      // Ignore invalid url and use fallback.
+    }
+
+    return sanitizeString(fallback);
+  }
+
+  function normalizeServicePageAccent(value, fallback = "amber") {
+    const candidate = sanitizeString(value).toLowerCase();
+    if (["amber", "cyan", "emerald", "rose"].includes(candidate)) {
+      return candidate;
+    }
+    return fallback;
+  }
+
+  function normalizeServicePageFeatures(value, fallbackFeatures = []) {
+    const source = Array.isArray(value) ? value : fallbackFeatures;
+    return source
+      .map((entry) => sanitizeString(entry))
+      .filter(Boolean)
+      .slice(0, 8);
+  }
+
+  function normalizeServicePageKpis(value, fallbackKpis = []) {
+    const source = Array.isArray(value) ? value : fallbackKpis;
+    return source
+      .map((entry) => sanitizeString(entry))
+      .filter(Boolean)
+      .slice(0, 4);
+  }
+
+  function normalizeServicePageFintechMetrics(value, fallbackMetrics = []) {
+    const source = Array.isArray(value) ? value : fallbackMetrics;
+    return source
+      .map((entry) => {
+        const label = sanitizeString(entry?.label);
+        const metricValue = sanitizeString(entry?.value);
+        if (!label || !metricValue) return null;
+        return {
+          label,
+          value: metricValue,
+        };
+      })
+      .filter(Boolean)
+      .slice(0, 4);
+  }
+
+  function normalizeServicesPage(rawPage) {
+    const defaults = DEFAULT_DATA.servicesPage;
+    const page = rawPage && typeof rawPage === "object" ? rawPage : {};
+    const heroRaw = page.hero && typeof page.hero === "object" ? page.hero : {};
+    const socialProofRaw = page.socialProof && typeof page.socialProof === "object" ? page.socialProof : {};
+    const closingRaw = page.closing && typeof page.closing === "object" ? page.closing : {};
+
+    const hero = {
+      badge: sanitizeString(heroRaw.badge) || defaults.hero.badge,
+      title: sanitizeString(heroRaw.title) || defaults.hero.title,
+      subtitle: sanitizeString(heroRaw.subtitle) || defaults.hero.subtitle,
+      highlight: sanitizeString(heroRaw.highlight) || defaults.hero.highlight,
+      primaryCtaLabel: sanitizeString(heroRaw.primaryCtaLabel) || defaults.hero.primaryCtaLabel,
+      primaryCtaUrl: normalizeAbsoluteUrl(heroRaw.primaryCtaUrl, defaults.hero.primaryCtaUrl),
+      secondaryCtaLabel: sanitizeString(heroRaw.secondaryCtaLabel) || defaults.hero.secondaryCtaLabel,
+      secondaryCtaUrl: normalizeAbsoluteUrl(heroRaw.secondaryCtaUrl, defaults.hero.secondaryCtaUrl),
+    };
+
+    const socialProof = {
+      title: sanitizeString(socialProofRaw.title) || defaults.socialProof.title,
+      subtitle: sanitizeString(socialProofRaw.subtitle) || defaults.socialProof.subtitle,
+    };
+
+    const socialPlatformsInput = Array.isArray(page.socialPlatforms) ? page.socialPlatforms : defaults.socialPlatforms;
+    const knownPlatformIds = new Set();
+    const socialPlatforms = socialPlatformsInput
+      .map((platform, index) => {
+        const name = sanitizeString(platform?.name);
+        if (!name) return null;
+
+        const fallbackId = slugify(`${name}-${index + 1}`) || `platform-${index + 1}`;
+        let id = sanitizeString(platform?.id) || fallbackId;
+        id = slugify(id) || fallbackId;
+
+        if (knownPlatformIds.has(id)) {
+          id = `${id}-${index + 1}`;
+        }
+        knownPlatformIds.add(id);
+
+        return {
+          id,
+          name,
+          focus: sanitizeString(platform?.focus),
+        };
+      })
+      .filter(Boolean);
+
+    const normalizedSocialPlatforms = socialPlatforms.length ? socialPlatforms : clone(defaults.socialPlatforms);
+
+    const serviceBlocksInput = Array.isArray(page.serviceBlocks) ? page.serviceBlocks : defaults.serviceBlocks;
+    const knownBlockIds = new Set();
+    const serviceBlocks = serviceBlocksInput
+      .map((block, index) => {
+        const title = sanitizeString(block?.title);
+        if (!title) return null;
+
+        const fallbackId = slugify(`${title}-${index + 1}`) || `service-${index + 1}`;
+        let id = sanitizeString(block?.id) || fallbackId;
+        id = slugify(id) || fallbackId;
+
+        if (knownBlockIds.has(id)) {
+          id = `${id}-${index + 1}`;
+        }
+        knownBlockIds.add(id);
+
+        return {
+          id,
+          category: sanitizeString(block?.category) || "Servizi",
+          title,
+          description: sanitizeString(block?.description),
+          price: sanitizeString(block?.price) || "da EUR 0",
+          priceNote: sanitizeString(block?.priceNote),
+          kpis: normalizeServicePageKpis(block?.kpis, []),
+          fintechMetrics: normalizeServicePageFintechMetrics(block?.fintechMetrics, []),
+          accent: normalizeServicePageAccent(block?.accent, "amber"),
+          featured: Boolean(block?.featured),
+          features: normalizeServicePageFeatures(block?.features, []),
+        };
+      })
+      .filter(Boolean);
+
+    const normalizedServiceBlocks = serviceBlocks.length ? serviceBlocks : clone(defaults.serviceBlocks);
+
+    const closing = {
+      title: sanitizeString(closingRaw.title) || defaults.closing.title,
+      description: sanitizeString(closingRaw.description) || defaults.closing.description,
+    };
+
+    return {
+      hero,
+      socialProof,
+      socialPlatforms: normalizedSocialPlatforms,
+      serviceBlocks: normalizedServiceBlocks,
+      closing,
+    };
   }
 
   function normalizeData(raw) {
@@ -415,7 +775,9 @@
       }
     }
 
-    return { serviceLabels, supportTelegramUrl, regions, otherCategories, otherCategoryLabels };
+    const servicesPage = normalizeServicesPage(data.servicesPage);
+
+    return { serviceLabels, supportTelegramUrl, regions, otherCategories, otherCategoryLabels, servicesPage };
   }
 
   function canUseLocalStorage() {

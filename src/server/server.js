@@ -408,6 +408,16 @@ async function handleStaticRequest(req, res, pathname) {
   if (relativePath === "/admin" || relativePath === "/admin/") {
     relativePath = "/admin.html";
   }
+  if (
+    relativePath === "/services" ||
+    relativePath === "/services/" ||
+    relativePath === "/servizi" ||
+    relativePath === "/servizi/" ||
+    relativePath === "/i-nostri-servizi" ||
+    relativePath === "/i-nostri-servizi/"
+  ) {
+    relativePath = "/services.html";
+  }
 
   const decoded = safeDecodePath(relativePath);
   if (!decoded) {

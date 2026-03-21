@@ -24,10 +24,63 @@ const OTHER_CATEGORY_LABELS = {
   lifestyle: "Lifestyle",
   digitalSystems: "Digital Systems",
 };
+const SERVICE_BLOCK_ACCENTS = ["amber", "cyan", "emerald", "rose"];
+const FALLBACK_SERVICES_PAGE = {
+  hero: {
+    badge: "YOSUPPORT Digital Studio",
+    title: "I nostri servizi",
+    subtitle: "Soluzioni complete tra bot Telegram, web platform e servizi digitali operativi.",
+    highlight: "Prezzi e blocchi servizi sono gestibili dall'admin center.",
+    primaryCtaLabel: "Richiedi preventivo",
+    primaryCtaUrl: "https://t.me/SHLC26",
+    secondaryCtaLabel: "Contatta supporto",
+    secondaryCtaUrl: "https://t.me/SHLC26",
+  },
+  socialProof: {
+    title: "Social network europei più richiesti",
+    subtitle: "Strategie growth su piattaforme ad alta trazione.",
+  },
+  socialPlatforms: [
+    { id: "instagram", name: "Instagram", focus: "Reels, Stories e ADV" },
+    { id: "tiktok", name: "TikTok", focus: "Video strategy e community" },
+    { id: "facebook", name: "Facebook", focus: "Campagne local e lead" },
+    { id: "youtube", name: "YouTube", focus: "Long form + Shorts" },
+    { id: "telegram", name: "Telegram", focus: "Community private" },
+    { id: "linkedin", name: "LinkedIn", focus: "Lead B2B e autorevolezza" },
+    { id: "x", name: "X", focus: "Comunicazione real-time" },
+  ],
+  serviceBlocks: [
+    {
+      id: "chat-moderation-bots",
+      category: "Bot Telegram",
+      title: "Sviluppo bot per moderazione chat",
+      description:
+        "Bot dedicati alla moderazione automatica con filtri anti-spam, regole personalizzate e log eventi in tempo reale.",
+      price: "da EUR 390",
+      priceNote: "setup base + policy personalizzate",
+      kpis: ["Delivery da 48h", "Policy su misura", "Uptime 99,9%"],
+      accent: "amber",
+      featured: true,
+      features: [
+        "Filtri keyword, flood e anti-link",
+        "Ruoli admin e permessi granulari",
+        "Report giornalieri automatici",
+      ],
+    },
+  ],
+  closing: {
+    title: "Operatività completa",
+    description: "Dalla strategia al deploy: ogni progetto è seguito end-to-end.",
+  },
+};
 
-const defaultServiceLabels = store?.getDefaultData?.()?.serviceLabels ?? FALLBACK_SERVICE_LABELS;
-const defaultSupportTelegramUrl =
-  store?.getDefaultData?.()?.supportTelegramUrl ?? "https://t.me/SHLC26";
+const storeDefaultData = store?.getDefaultData?.() ?? {};
+const defaultServiceLabels = storeDefaultData.serviceLabels ?? FALLBACK_SERVICE_LABELS;
+const defaultSupportTelegramUrl = storeDefaultData.supportTelegramUrl ?? "https://t.me/SHLC26";
+const defaultServicesPageConfig =
+  storeDefaultData.servicesPage && typeof storeDefaultData.servicesPage === "object"
+    ? storeDefaultData.servicesPage
+    : FALLBACK_SERVICES_PAGE;
 
 let data = store?.getData?.() ?? {
   serviceLabels: defaultServiceLabels,
@@ -38,6 +91,7 @@ let data = store?.getData?.() ?? {
     lifestyle: [],
     digitalSystems: [],
   },
+  servicesPage: cloneSimple(defaultServicesPageConfig),
 };
 
 data.otherCategories = data.otherCategories || {
@@ -45,8 +99,10 @@ data.otherCategories = data.otherCategories || {
   lifestyle: [],
   digitalSystems: [],
 };
+data.servicesPage = data.servicesPage || cloneSimple(defaultServicesPageConfig);
 let editingRegionId = null;
 let editingPointId = null;
+let editingServiceBlockId = null;
 let otherPointMode = { category: null, editingPointId: null };
 let regionIdTouched = false;
 let pointIdTouched = false;
@@ -69,6 +125,10 @@ const ADMIN_PAGE_META = {
     title: "Servizi",
     subtitle: "Gestione etichette operative e link canale Telegram.",
   },
+  "services-page": {
+    title: "I Nostri Servizi",
+    subtitle: "Controllo completo della pagina servizi: hero, blocchi, prezzi e social europei.",
+  },
   regions: {
     title: "Regioni",
     subtitle: "Creazione e ordinamento delle regioni disponibili.",
@@ -90,11 +150,16 @@ const ADMIN_PAGE_META = {
 const ADMIN_PAGE_ALIAS = {
   dashboard: "dashboard",
   services: "services",
+  "services-page": "services-page",
+  servicespage: "services-page",
+  servicepage: "services-page",
   regions: "regions",
   points: "points",
   other: "other",
   data: "data",
   servicespanel: "services",
+  servicespagepanel: "services-page",
+  servicepagepanel: "services-page",
   regionspanel: "regions",
   pointspanel: "points",
   otherpanel: "other",
@@ -113,6 +178,7 @@ const els = {
   adminPageTitle: document.getElementById("adminPageTitle"),
   adminPageSubtitle: document.getElementById("adminPageSubtitle"),
   servicesPanelFold: document.querySelector("#servicesPanel .admin-panel-fold"),
+  servicesPagePanelFold: document.querySelector("#servicesPagePanel .admin-panel-fold"),
   regionsPanelFold: document.querySelector("#regionsPanel .admin-panel-fold"),
   pointsPanelFold: document.querySelector("#pointsPanel .admin-panel-fold"),
   toolsPanelFold: document.querySelector("#toolsPanel .admin-panel-fold"),
@@ -134,6 +200,40 @@ const els = {
   serviceOther: document.getElementById("serviceOther"),
   serviceSupportTelegram: document.getElementById("serviceSupportTelegram"),
   resetServicesBtn: document.getElementById("resetServicesBtn"),
+  servicesPageHeroForm: document.getElementById("servicesPageHeroForm"),
+  servicesHeroBadge: document.getElementById("servicesHeroBadge"),
+  servicesHeroTitle: document.getElementById("servicesHeroTitle"),
+  servicesHeroSubtitle: document.getElementById("servicesHeroSubtitle"),
+  servicesHeroHighlight: document.getElementById("servicesHeroHighlight"),
+  servicesHeroPrimaryLabel: document.getElementById("servicesHeroPrimaryLabel"),
+  servicesHeroPrimaryUrl: document.getElementById("servicesHeroPrimaryUrl"),
+  servicesHeroSecondaryLabel: document.getElementById("servicesHeroSecondaryLabel"),
+  servicesHeroSecondaryUrl: document.getElementById("servicesHeroSecondaryUrl"),
+  servicesClosingTitle: document.getElementById("servicesClosingTitle"),
+  servicesClosingDescription: document.getElementById("servicesClosingDescription"),
+  servicesSocialForm: document.getElementById("servicesSocialForm"),
+  servicesSocialTitle: document.getElementById("servicesSocialTitle"),
+  servicesSocialSubtitle: document.getElementById("servicesSocialSubtitle"),
+  servicesSocialPlatformsInput: document.getElementById("servicesSocialPlatformsInput"),
+  serviceBlockCreateNew: document.getElementById("serviceBlockCreateNew"),
+  serviceBlocksList: document.getElementById("servicesBlocksList"),
+  serviceBlocksCount: document.getElementById("serviceBlocksCount"),
+  serviceBlockForm: document.getElementById("serviceBlockForm"),
+  serviceBlockEditingId: document.getElementById("serviceBlockEditingId"),
+  serviceBlockFormTitle: document.getElementById("serviceBlockFormTitle"),
+  serviceBlockId: document.getElementById("serviceBlockId"),
+  serviceBlockCategory: document.getElementById("serviceBlockCategory"),
+  serviceBlockTitle: document.getElementById("serviceBlockTitle"),
+  serviceBlockDescription: document.getElementById("serviceBlockDescription"),
+  serviceBlockPrice: document.getElementById("serviceBlockPrice"),
+  serviceBlockPriceNote: document.getElementById("serviceBlockPriceNote"),
+  serviceBlockAccent: document.getElementById("serviceBlockAccent"),
+  serviceBlockFeatured: document.getElementById("serviceBlockFeatured"),
+  serviceBlockFeatures: document.getElementById("serviceBlockFeatures"),
+  serviceBlockKpis: document.getElementById("serviceBlockKpis"),
+  serviceBlockFintechMetrics: document.getElementById("serviceBlockFintechMetrics"),
+  serviceBlockSubmitBtn: document.getElementById("serviceBlockSubmitBtn"),
+  serviceBlockCancelBtn: document.getElementById("serviceBlockCancelBtn"),
 
   regionForm: document.getElementById("regionForm"),
   regionEditingId: document.getElementById("regionEditingId"),
@@ -343,7 +443,14 @@ function setAdminVisibility(isUnlocked) {
 }
 
 function collapseAdminPanels() {
-  [els.servicesPanelFold, els.regionsPanelFold, els.pointsPanelFold, els.otherPanelFold, els.toolsPanelFold].forEach((panel) => {
+  [
+    els.servicesPanelFold,
+    els.servicesPagePanelFold,
+    els.regionsPanelFold,
+    els.pointsPanelFold,
+    els.otherPanelFold,
+    els.toolsPanelFold,
+  ].forEach((panel) => {
     if (panel) {
       panel.open = true;
     }
@@ -393,6 +500,11 @@ function focusAdminPage(pageId, preferredTarget = null) {
 
   if (pageId === "services") {
     safeFocus(els.serviceMeetup);
+    return;
+  }
+
+  if (pageId === "services-page") {
+    safeFocus(els.servicesHeroTitle || els.servicesPageHeroForm);
     return;
   }
 
@@ -449,6 +561,7 @@ function setAdminPage(pageId, options = {}) {
   }
 
   if (resolved === "services") openAdminPanel(els.servicesPanelFold);
+  if (resolved === "services-page") openAdminPanel(els.servicesPagePanelFold);
   if (resolved === "regions") openAdminPanel(els.regionsPanelFold);
   if (resolved === "points") openAdminPanel(els.pointsPanelFold);
   if (resolved === "other") openAdminPanel(els.otherPanelFold);
@@ -589,6 +702,31 @@ function bindAdminEvents() {
   els.serviceSupportTelegram.addEventListener("blur", () => {
     validateSupportTelegramInline();
   });
+  if (els.servicesPageHeroForm) {
+    els.servicesPageHeroForm.addEventListener("submit", handleServicesPageHeroSubmit);
+  }
+  if (els.servicesSocialForm) {
+    els.servicesSocialForm.addEventListener("submit", handleServicesPageSocialSubmit);
+  }
+  if (els.serviceBlockCreateNew) {
+    els.serviceBlockCreateNew.addEventListener("click", () => {
+      resetServiceBlockForm();
+      setAdminPage("services-page", { updateHash: true, focus: false });
+      safeFocus(els.serviceBlockTitle);
+    });
+  }
+  if (els.serviceBlocksList) {
+    els.serviceBlocksList.addEventListener("click", handleServiceBlockActions);
+  }
+  if (els.serviceBlockForm) {
+    els.serviceBlockForm.addEventListener("submit", handleServiceBlockSubmit);
+  }
+  if (els.serviceBlockCancelBtn) {
+    els.serviceBlockCancelBtn.addEventListener("click", () => {
+      resetServiceBlockForm();
+      setStatus("Editor blocco servizio ripristinato.", "info");
+    });
+  }
 
   els.regionForm.addEventListener("submit", handleRegionSubmit);
   els.regionCancelEdit.addEventListener("click", resetRegionForm);
@@ -929,6 +1067,7 @@ function bindAdminEvents() {
 
 function refreshAdminUI(preferredRegionId = "") {
   renderServicesForm();
+  renderServicesPageEditor();
   renderRegionSelect(preferredRegionId || els.pointRegionSelect.value);
   renderRegionList();
   renderPointsList();
@@ -991,6 +1130,604 @@ function handleServicesReset() {
   data.supportTelegramUrl = defaultSupportTelegramUrl;
   validateSupportTelegramInline();
   persistData("Etichette servizi ripristinate.");
+}
+
+function ensureServicesPageConfig() {
+  const defaults = cloneSimple(defaultServicesPageConfig);
+  const source = data.servicesPage && typeof data.servicesPage === "object" ? data.servicesPage : {};
+
+  const heroRaw = source.hero && typeof source.hero === "object" ? source.hero : {};
+  const socialProofRaw = source.socialProof && typeof source.socialProof === "object" ? source.socialProof : {};
+  const closingRaw = source.closing && typeof source.closing === "object" ? source.closing : {};
+
+  const heroDefaults = defaults.hero || {};
+  const socialDefaults = defaults.socialProof || {};
+  const closingDefaults = defaults.closing || {};
+
+  source.hero = {
+    badge: String(heroRaw.badge || "").trim() || String(heroDefaults.badge || "").trim(),
+    title: String(heroRaw.title || "").trim() || String(heroDefaults.title || "").trim(),
+    subtitle: String(heroRaw.subtitle || "").trim() || String(heroDefaults.subtitle || "").trim(),
+    highlight: String(heroRaw.highlight || "").trim() || String(heroDefaults.highlight || "").trim(),
+    primaryCtaLabel:
+      String(heroRaw.primaryCtaLabel || "").trim() || String(heroDefaults.primaryCtaLabel || "").trim(),
+    primaryCtaUrl: normalizeAbsoluteHttpUrl(heroRaw.primaryCtaUrl, heroDefaults.primaryCtaUrl),
+    secondaryCtaLabel:
+      String(heroRaw.secondaryCtaLabel || "").trim() || String(heroDefaults.secondaryCtaLabel || "").trim(),
+    secondaryCtaUrl: normalizeAbsoluteHttpUrl(heroRaw.secondaryCtaUrl, heroDefaults.secondaryCtaUrl),
+  };
+
+  source.socialProof = {
+    title: String(socialProofRaw.title || "").trim() || String(socialDefaults.title || "").trim(),
+    subtitle: String(socialProofRaw.subtitle || "").trim() || String(socialDefaults.subtitle || "").trim(),
+  };
+
+  const socialPlatformsInput = Array.isArray(source.socialPlatforms) ? source.socialPlatforms : defaults.socialPlatforms || [];
+  const seenPlatformIds = new Set();
+  const normalizedPlatforms = [];
+  socialPlatformsInput.forEach((platform, index) => {
+    const name = String(platform?.name || "").trim();
+    if (!name) return;
+
+    const rawId = String(platform?.id || "").trim();
+    const baseId = slugify(rawId || name || `platform-${index + 1}`) || `platform-${index + 1}`;
+    let id = baseId;
+    let suffix = 2;
+    while (seenPlatformIds.has(id)) {
+      id = `${baseId}-${suffix}`;
+      suffix += 1;
+    }
+    seenPlatformIds.add(id);
+
+    normalizedPlatforms.push({
+      id,
+      name,
+      focus: String(platform?.focus || "").trim(),
+    });
+  });
+
+  source.socialPlatforms = normalizedPlatforms.length ? normalizedPlatforms : cloneSimple(defaults.socialPlatforms || []);
+
+  const blocksInput = Array.isArray(source.serviceBlocks) ? source.serviceBlocks : defaults.serviceBlocks || [];
+  const seenBlockIds = new Set();
+  const normalizedBlocks = [];
+  blocksInput.forEach((rawBlock, index) => {
+    const block = normalizeServiceBlock(rawBlock, index);
+    if (!block) return;
+
+    const baseId = block.id;
+    let id = baseId;
+    let suffix = 2;
+    while (seenBlockIds.has(id)) {
+      id = `${baseId}-${suffix}`;
+      suffix += 1;
+    }
+    seenBlockIds.add(id);
+    block.id = id;
+    normalizedBlocks.push(block);
+  });
+
+  source.serviceBlocks = normalizedBlocks.length ? normalizedBlocks : cloneSimple(defaults.serviceBlocks || []);
+
+  source.closing = {
+    title: String(closingRaw.title || "").trim() || String(closingDefaults.title || "").trim(),
+    description: String(closingRaw.description || "").trim() || String(closingDefaults.description || "").trim(),
+  };
+
+  data.servicesPage = source;
+}
+
+function normalizeServiceBlock(block, index = 0) {
+  const source = block && typeof block === "object" ? block : {};
+  const title = String(source.title || "").trim();
+  if (!title) return null;
+
+  const rawId = String(source.id || "").trim();
+  const id = slugify(rawId || title || `service-${index + 1}`) || `service-${index + 1}`;
+  const accentValue = String(source.accent || "")
+    .trim()
+    .toLowerCase();
+  const accent = SERVICE_BLOCK_ACCENTS.includes(accentValue) ? accentValue : SERVICE_BLOCK_ACCENTS[0];
+  const features = Array.isArray(source.features)
+    ? source.features.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 8)
+    : [];
+  const kpis = Array.isArray(source.kpis)
+    ? source.kpis.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 4)
+    : [];
+  const fintechMetrics = Array.isArray(source.fintechMetrics)
+    ? source.fintechMetrics
+        .map((item) => {
+          const label = String(item?.label || "").trim();
+          const value = String(item?.value || "").trim();
+          if (!label || !value) return null;
+          return { label, value };
+        })
+        .filter(Boolean)
+        .slice(0, 4)
+    : [];
+
+  return {
+    id,
+    category: String(source.category || "").trim() || "Servizi",
+    title,
+    description: String(source.description || "").trim(),
+    price: String(source.price || "").trim() || "da EUR 0",
+    priceNote: String(source.priceNote || "").trim(),
+    accent,
+    featured: Boolean(source.featured),
+    features,
+    kpis,
+    fintechMetrics,
+  };
+}
+
+function renderServicesPageEditor() {
+  ensureServicesPageConfig();
+  const page = data.servicesPage;
+
+  if (els.servicesHeroBadge) els.servicesHeroBadge.value = page.hero.badge || "";
+  if (els.servicesHeroTitle) els.servicesHeroTitle.value = page.hero.title || "";
+  if (els.servicesHeroSubtitle) els.servicesHeroSubtitle.value = page.hero.subtitle || "";
+  if (els.servicesHeroHighlight) els.servicesHeroHighlight.value = page.hero.highlight || "";
+  if (els.servicesHeroPrimaryLabel) els.servicesHeroPrimaryLabel.value = page.hero.primaryCtaLabel || "";
+  if (els.servicesHeroPrimaryUrl) els.servicesHeroPrimaryUrl.value = page.hero.primaryCtaUrl || "";
+  if (els.servicesHeroSecondaryLabel) els.servicesHeroSecondaryLabel.value = page.hero.secondaryCtaLabel || "";
+  if (els.servicesHeroSecondaryUrl) els.servicesHeroSecondaryUrl.value = page.hero.secondaryCtaUrl || "";
+  if (els.servicesClosingTitle) els.servicesClosingTitle.value = page.closing.title || "";
+  if (els.servicesClosingDescription) els.servicesClosingDescription.value = page.closing.description || "";
+
+  if (els.servicesSocialTitle) els.servicesSocialTitle.value = page.socialProof.title || "";
+  if (els.servicesSocialSubtitle) els.servicesSocialSubtitle.value = page.socialProof.subtitle || "";
+  if (els.servicesSocialPlatformsInput) {
+    els.servicesSocialPlatformsInput.value = page.socialPlatforms
+      .map((platform) => `${platform.name}${platform.focus ? `|${platform.focus}` : ""}`)
+      .join("\n");
+  }
+
+  renderServiceBlocksList();
+  if (editingServiceBlockId) {
+    const active = page.serviceBlocks.find((block) => block.id === editingServiceBlockId);
+    if (active) {
+      fillServiceBlockForm(active);
+      return;
+    }
+  }
+  resetServiceBlockForm();
+}
+
+function renderServiceBlocksList() {
+  if (!els.serviceBlocksList) return;
+  ensureServicesPageConfig();
+
+  const blocks = Array.isArray(data.servicesPage?.serviceBlocks) ? data.servicesPage.serviceBlocks : [];
+  if (els.serviceBlocksCount) {
+    els.serviceBlocksCount.textContent = `${blocks.length} ${blocks.length === 1 ? "blocco" : "blocchi"}`;
+  }
+
+  if (blocks.length === 0) {
+    els.serviceBlocksList.innerHTML = `
+      <article class="admin-item">
+        <p class="admin-empty">Nessun blocco configurato.</p>
+      </article>
+    `;
+    return;
+  }
+
+  els.serviceBlocksList.innerHTML = blocks
+    .map((block, index) => {
+      const featureCount = Array.isArray(block.features) ? block.features.length : 0;
+      const kpiCount = Array.isArray(block.kpis) ? block.kpis.length : 0;
+      const fintechMetricCount = Array.isArray(block.fintechMetrics) ? block.fintechMetrics.length : 0;
+      const editingClass = block.id === editingServiceBlockId ? "is-editing" : "";
+      return `
+        <article class="admin-item ${editingClass}" data-service-block-id="${escapeHtmlAttr(block.id)}">
+          <div class="admin-item-top">
+            <p class="admin-item-title">${escapeHtml(block.title)}</p>
+            <p class="admin-item-id">${escapeHtml(block.id)}</p>
+          </div>
+          <p class="admin-item-meta">${escapeHtml(block.category)} • ${escapeHtml(block.price || "Prezzo non impostato")}</p>
+          <div class="admin-item-tags">
+            <span class="mini-chip">${escapeHtml(block.accent || "amber")}</span>
+            <span class="mini-chip">${featureCount} ${featureCount === 1 ? "feature" : "features"}</span>
+            ${kpiCount ? `<span class="mini-chip">${kpiCount} metriche</span>` : ""}
+            ${fintechMetricCount ? `<span class="mini-chip">Fintech ${fintechMetricCount}</span>` : ""}
+            ${block.featured ? `<span class="mini-chip">Top service</span>` : ""}
+          </div>
+          <div class="admin-item-actions">
+            <button class="admin-btn admin-btn-secondary" data-service-block-action="up" data-service-block-id="${escapeHtmlAttr(
+              block.id
+            )}" ${index === 0 ? "disabled" : ""}>Su</button>
+            <button class="admin-btn admin-btn-secondary" data-service-block-action="down" data-service-block-id="${escapeHtmlAttr(
+              block.id
+            )}" ${index === blocks.length - 1 ? "disabled" : ""}>Giù</button>
+            <button class="admin-btn" data-service-block-action="edit" data-service-block-id="${escapeHtmlAttr(
+              block.id
+            )}">Modifica</button>
+            <button class="admin-btn admin-btn-danger" data-service-block-action="delete" data-service-block-id="${escapeHtmlAttr(
+              block.id
+            )}">Elimina</button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function updateServiceBlockFormUi() {
+  if (els.serviceBlockFormTitle) {
+    els.serviceBlockFormTitle.textContent = editingServiceBlockId
+      ? "Modifica blocco servizio"
+      : "Nuovo blocco servizio";
+  }
+  if (els.serviceBlockSubmitBtn) {
+    els.serviceBlockSubmitBtn.textContent = editingServiceBlockId ? "Salva modifiche" : "Aggiungi blocco";
+  }
+}
+
+function fillServiceBlockForm(block) {
+  if (!els.serviceBlockForm) return;
+  editingServiceBlockId = block.id;
+  if (els.serviceBlockEditingId) els.serviceBlockEditingId.value = block.id;
+  if (els.serviceBlockId) els.serviceBlockId.value = block.id || "";
+  if (els.serviceBlockCategory) els.serviceBlockCategory.value = block.category || "";
+  if (els.serviceBlockTitle) els.serviceBlockTitle.value = block.title || "";
+  if (els.serviceBlockDescription) els.serviceBlockDescription.value = block.description || "";
+  if (els.serviceBlockPrice) els.serviceBlockPrice.value = block.price || "";
+  if (els.serviceBlockPriceNote) els.serviceBlockPriceNote.value = block.priceNote || "";
+  if (els.serviceBlockAccent) {
+    els.serviceBlockAccent.value = SERVICE_BLOCK_ACCENTS.includes(block.accent) ? block.accent : SERVICE_BLOCK_ACCENTS[0];
+  }
+  if (els.serviceBlockFeatured) {
+    els.serviceBlockFeatured.checked = Boolean(block.featured);
+  }
+  if (els.serviceBlockFeatures) {
+    els.serviceBlockFeatures.value = Array.isArray(block.features) ? block.features.join("\n") : "";
+  }
+  if (els.serviceBlockKpis) {
+    els.serviceBlockKpis.value = Array.isArray(block.kpis) ? block.kpis.join("\n") : "";
+  }
+  if (els.serviceBlockFintechMetrics) {
+    els.serviceBlockFintechMetrics.value = Array.isArray(block.fintechMetrics)
+      ? block.fintechMetrics.map((item) => `${item.label}|${item.value}`).join("\n")
+      : "";
+  }
+  updateServiceBlockFormUi();
+}
+
+function resetServiceBlockForm() {
+  editingServiceBlockId = null;
+  if (els.serviceBlockEditingId) {
+    els.serviceBlockEditingId.value = "";
+  }
+  if (els.serviceBlockForm) {
+    els.serviceBlockForm.reset();
+  }
+  if (els.serviceBlockAccent) {
+    els.serviceBlockAccent.value = SERVICE_BLOCK_ACCENTS[0];
+  }
+  if (els.serviceBlockFeatured) {
+    els.serviceBlockFeatured.checked = false;
+  }
+  if (els.serviceBlockKpis) {
+    els.serviceBlockKpis.value = "";
+  }
+  if (els.serviceBlockFintechMetrics) {
+    els.serviceBlockFintechMetrics.value = "";
+  }
+  updateServiceBlockFormUi();
+  renderServiceBlocksList();
+}
+
+function parseSocialPlatformsText(value) {
+  const seen = new Set();
+  return String(value || "")
+    .split(/\r?\n/g)
+    .map((line) => String(line || "").trim())
+    .filter(Boolean)
+    .map((line, index) => {
+      const [namePart, ...focusParts] = line.split("|");
+      const name = String(namePart || "").trim();
+      const focus = String(focusParts.join("|") || "").trim();
+      if (!name) return null;
+
+      const baseId = slugify(name) || `platform-${index + 1}`;
+      let id = baseId;
+      let suffix = 2;
+      while (seen.has(id)) {
+        id = `${baseId}-${suffix}`;
+        suffix += 1;
+      }
+      seen.add(id);
+
+      return { id, name, focus };
+    })
+    .filter(Boolean);
+}
+
+function parseServiceFeaturesText(value) {
+  return String(value || "")
+    .split(/\r?\n/g)
+    .map((entry) => String(entry || "").trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function parseServiceKpisText(value) {
+  return String(value || "")
+    .split(/\r?\n/g)
+    .map((entry) => String(entry || "").trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function parseServiceFintechMetricsText(value) {
+  return String(value || "")
+    .split(/\r?\n/g)
+    .map((entry) => String(entry || "").trim())
+    .filter(Boolean)
+    .map((line, index) => parseFintechMetricLine(line, index))
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function parseFintechMetricLine(line, index) {
+  const source = String(line || "").trim();
+  if (!source) return null;
+
+  const pipeSeparatorIndex = source.indexOf("|");
+  const colonSeparatorIndex = source.indexOf(":");
+  const separatorIndex = pipeSeparatorIndex > 0 ? pipeSeparatorIndex : colonSeparatorIndex > 0 ? colonSeparatorIndex : -1;
+
+  if (separatorIndex > 0) {
+    const label = source.slice(0, separatorIndex).trim();
+    const value = source.slice(separatorIndex + 1).trim();
+    if (!label || !value) return null;
+    return { label, value };
+  }
+
+  return inferFintechMetricLine(source, index);
+}
+
+function inferFintechMetricLine(source, index) {
+  const raw = String(source || "").trim();
+  if (!raw) return null;
+
+  const lower = raw.toLowerCase();
+  const presets = [
+    { label: "Fee", probes: ["fee", "commissione"] },
+    { label: "Spread", probes: ["spread"] },
+    { label: "SLA", probes: ["sla", "settlement"] },
+    { label: "Cold storage", probes: ["cold storage"] },
+    { label: "Audit accessi", probes: ["audit accessi", "audit"] },
+  ];
+
+  for (const preset of presets) {
+    const startingProbe = preset.probes.find((probe) => lower.startsWith(probe));
+    if (startingProbe) {
+      const value = raw.slice(startingProbe.length).replace(/^[-:\s]+/, "").trim();
+      return {
+        label: preset.label,
+        value: value || raw,
+      };
+    }
+
+    if (preset.probes.some((probe) => lower.includes(probe))) {
+      return {
+        label: preset.label,
+        value: raw,
+      };
+    }
+  }
+
+  return {
+    label: `Metrica ${index + 1}`,
+    value: raw,
+  };
+}
+
+function handleServicesPageHeroSubmit(event) {
+  event.preventDefault();
+  ensureServicesPageConfig();
+
+  const badge = String(els.servicesHeroBadge?.value || "").trim();
+  const title = String(els.servicesHeroTitle?.value || "").trim();
+  const subtitle = String(els.servicesHeroSubtitle?.value || "").trim();
+  const highlight = String(els.servicesHeroHighlight?.value || "").trim();
+  const primaryLabel = String(els.servicesHeroPrimaryLabel?.value || "").trim();
+  const primaryUrl = String(els.servicesHeroPrimaryUrl?.value || "").trim();
+  const secondaryLabel = String(els.servicesHeroSecondaryLabel?.value || "").trim();
+  const secondaryUrl = String(els.servicesHeroSecondaryUrl?.value || "").trim();
+  const closingTitle = String(els.servicesClosingTitle?.value || "").trim();
+  const closingDescription = String(els.servicesClosingDescription?.value || "").trim();
+
+  if (!badge || !title || !subtitle || !primaryLabel || !primaryUrl || !closingTitle || !closingDescription) {
+    setStatus("Compila tutti i campi obbligatori di hero e closing.", "error");
+    return;
+  }
+
+  if (!isValidAbsoluteUrl(primaryUrl)) {
+    setStatus("URL CTA primaria non valido. Usa un link completo https://...", "error");
+    return;
+  }
+
+  if ((secondaryLabel || secondaryUrl) && (!secondaryLabel || !secondaryUrl)) {
+    setStatus("Per la CTA secondaria inserisci sia label che URL.", "error");
+    return;
+  }
+  if (secondaryUrl && !isValidAbsoluteUrl(secondaryUrl)) {
+    setStatus("URL CTA secondaria non valido. Usa un link completo https://...", "error");
+    return;
+  }
+
+  data.servicesPage.hero = {
+    badge,
+    title,
+    subtitle,
+    highlight,
+    primaryCtaLabel: primaryLabel,
+    primaryCtaUrl: primaryUrl,
+    secondaryCtaLabel: secondaryLabel,
+    secondaryCtaUrl: secondaryUrl,
+  };
+  data.servicesPage.closing = {
+    title: closingTitle,
+    description: closingDescription,
+  };
+
+  persistData("Contenuti hero/closing della pagina servizi aggiornati.");
+}
+
+function handleServicesPageSocialSubmit(event) {
+  event.preventDefault();
+  ensureServicesPageConfig();
+
+  const title = String(els.servicesSocialTitle?.value || "").trim();
+  const subtitle = String(els.servicesSocialSubtitle?.value || "").trim();
+  const platforms = parseSocialPlatformsText(els.servicesSocialPlatformsInput?.value || "");
+
+  if (!title) {
+    setStatus("Inserisci un titolo per la sezione social.", "error");
+    return;
+  }
+  if (platforms.length === 0) {
+    setStatus("Inserisci almeno una piattaforma social (Nome|Focus).", "error");
+    return;
+  }
+
+  data.servicesPage.socialProof = {
+    title,
+    subtitle,
+  };
+  data.servicesPage.socialPlatforms = platforms;
+
+  persistData("Sezione social della pagina servizi aggiornata.");
+}
+
+function handleServiceBlockSubmit(event) {
+  event.preventDefault();
+  ensureServicesPageConfig();
+
+  const rawId = String(els.serviceBlockId?.value || "").trim();
+  const category = String(els.serviceBlockCategory?.value || "").trim();
+  const title = String(els.serviceBlockTitle?.value || "").trim();
+  const description = String(els.serviceBlockDescription?.value || "").trim();
+  const price = String(els.serviceBlockPrice?.value || "").trim();
+  const priceNote = String(els.serviceBlockPriceNote?.value || "").trim();
+  const accent = String(els.serviceBlockAccent?.value || "")
+    .trim()
+    .toLowerCase();
+  const featured = Boolean(els.serviceBlockFeatured?.checked);
+  const features = parseServiceFeaturesText(els.serviceBlockFeatures?.value || "");
+  const kpis = parseServiceKpisText(els.serviceBlockKpis?.value || "");
+  const fintechMetrics = parseServiceFintechMetricsText(els.serviceBlockFintechMetrics?.value || "");
+
+  if (!category || !title || !description || !price) {
+    setStatus("Compila categoria, titolo, descrizione e prezzo del blocco servizio.", "error");
+    return;
+  }
+
+  const normalizedAccent = SERVICE_BLOCK_ACCENTS.includes(accent) ? accent : SERVICE_BLOCK_ACCENTS[0];
+  const blocks = data.servicesPage.serviceBlocks || [];
+  const requestedId = slugify(rawId || title) || `service-${Date.now()}`;
+  const editingId = editingServiceBlockId;
+  let nextId = requestedId;
+  let suffix = 2;
+
+  while (blocks.some((block) => block.id === nextId && block.id !== editingId)) {
+    nextId = `${requestedId}-${suffix}`;
+    suffix += 1;
+  }
+
+  const payload = {
+    id: nextId,
+    category,
+    title,
+    description,
+    price,
+    priceNote,
+    accent: normalizedAccent,
+    featured,
+    features,
+    kpis,
+    fintechMetrics,
+  };
+
+  if (editingId) {
+    const targetIndex = blocks.findIndex((block) => block.id === editingId);
+    if (targetIndex >= 0) {
+      blocks[targetIndex] = payload;
+    } else {
+      blocks.push(payload);
+    }
+    setStatus(`Blocco servizio '${title}' aggiornato.`, "success");
+  } else {
+    blocks.push(payload);
+    setStatus(`Blocco servizio '${title}' aggiunto.`, "success");
+  }
+
+  data.servicesPage.serviceBlocks = blocks;
+  resetServiceBlockForm();
+  persistData("Blocchi servizi aggiornati.");
+}
+
+function handleServiceBlockActions(event) {
+  const button = event.target.closest("[data-service-block-action]");
+  if (!button) return;
+
+  const action = button.dataset.serviceBlockAction;
+  const blockId = button.dataset.serviceBlockId;
+  if (!action || !blockId) return;
+
+  ensureServicesPageConfig();
+  const blocks = data.servicesPage.serviceBlocks || [];
+  const index = blocks.findIndex((block) => block.id === blockId);
+  if (index < 0) return;
+
+  if (action === "edit") {
+    fillServiceBlockForm(blocks[index]);
+    safeFocus(els.serviceBlockTitle);
+    renderServiceBlocksList();
+    return;
+  }
+
+  if (action === "delete") {
+    const ok = window.confirm(`Eliminare il blocco servizio '${blocks[index].title}'?`);
+    if (!ok) return;
+    blocks.splice(index, 1);
+    if (editingServiceBlockId === blockId) {
+      resetServiceBlockForm();
+    }
+    data.servicesPage.serviceBlocks = blocks;
+    persistData("Blocco servizio eliminato.", "warn");
+    return;
+  }
+
+  if (action === "up" && index > 0) {
+    moveArrayItem(blocks, index, index - 1);
+    data.servicesPage.serviceBlocks = blocks;
+    persistData("Ordine blocchi servizi aggiornato.");
+    return;
+  }
+
+  if (action === "down" && index < blocks.length - 1) {
+    moveArrayItem(blocks, index, index + 1);
+    data.servicesPage.serviceBlocks = blocks;
+    persistData("Ordine blocchi servizi aggiornato.");
+  }
+}
+
+function normalizeAbsoluteHttpUrl(value, fallback = "") {
+  const candidate = String(value || "").trim();
+  if (candidate && isValidAbsoluteUrl(candidate)) {
+    return candidate;
+  }
+
+  const fallbackValue = String(fallback || "").trim();
+  if (fallbackValue && isValidAbsoluteUrl(fallbackValue)) {
+    return fallbackValue;
+  }
+
+  return "";
 }
 
 function renderKpi() {
@@ -3235,6 +3972,17 @@ function normalizeInputData(input) {
     serviceLabels: defaultServiceLabels,
     supportTelegramUrl: defaultSupportTelegramUrl,
     regions: [],
+    otherCategories: {
+      antiscam: [],
+      lifestyle: [],
+      digitalSystems: [],
+    },
+    otherCategoryLabels: {
+      antiscam: "Antiscam",
+      lifestyle: "Lifestyle",
+      digitalSystems: "Digital Systems",
+    },
+    servicesPage: cloneSimple(defaultServicesPageConfig),
   };
 }
 
@@ -3404,6 +4152,10 @@ function getDropPosition(event, targetElement) {
 function moveArrayItem(list, fromIndex, toIndex) {
   const copy = list.splice(fromIndex, 1)[0];
   list.splice(toIndex, 0, copy);
+}
+
+function cloneSimple(value) {
+  return JSON.parse(JSON.stringify(value));
 }
 
 function clonePoint(point) {

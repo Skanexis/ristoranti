@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>I nostri servizi | Ristoranti d'Italia</title>
+    <meta
+      name="description"
+      content="I nostri servizi: sviluppo bot Telegram, mini app, web application, social growth e soluzioni fintech."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./services.css?v=20260321-5" />
+  </head>
+  <body>
+    <div class="page-noise" aria-hidden="true"></div>
+    <div class="scroll-progress" aria-hidden="true"><span id="scrollProgressBar"></span></div>
+
+    <aside class="section-rail" id="sectionRail" aria-label="Navigazione sezioni">
+      <a href="#heroSection" data-rail-target="heroSection">Hero</a>
+      <a href="#servicesSection" data-rail-target="servicesSection">Servizi</a>
+      <a href="#socialSection" data-rail-target="socialSection">Social</a>
+      <a href="#workflowSection" data-rail-target="workflowSection">Metodo</a>
+      <a href="#closingSection" data-rail-target="closingSection">Finale</a>
+    </aside>
+
+    <main class="services-app">
+      <header id="heroSection" class="hero reveal-item" data-section="heroSection">
+        <div class="hero-top-links">
+          <a href="./index.html" class="hero-back-link">Torna alla home</a>
+          <a href="./admin.html#services-page" class="hero-admin-link">Gestione admin</a>
+        </div>
+
+        <div class="hero-layout">
+          <div class="hero-copy">
+            <p id="heroBadge" class="hero-badge"></p>
+            <h1 id="heroTitle" class="hero-title"></h1>
+            <p id="heroSubtitle" class="hero-subtitle"></p>
+            <p id="heroHighlight" class="hero-highlight"></p>
+
+            <div class="hero-actions">
+              <a
+                id="heroPrimaryCta"
+                class="hero-btn hero-btn-primary"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+              ></a>
+              <a
+                id="heroSecondaryCta"
+                class="hero-btn hero-btn-secondary"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+              ></a>
+            </div>
+          </div>
+
+          <aside class="hero-metrics-card" aria-label="Metriche live pagina servizi">
+            <p class="hero-metrics-kicker">Snapshot live</p>
+            <div id="heroMetrics" class="hero-metrics-grid"></div>
+            <p class="hero-metrics-note">Prezzi, blocchi e metriche si aggiornano dall'admin center.</p>
+          </aside>
+        </div>
+      </header>
+
+      <section id="servicesSection" class="services-section reveal-item" data-section="servicesSection" aria-labelledby="serviceBlocksHeading">
+        <div class="section-head">
+          <p class="section-kicker">Catalogo servizi</p>
+          <h2 id="serviceBlocksHeading">Soluzioni attive</h2>
+          <p>Struttura a blocchi con navigazione rapida, filtri e visualizzazione focus.</p>
+        </div>
+
+        <div id="servicesSummaryRow" class="services-summary-row" aria-live="polite"></div>
+
+        <div id="servicesToolbar" class="services-toolbar">
+          <div id="serviceCategoryFilters" class="service-filter-row" role="tablist" aria-label="Filtro categoria"></div>
+          <div class="toolbar-actions">
+            <label class="top-only-toggle">
+              <input id="serviceTopOnly" type="checkbox" />
+              Solo top service
+            </label>
+            <button
+              id="serviceFocusMode"
+              type="button"
+              class="service-filter-btn service-filter-btn-ghost"
+              aria-pressed="false"
+            >
+              Modalita focus
+            </button>
+            <button
+              id="serviceDetailsToggle"
+              type="button"
+              class="service-filter-btn service-filter-btn-ghost"
+              aria-pressed="false"
+            >
+              Apri dettagli
+            </button>
+          </div>
+        </div>
+
+        <p id="serviceCountLabel" class="service-count-label" aria-live="polite"></p>
+        <div id="serviceBlocksGrid" class="service-grid"></div>
+      </section>
+
+      <section id="socialSection" class="social-section reveal-item" data-section="socialSection" aria-labelledby="socialHeading">
+        <div class="section-head">
+          <p class="section-kicker">Social growth</p>
+          <h2 id="socialHeading"></h2>
+          <p id="socialSubtitle"></p>
+        </div>
+
+        <div id="socialMarqueeTrack" class="social-grid" aria-label="Piattaforme social disponibili"></div>
+      </section>
+
+      <section id="workflowSection" class="workflow-section reveal-item" data-section="workflowSection" aria-labelledby="workflowHeading">
+        <div class="section-head">
+          <p class="section-kicker">Metodo</p>
+          <h2 id="workflowHeading">Come lavoriamo</h2>
+        </div>
+        <div class="workflow-grid">
+          <article class="workflow-step">
+            <p class="workflow-index">01</p>
+            <h3>Analisi</h3>
+            <p>Raccolta obiettivi, requisiti operativi e priorita di business.</p>
+          </article>
+          <article class="workflow-step">
+            <p class="workflow-index">02</p>
+            <h3>Sviluppo</h3>
+            <p>Implementazione modulare con demo frequenti e feedback continuo.</p>
+          </article>
+          <article class="workflow-step">
+            <p class="workflow-index">03</p>
+            <h3>Deploy</h3>
+            <p>Rilascio assistito, monitoraggio e passaggio in gestione ordinaria.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="closingSection" class="closing-section reveal-item" data-section="closingSection" aria-labelledby="closingTitle">
+        <h2 id="closingTitle"></h2>
+        <p id="closingDescription"></p>
+      </section>
+    </main>
+
+    <script src="/shared/data-store.js?v=20260321-5"></script>
+    <script src="./services.js?v=20260321-5"></script>
+  </body>
+</html>

@@ -116,6 +116,7 @@ body {
 }
 
 #servicesPanel,
+#servicesPagePanel,
 #regionsPanel,
 #pointsPanel,
 #toolsPanel {
@@ -542,6 +543,37 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.admin-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-grid-gap {
+  gap: 10px;
+}
+
+.admin-inline-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  justify-self: start;
+}
+
+.services-editor-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.services-blocks-layout {
+  display: grid;
+  gap: 12px;
+}
+
+.service-block-form textarea {
+  min-height: 84px;
 }
 
 .point-form-sticky {
@@ -1194,6 +1226,10 @@ body {
 
 @media (max-width: 820px) {
   .admin-form-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-grid {
     grid-template-columns: 1fr;
   }
 
