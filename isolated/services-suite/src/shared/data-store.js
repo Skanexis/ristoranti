@@ -214,9 +214,9 @@
         highlight:
           "Sviluppo diretto da sviluppatore professionista: soluzioni su misura, codice pulito e supporto tecnico continuo.",
         primaryCtaLabel: "Parla con consulente",
-        primaryCtaUrl: "https://t.me/SHLC26",
+        primaryCtaUrl: "/services-bot",
         secondaryCtaLabel: "Invia richiesta",
-        secondaryCtaUrl: "https://t.me/SHLC26",
+        secondaryCtaUrl: "/services-bot",
       },
       socialProof: {
         title: "Canali digitali europei più richiesti",

@@ -301,6 +301,10 @@ const ADMIN_PAGE_META = {
     title: "Servizi",
     subtitle: "Gestione etichette operative e link canale Telegram.",
   },
+  "services-page": {
+    title: "I Nostri Servizi",
+    subtitle: "Controllo completo della pagina servizi: hero, blocchi, prezzi e social europei.",
+  },
   regions: {
     title: "Regioni",
     subtitle: "Creazione e ordinamento delle regioni disponibili.",
@@ -322,11 +326,16 @@ const ADMIN_PAGE_META = {
 const ADMIN_PAGE_ALIAS = {
   dashboard: "dashboard",
   services: "services",
+  "services-page": "services-page",
+  servicespage: "services-page",
+  servicepage: "services-page",
   regions: "regions",
   points: "points",
   other: "other",
   data: "data",
   servicespanel: "services",
+  servicespagepanel: "services-page",
+  servicepagepanel: "services-page",
   regionspanel: "regions",
   pointspanel: "points",
   otherpanel: "other",
@@ -345,6 +354,7 @@ const els = {
   adminPageTitle: document.getElementById("adminPageTitle"),
   adminPageSubtitle: document.getElementById("adminPageSubtitle"),
   servicesPanelFold: document.querySelector("#servicesPanel .admin-panel-fold"),
+  servicesPagePanelFold: document.querySelector("#servicesPagePanel .admin-panel-fold"),
   regionsPanelFold: document.querySelector("#regionsPanel .admin-panel-fold"),
   pointsPanelFold: document.querySelector("#pointsPanel .admin-panel-fold"),
   toolsPanelFold: document.querySelector("#toolsPanel .admin-panel-fold"),
@@ -366,6 +376,51 @@ const els = {
   serviceOther: document.getElementById("serviceOther"),
   serviceSupportTelegram: document.getElementById("serviceSupportTelegram"),
   resetServicesBtn: document.getElementById("resetServicesBtn"),
+  servicesPageHeroForm: document.getElementById("servicesPageHeroForm"),
+  servicesHeroBadge: document.getElementById("servicesHeroBadge"),
+  servicesHeroTitle: document.getElementById("servicesHeroTitle"),
+  servicesHeroSubtitle: document.getElementById("servicesHeroSubtitle"),
+  servicesHeroHighlight: document.getElementById("servicesHeroHighlight"),
+  servicesHeroPrimaryLabel: document.getElementById("servicesHeroPrimaryLabel"),
+  servicesHeroPrimaryUrl: document.getElementById("servicesHeroPrimaryUrl"),
+  servicesHeroSecondaryLabel: document.getElementById("servicesHeroSecondaryLabel"),
+  servicesHeroSecondaryUrl: document.getElementById("servicesHeroSecondaryUrl"),
+  servicesClosingTitle: document.getElementById("servicesClosingTitle"),
+  servicesClosingDescription: document.getElementById("servicesClosingDescription"),
+  servicesSocialForm: document.getElementById("servicesSocialForm"),
+  servicesSocialTitle: document.getElementById("servicesSocialTitle"),
+  servicesSocialSubtitle: document.getElementById("servicesSocialSubtitle"),
+  servicesSocialPlatformsInput: document.getElementById("servicesSocialPlatformsInput"),
+  servicesBotForm: document.getElementById("servicesBotForm"),
+  servicesBotEnabled: document.getElementById("servicesBotEnabled"),
+  servicesBotAssistantName: document.getElementById("servicesBotAssistantName"),
+  servicesBotModel: document.getElementById("servicesBotModel"),
+  servicesBotSystemPrompt: document.getElementById("servicesBotSystemPrompt"),
+  servicesBotOperatorLabel: document.getElementById("servicesBotOperatorLabel"),
+  servicesBotOperatorUrl: document.getElementById("servicesBotOperatorUrl"),
+  servicesBotOperatorFallbackMessage: document.getElementById("servicesBotOperatorFallbackMessage"),
+  servicesBotHandoffKeywords: document.getElementById("servicesBotHandoffKeywords"),
+  servicesBotCorrections: document.getElementById("servicesBotCorrections"),
+  serviceBlockCreateNew: document.getElementById("serviceBlockCreateNew"),
+  serviceBlocksList: document.getElementById("servicesBlocksList"),
+  serviceBlocksCount: document.getElementById("serviceBlocksCount"),
+  serviceBlockForm: document.getElementById("serviceBlockForm"),
+  serviceBlockEditingId: document.getElementById("serviceBlockEditingId"),
+  serviceBlockFormTitle: document.getElementById("serviceBlockFormTitle"),
+  serviceBlockId: document.getElementById("serviceBlockId"),
+  serviceBlockCategory: document.getElementById("serviceBlockCategory"),
+  serviceBlockTitle: document.getElementById("serviceBlockTitle"),
+  serviceBlockDescription: document.getElementById("serviceBlockDescription"),
+  serviceBlockPrice: document.getElementById("serviceBlockPrice"),
+  serviceBlockPriceNote: document.getElementById("serviceBlockPriceNote"),
+  serviceBlockAccent: document.getElementById("serviceBlockAccent"),
+  serviceBlockFeatured: document.getElementById("serviceBlockFeatured"),
+  serviceBlockFeatures: document.getElementById("serviceBlockFeatures"),
+  serviceBlockKpis: document.getElementById("serviceBlockKpis"),
+  serviceBlockFintechMetrics: document.getElementById("serviceBlockFintechMetrics"),
+  serviceBlockBankPriceList: document.getElementById("serviceBlockBankPriceList"),
+  serviceBlockSubmitBtn: document.getElementById("serviceBlockSubmitBtn"),
+  serviceBlockCancelBtn: document.getElementById("serviceBlockCancelBtn"),
 
   regionForm: document.getElementById("regionForm"),
   regionEditingId: document.getElementById("regionEditingId"),
@@ -577,6 +632,7 @@ function setAdminVisibility(isUnlocked) {
 function collapseAdminPanels() {
   [
     els.servicesPanelFold,
+    els.servicesPagePanelFold,
     els.regionsPanelFold,
     els.pointsPanelFold,
     els.otherPanelFold,
@@ -634,6 +690,11 @@ function focusAdminPage(pageId, preferredTarget = null) {
     return;
   }
 
+  if (pageId === "services-page") {
+    safeFocus(els.servicesHeroTitle || els.servicesPageHeroForm);
+    return;
+  }
+
   if (pageId === "regions") {
     safeFocus(els.regionName || els.regionCreateNew);
     return;
@@ -687,6 +748,7 @@ function setAdminPage(pageId, options = {}) {
   }
 
   if (resolved === "services") openAdminPanel(els.servicesPanelFold);
+  if (resolved === "services-page") openAdminPanel(els.servicesPagePanelFold);
   if (resolved === "regions") openAdminPanel(els.regionsPanelFold);
   if (resolved === "points") openAdminPanel(els.pointsPanelFold);
   if (resolved === "other") openAdminPanel(els.otherPanelFold);
@@ -827,6 +889,34 @@ function bindAdminEvents() {
   els.serviceSupportTelegram.addEventListener("blur", () => {
     validateSupportTelegramInline();
   });
+  if (els.servicesPageHeroForm) {
+    els.servicesPageHeroForm.addEventListener("submit", handleServicesPageHeroSubmit);
+  }
+  if (els.servicesSocialForm) {
+    els.servicesSocialForm.addEventListener("submit", handleServicesPageSocialSubmit);
+  }
+  if (els.servicesBotForm) {
+    els.servicesBotForm.addEventListener("submit", handleServicesBotSubmit);
+  }
+  if (els.serviceBlockCreateNew) {
+    els.serviceBlockCreateNew.addEventListener("click", () => {
+      resetServiceBlockForm();
+      setAdminPage("services-page", { updateHash: true, focus: false });
+      safeFocus(els.serviceBlockTitle);
+    });
+  }
+  if (els.serviceBlocksList) {
+    els.serviceBlocksList.addEventListener("click", handleServiceBlockActions);
+  }
+  if (els.serviceBlockForm) {
+    els.serviceBlockForm.addEventListener("submit", handleServiceBlockSubmit);
+  }
+  if (els.serviceBlockCancelBtn) {
+    els.serviceBlockCancelBtn.addEventListener("click", () => {
+      resetServiceBlockForm();
+      setStatus("Editor blocco servizio ripristinato.", "info");
+    });
+  }
 
   els.regionForm.addEventListener("submit", handleRegionSubmit);
   els.regionCancelEdit.addEventListener("click", resetRegionForm);
@@ -1167,6 +1257,8 @@ function bindAdminEvents() {
 
 function refreshAdminUI(preferredRegionId = "") {
   renderServicesForm();
+  renderServicesPageEditor();
+  renderServicesBotEditor();
   renderRegionSelect(preferredRegionId || els.pointRegionSelect.value);
   renderRegionList();
   renderPointsList();

@@ -30,6 +30,10 @@
 - Bot: `node src/bot/bot.js`
 - Cloudflare + Mini App test: `node scripts/dev-cloudflare-miniapp.js`
 
+## Isolated services module
+- `/services` page, related admin editor, and `services-bot` were extracted from this project.
+- Standalone copy: `isolated/services-suite/`
+
 ## Production deploy (IONOS)
 Use one unified guide:
 - `deploy/ionos/DEPLOY_IONOS.md`

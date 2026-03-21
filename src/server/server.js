@@ -417,17 +417,6 @@ async function handleStaticRequest(req, res, pathname) {
   if (relativePath === "/legal" || relativePath === "/legal/") {
     relativePath = "/legal.html";
   }
-  if (
-    relativePath === "/services" ||
-    relativePath === "/services/" ||
-    relativePath === "/servizi" ||
-    relativePath === "/servizi/" ||
-    relativePath === "/i-nostri-servizi" ||
-    relativePath === "/i-nostri-servizi/"
-  ) {
-    relativePath = "/services.html";
-  }
-
   const decoded = safeDecodePath(relativePath);
   if (!decoded) {
     sendJson(res, 400, { error: "Percorso non valido." });
@@ -526,13 +515,6 @@ function getCanonicalPageRedirect(pathname) {
     case "/legal.html":
     case "/legal/":
       return "/legal";
-    case "/services.html":
-    case "/services/":
-      return "/services";
-    case "/servizi/":
-      return "/servizi";
-    case "/i-nostri-servizi/":
-      return "/i-nostri-servizi";
     default:
       return "";
   }

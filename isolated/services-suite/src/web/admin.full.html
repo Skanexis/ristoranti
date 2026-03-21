@@ -46,6 +46,7 @@
           <nav id="adminSidebarNav" class="admin-section-nav admin-sidebar-nav" aria-label="Pagine admin">
             <a href="#dashboard" class="admin-nav-link admin-side-link" data-admin-page="dashboard">Dashboard</a>
             <a href="#services" class="admin-nav-link admin-side-link" data-admin-page="services">Servizi</a>
+            <a href="#services-page" class="admin-nav-link admin-side-link" data-admin-page="services-page">I Nostri Servizi</a>
             <a href="#regions" class="admin-nav-link admin-side-link" data-admin-page="regions">Regioni</a>
             <a href="#points" class="admin-nav-link admin-side-link" data-admin-page="points">Punti</a>
             <a href="#other" class="admin-nav-link admin-side-link" data-admin-page="other">Other</a>
@@ -170,6 +171,270 @@
                       <button id="resetServicesBtn" type="button" class="admin-btn admin-btn-secondary">Ripristina default</button>
                     </div>
                   </form>
+                </div>
+              </details>
+            </article>
+          </section>
+
+          <section id="adminPageServicesPage" class="admin-page" data-admin-page="services-page" hidden>
+            <article class="panel admin-panel" id="servicesPagePanel">
+              <details class="admin-panel-fold" open>
+                <summary class="admin-panel-fold-summary">
+                  <span class="admin-panel-fold-title">Pagina I Nostri Servizi</span>
+                  <span class="admin-panel-fold-hint">Gestione hero, blocchi, prezzi e social della pagina dedicata.</span>
+                </summary>
+                <div class="admin-panel-fold-body">
+                  <section class="services-editor-grid" aria-label="Contenuti pagina servizi">
+                    <article class="admin-form-block">
+                      <div class="admin-card-head">
+                        <h3>Hero e closing</h3>
+                      </div>
+                      <form id="servicesPageHeroForm" class="admin-form">
+                        <label>
+                          Badge hero
+                          <input id="servicesHeroBadge" type="text" maxlength="80" required />
+                        </label>
+                        <label>
+                          Titolo hero
+                          <input id="servicesHeroTitle" type="text" maxlength="120" required />
+                        </label>
+                        <label>
+                          Sottotitolo hero
+                          <textarea id="servicesHeroSubtitle" rows="4" maxlength="600" required></textarea>
+                        </label>
+                        <label>
+                          Highlight hero
+                          <textarea id="servicesHeroHighlight" rows="3" maxlength="280"></textarea>
+                        </label>
+                        <div class="admin-grid admin-grid-gap">
+                          <label>
+                            CTA primaria label
+                            <input id="servicesHeroPrimaryLabel" type="text" maxlength="60" required />
+                          </label>
+                          <label>
+                            CTA primaria URL
+                            <input id="servicesHeroPrimaryUrl" type="url" maxlength="200" required />
+                          </label>
+                          <label>
+                            CTA secondaria label
+                            <input id="servicesHeroSecondaryLabel" type="text" maxlength="60" />
+                          </label>
+                          <label>
+                            CTA secondaria URL
+                            <input id="servicesHeroSecondaryUrl" type="url" maxlength="200" />
+                          </label>
+                        </div>
+                        <label>
+                          Titolo closing
+                          <input id="servicesClosingTitle" type="text" maxlength="120" required />
+                        </label>
+                        <label>
+                          Testo closing
+                          <textarea id="servicesClosingDescription" rows="4" maxlength="600" required></textarea>
+                        </label>
+                        <div class="admin-form-actions">
+                          <button id="saveServicesPageHeroBtn" type="submit" class="admin-btn">Salva hero/closing</button>
+                        </div>
+                      </form>
+                    </article>
+
+                    <article class="admin-form-block">
+                      <div class="admin-card-head">
+                        <h3>Social europei</h3>
+                      </div>
+                      <form id="servicesSocialForm" class="admin-form">
+                        <label>
+                          Titolo sezione social
+                          <input id="servicesSocialTitle" type="text" maxlength="120" required />
+                        </label>
+                        <label>
+                          Sottotitolo sezione social
+                          <textarea id="servicesSocialSubtitle" rows="3" maxlength="320"></textarea>
+                        </label>
+                        <label>
+                          Piattaforme (una per riga: Nome|Focus)
+                          <textarea
+                            id="servicesSocialPlatformsInput"
+                            rows="8"
+                            placeholder="Instagram|Reels, Stories e ADV&#10;TikTok|Video strategy e community&#10;LinkedIn|Lead B2B"
+                          ></textarea>
+                        </label>
+                        <p class="admin-hint">Usa il formato <strong>Nome|Focus</strong>. Il focus è opzionale.</p>
+                        <div class="admin-form-actions">
+                          <button id="saveServicesSocialBtn" type="submit" class="admin-btn">Salva sezione social</button>
+                        </div>
+                      </form>
+                    </article>
+
+                    <article class="admin-form-block">
+                      <div class="admin-card-head">
+                        <h3>AI consulente bot (/services)</h3>
+                      </div>
+                      <form id="servicesBotForm" class="admin-form">
+                        <label class="admin-inline-field admin-inline-checkbox">
+                          Abilita consulente AI
+                          <input id="servicesBotEnabled" type="checkbox" />
+                        </label>
+                        <div class="admin-grid admin-grid-gap">
+                          <label>
+                            Nome assistente
+                            <input id="servicesBotAssistantName" type="text" maxlength="80" placeholder="Consulente YOSUPPORT AI" />
+                          </label>
+                          <label>
+                            Modello AI
+                            <input id="servicesBotModel" type="text" maxlength="80" placeholder="gpt-4o-mini" />
+                          </label>
+                        </div>
+                        <label>
+                          System prompt AI
+                          <textarea
+                            id="servicesBotSystemPrompt"
+                            rows="6"
+                            maxlength="6000"
+                            placeholder="Istruzioni operative del consulente AI..."
+                          ></textarea>
+                        </label>
+                        <div class="admin-grid admin-grid-gap">
+                          <label>
+                            Label bottone operatore
+                            <input id="servicesBotOperatorLabel" type="text" maxlength="80" placeholder="Parla con operatore" />
+                          </label>
+                          <label>
+                            URL operatore umano
+                            <input id="servicesBotOperatorUrl" type="url" maxlength="200" placeholder="https://t.me/username" />
+                          </label>
+                        </div>
+                        <label>
+                          Messaggio fallback operatore
+                          <textarea
+                            id="servicesBotOperatorFallbackMessage"
+                            rows="3"
+                            maxlength="500"
+                            placeholder="Messaggio inviato al cliente quando richiede supporto umano."
+                          ></textarea>
+                        </label>
+                        <label>
+                          Parole chiave handoff (una per riga)
+                          <textarea
+                            id="servicesBotHandoffKeywords"
+                            rows="5"
+                            placeholder="operatore&#10;supporto umano&#10;assistenza umana&#10;manager"
+                          ></textarea>
+                        </label>
+                        <label>
+                          Correzioni risposta bot (una per riga: Trigger|Risposta corretta)
+                          <textarea
+                            id="servicesBotCorrections"
+                            rows="8"
+                            placeholder="prezzi bot moderazione|Il servizio parte da 65€ con mantenimento 5€ al mese."
+                          ></textarea>
+                        </label>
+                        <p class="admin-hint">
+                          Le correzioni vengono usate come regole prioritarie: quando il trigger compare, il bot usa la risposta corretta.
+                        </p>
+                        <div class="admin-form-actions">
+                          <button id="saveServicesBotBtn" type="submit" class="admin-btn">Salva AI bot</button>
+                        </div>
+                      </form>
+                    </article>
+                  </section>
+
+                  <section class="services-blocks-layout" aria-label="Blocchi servizi con prezzi">
+                    <div class="admin-card-head">
+                      <h3>Blocchi servizi e prezzi</h3>
+                      <div class="admin-form-actions">
+                        <button id="serviceBlockCreateNew" type="button" class="admin-btn">Nuovo blocco</button>
+                      </div>
+                    </div>
+
+                    <div class="panel-points-layout">
+                      <div class="points-list-wrap">
+                        <div class="admin-card-head admin-list-head">
+                          <h3>Elenco blocchi</h3>
+                          <p id="serviceBlocksCount" class="admin-hint">0 blocchi</p>
+                        </div>
+                        <div id="servicesBlocksList" class="admin-list"></div>
+                      </div>
+
+                      <div class="points-editor-wrap">
+                        <form id="serviceBlockForm" class="admin-form service-block-form">
+                          <input type="hidden" id="serviceBlockEditingId" />
+                          <p id="serviceBlockFormTitle" class="form-mode">Nuovo blocco servizio</p>
+                          <label>
+                            ID blocco
+                            <input id="serviceBlockId" type="text" maxlength="80" placeholder="es. chat-moderation-bots" />
+                          </label>
+                          <label>
+                            Categoria
+                            <input id="serviceBlockCategory" type="text" maxlength="64" placeholder="Bot Telegram" required />
+                          </label>
+                          <label>
+                            Titolo servizio
+                            <input id="serviceBlockTitle" type="text" maxlength="140" required />
+                          </label>
+                          <label>
+                            Descrizione
+                            <textarea id="serviceBlockDescription" rows="5" maxlength="800" required></textarea>
+                          </label>
+                          <div class="admin-grid admin-grid-gap">
+                            <label>
+                              Prezzo
+                              <input id="serviceBlockPrice" type="text" maxlength="64" placeholder="a partire da 65€" required />
+                            </label>
+                            <label>
+                              Nota prezzo
+                              <input id="serviceBlockPriceNote" type="text" maxlength="120" placeholder="Mantenimento: 5€ al mese" />
+                            </label>
+                            <label>
+                              Colore blocco
+                              <select id="serviceBlockAccent">
+                                <option value="amber">Amber</option>
+                                <option value="cyan">Cyan</option>
+                                <option value="emerald">Emerald</option>
+                                <option value="rose">Rose</option>
+                              </select>
+                            </label>
+                            <label class="admin-inline-field admin-inline-checkbox">
+                              Evidenzia come top service
+                              <input id="serviceBlockFeatured" type="checkbox" />
+                            </label>
+                          </div>
+                          <label>
+                            Feature (una per riga)
+                            <textarea id="serviceBlockFeatures" rows="6" placeholder="Filtri keyword e anti-link&#10;Ruoli admin granulari&#10;Report giornalieri automatici"></textarea>
+                          </label>
+                          <label>
+                            Metriche compatte (una per riga)
+                            <textarea
+                              id="serviceBlockKpis"
+                              rows="4"
+                              placeholder="Fee da 0,8%&#10;Spread 1,2%-2,5%&#10;Settlement 5-15 min"
+                            ></textarea>
+                          </label>
+                          <label>
+                            Tabella fintech (una per riga: Label|Valore oppure Label:Valore)
+                            <textarea
+                              id="serviceBlockFintechMetrics"
+                              rows="4"
+                              placeholder="Fino a 750€|11%&#10;Fino a 1.500€|9%&#10;Fino a 5.000€|5%&#10;Fino a 10.000€|3,5%"
+                            ></textarea>
+                          </label>
+                          <label>
+                            Lista banche e prezzi (una per riga: Banca|Prezzo oppure Banca:Prezzo)
+                            <textarea
+                              id="serviceBlockBankPriceList"
+                              rows="5"
+                              placeholder="Bitsa|250€&#10;Wise|300€&#10;UniCredit|400€&#10;Postepay|500€&#10;Conto nome a scelta|800€+"
+                            ></textarea>
+                          </label>
+                          <div class="admin-form-actions">
+                            <button id="serviceBlockSubmitBtn" type="submit" class="admin-btn">Aggiungi blocco</button>
+                            <button id="serviceBlockCancelBtn" type="button" class="admin-btn admin-btn-secondary">Annulla</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </section>
                 </div>
               </details>
             </article>

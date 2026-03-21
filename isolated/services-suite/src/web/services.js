@@ -13,10 +13,10 @@ const DEFAULT_SERVICES_PAGE = (() => {
       subtitle:
         "Programmazione bot Telegram e soluzioni Exchange Crypto con condizioni chiare, supporto operativo e gestione professionale.",
       highlight: "Listino ufficiale aggiornabile da admin, con visualizzazione semplice e immediata.",
-      primaryCtaLabel: "Richiedi preventivo",
-      primaryCtaUrl: "https://t.me/SHLC26",
-      secondaryCtaLabel: "Contatto diretto",
-      secondaryCtaUrl: "https://t.me/SHLC26",
+      primaryCtaLabel: "Parla con consulente",
+      primaryCtaUrl: "/services-bot",
+      secondaryCtaLabel: "Invia richiesta",
+      secondaryCtaUrl: "/services-bot",
     },
     socialProof: {
       title: "Social network europei piu richiesti",
