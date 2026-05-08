@@ -8374,6 +8374,11 @@ body.map-only-page {
     filter: drop-shadow(0 0 1px rgba(231, 255, 237, 0.84)) !important;
   }
 
+  .static-map-shell:not(.has-region-selection) .italy-map-svg {
+    width: min(112vw, 540px);
+    max-height: calc(100dvh - 2px);
+  }
+
   .static-map-screen::before,
   .static-map-shell::before,
   .static-map-shell .italy-region-halo,
@@ -8406,6 +8411,43 @@ body.map-only-page {
     letter-spacing: 0;
     stroke-width: 2.45px;
     text-shadow: none;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(276px, calc(100vw - 34px));
+    min-height: 38px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 7px;
+    padding: 6px 9px 6px 7px;
+    border-radius: 16px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-pulse {
+    width: 28px;
+    height: 28px;
+    border-radius: 11px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-pulse::before,
+  .static-map-shell:not(.has-region-selection) .map-ux-pulse::after {
+    inset: 5px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-kicker {
+    font-size: 0.48rem;
+    line-height: 1;
+    letter-spacing: 0.09em;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock-copy strong {
+    margin-top: 1px;
+    font-size: clamp(1.1rem, 5.4vw, 1.28rem);
+    line-height: 0.88;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock-copy p {
+    display: none;
   }
 }
 
