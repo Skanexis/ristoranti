@@ -2,29 +2,181 @@
 const state = {
   service: null,
   region: null,
-  shipZone: null,
+  compareRegions: [],
+  mapScale: 1,
+  mapOffsetX: 0,
+  mapOffsetY: 0,
+  screen: "map",
 };
-const VALID_SERVICES = ["meetup", "delivery", "ship", "other"];
-const SHIP_ZONES = [
-  {
-    id: "italy",
-    title: "Ship da Italia",
-    hint: "Spedizione dai punti presenti in Italia",
+const VALID_SERVICES = ["meetup", "delivery", "ship"];
+const EXPERIENCE_STEPS = ["service", "region", "points"];
+const REGION_SVG_SHAPES = {
+  "valle-daosta": {
+    path: "M99 44 L121 38 L136 49 L126 64 L102 64 L92 54 Z",
+    cx: 114,
+    cy: 52,
   },
-  {
-    id: "eu",
-    title: "Ship da UE",
-    hint: "Spedizione da altri paesi dell'Unione Europea",
+  piemonte: {
+    path: "M82 76 L122 65 L154 78 L146 109 L101 118 L79 99 Z",
+    cx: 113,
+    cy: 92,
   },
-];
+  liguria: {
+    path: "M93 118 L128 116 L170 123 L186 132 L169 145 L126 142 L92 132 Z",
+    cx: 137,
+    cy: 131,
+  },
+  lombardia: {
+    path: "M148 74 L196 67 L229 78 L222 104 L182 113 L149 103 Z",
+    cx: 188,
+    cy: 90,
+  },
+  "trentino-alto-adige": {
+    path: "M184 42 L222 38 L243 57 L227 79 L191 78 L174 59 Z",
+    cx: 210,
+    cy: 58,
+  },
+  veneto: {
+    path: "M228 78 L276 76 L304 92 L291 118 L244 120 L221 104 Z",
+    cx: 262,
+    cy: 97,
+  },
+  "friuli-venezia-giulia": {
+    path: "M304 90 L334 96 L342 118 L320 127 L293 117 Z",
+    cx: 320,
+    cy: 108,
+  },
+  "emilia-romagna": {
+    path: "M143 118 L187 112 L236 118 L266 126 L258 144 L200 149 L152 143 Z",
+    cx: 206,
+    cy: 131,
+  },
+  toscana: {
+    path: "M135 145 L170 151 L191 184 L177 221 L143 227 L120 200 L122 169 Z",
+    cx: 156,
+    cy: 186,
+  },
+  lazio: {
+    path: "M178 184 L208 187 L229 214 L220 249 L191 259 L171 239 L170 210 Z",
+    cx: 200,
+    cy: 223,
+  },
+  umbria: {
+    path: "M202 167 L226 170 L238 191 L223 214 L202 208 L194 185 Z",
+    cx: 216,
+    cy: 190,
+  },
+  marche: {
+    path: "M239 171 L270 178 L281 201 L265 229 L236 224 L224 201 Z",
+    cx: 252,
+    cy: 199,
+  },
+  abruzzo: {
+    path: "M228 214 L257 213 L274 233 L261 258 L229 255 L218 235 Z",
+    cx: 246,
+    cy: 235,
+  },
+  molise: {
+    path: "M228 255 L254 255 L264 273 L249 289 L226 281 L220 266 Z",
+    cx: 242,
+    cy: 271,
+  },
+  campania: {
+    path: "M171 241 L197 262 L210 291 L187 317 L159 309 L150 277 Z",
+    cx: 179,
+    cy: 281,
+  },
+  basilicata: {
+    path: "M209 279 L239 286 L250 312 L231 333 L204 327 L193 302 Z",
+    cx: 222,
+    cy: 307,
+  },
+  calabria: {
+    path: "M231 332 L252 337 L262 360 L250 389 L230 402 L218 385 L223 359 Z",
+    cx: 240,
+    cy: 366,
+  },
+  puglia: {
+    path: "M259 258 L292 253 L313 275 L306 307 L279 324 L266 307 L272 285 Z",
+    cx: 286,
+    cy: 288,
+  },
+  sardegna: {
+    path: "M88 246 L108 236 L126 254 L123 301 L103 324 L84 311 L81 269 Z",
+    cx: 104,
+    cy: 280,
+  },
+  sicilia: {
+    path: "M178 354 L234 344 L273 358 L251 381 L196 385 L164 370 Z",
+    cx: 219,
+    cy: 365,
+  },
+};
+const REGION_MAP_FALLBACK_LAYOUT = {
+  "valle-daosta": { x: 114, y: 52 },
+  piemonte: { x: 113, y: 92 },
+  liguria: { x: 137, y: 131 },
+  lombardia: { x: 188, y: 90 },
+  "trentino-alto-adige": { x: 210, y: 58 },
+  veneto: { x: 262, y: 97 },
+  "friuli-venezia-giulia": { x: 320, y: 108 },
+  "emilia-romagna": { x: 206, y: 131 },
+  toscana: { x: 156, y: 186 },
+  lazio: { x: 200, y: 223 },
+  umbria: { x: 216, y: 190 },
+  marche: { x: 252, y: 199 },
+  abruzzo: { x: 246, y: 235 },
+  molise: { x: 242, y: 271 },
+  campania: { x: 179, y: 281 },
+  basilicata: { x: 222, y: 307 },
+  calabria: { x: 240, y: 366 },
+  puglia: { x: 286, y: 288 },
+  sardegna: { x: 104, y: 280 },
+  sicilia: { x: 219, y: 365 },
+};
+const ITALY_REGION_NAMES = {
+  "valle-daosta": "Valle d'Aosta",
+  piemonte: "Piemonte",
+  liguria: "Liguria",
+  lombardia: "Lombardia",
+  "trentino-alto-adige": "Trentino-Alto Adige",
+  veneto: "Veneto",
+  "friuli-venezia-giulia": "Friuli-Venezia Giulia",
+  "emilia-romagna": "Emilia-Romagna",
+  toscana: "Toscana",
+  umbria: "Umbria",
+  marche: "Marche",
+  lazio: "Lazio",
+  abruzzo: "Abruzzo",
+  molise: "Molise",
+  campania: "Campania",
+  puglia: "Puglia",
+  basilicata: "Basilicata",
+  calabria: "Calabria",
+  sardegna: "Sardegna",
+  sicilia: "Sicilia",
+};
+const REGION_MAP_VIEWBOX =
+  typeof window !== "undefined" &&
+  window.RIItalyRegionsMap &&
+  typeof window.RIItalyRegionsMap.viewBox === "string"
+    ? window.RIItalyRegionsMap.viewBox
+    : "0 0 360 430";
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
 const LOGO_PREFETCH_LIMIT = 6;
 const warmedLogoOrigins = new Set();
 const prefetchedLogoUrls = new Set();
+const IS_MAP_ONLY_HOME = document.querySelector(".map-only-app") !== null;
+
+applyGeneratedRegionMapData();
 
 let appData = fallbackData();
+let mapPanSession = null;
+let activeTiltCard = null;
 
 const els = {
+  appFlow: document.querySelector(".flow"),
+  serviceStep: document.getElementById("serviceStep"),
   serviceOptions: document.getElementById("serviceOptions"),
   selectionStep: document.getElementById("selectionStep"),
   selectionTitle: document.getElementById("selectionTitle"),
@@ -35,50 +187,329 @@ const els = {
   pointsContent: document.getElementById("pointsContent"),
   heroTelegramLink: document.getElementById("heroTelegramLink"),
   scrollTopBtn: document.getElementById("scrollTopBtn"),
+  experienceHud: null,
 };
 
+removeExperienceHud();
+mountExperienceHud();
 setupMobilePreloader();
 setupTelegram();
 bindEvents();
+setupInteractiveUi();
 setupFloatingTools();
 void initializeAppData();
 
 async function initializeAppData() {
   normalizeState();
   renderHeroSocialLinks();
-  renderRegionStep();
+  renderMapHomeStep();
   renderPointsStep();
+  updateExperienceHud();
 
   await loadAppDataFromServer();
   normalizeState();
   renderHeroSocialLinks();
-  renderRegionStep();
+  renderMapHomeStep();
   renderPointsStep();
+  updateExperienceHud();
 }
 
 function bindEvents() {
-  els.serviceOptions.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-service]");
-    if (!button) return;
-    selectService(button.dataset.service);
-  });
+  if (els.serviceOptions) {
+    els.serviceOptions.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-service]");
+      if (!button) return;
+      selectService(button.dataset.service);
+    });
+  }
 
   els.selectionContent.addEventListener("click", (event) => {
-    const shipZoneButton = event.target.closest("[data-ship-zone]");
-    if (shipZoneButton && !shipZoneButton.disabled) {
-      selectShipZone(shipZoneButton.dataset.shipZone);
+    const screenActionButton = event.target.closest("[data-screen-action]");
+    if (screenActionButton) {
+      runScreenAction(screenActionButton.dataset.screenAction);
+      return;
+    }
+
+    const regionActionButton = event.target.closest("[data-region-action]");
+    if (regionActionButton) {
+      runRegionQuickAction(regionActionButton.dataset.regionAction);
+      return;
+    }
+
+    const compareButton = event.target.closest("[data-compare-region]");
+    if (compareButton && !compareButton.disabled) {
+      toggleCompareRegion(compareButton.dataset.compareRegion);
+      return;
+    }
+
+    const mapActionButton = event.target.closest("[data-map-action]");
+    if (mapActionButton) {
+      runMapAction(mapActionButton.dataset.mapAction);
       return;
     }
 
     const regionButton = event.target.closest("[data-region]");
-    if (!regionButton || regionButton.disabled) return;
+    if (!regionButton || regionButton.disabled || regionButton.getAttribute("data-disabled") === "true") return;
     selectRegion(regionButton.dataset.region);
   });
+
+  els.selectionContent.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const regionNode = event.target.closest("[data-region]");
+    if (!regionNode || regionNode.getAttribute("data-disabled") === "true") return;
+    event.preventDefault();
+    selectRegion(regionNode.dataset.region);
+  });
+
+  els.selectionContent.addEventListener("pointerdown", (event) => {
+    const stage = event.target.closest(".italy-map-stage");
+    if (!stage) return;
+    if (event.target.closest("[data-region]") || event.target.closest("[data-map-action]")) return;
+    startMapPan(stage, event);
+  });
+
+  window.addEventListener("pointermove", handleMapPanMove, { passive: false });
+  window.addEventListener("pointerup", stopMapPan);
+  window.addEventListener("pointercancel", stopMapPan);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;
     void refreshLiveData();
   });
+}
+
+function setupInteractiveUi() {
+  setupServiceCardTilt();
+  setupInteractivePressEffects();
+}
+
+function setupServiceCardTilt() {
+  if (!els.serviceOptions) return;
+
+  const resetCard = (card) => {
+    if (!(card instanceof HTMLElement)) return;
+    card.classList.remove("is-tilt");
+    card.style.removeProperty("--tilt-x");
+    card.style.removeProperty("--tilt-y");
+    card.style.removeProperty("--glow-x");
+    card.style.removeProperty("--glow-y");
+  };
+
+  els.serviceOptions.addEventListener("pointermove", (event) => {
+    const card = event.target.closest("#serviceOptions .option");
+    if (!(card instanceof HTMLElement) || card.classList.contains("is-disabled")) return;
+
+    if (activeTiltCard && activeTiltCard !== card) {
+      resetCard(activeTiltCard);
+    }
+    activeTiltCard = card;
+
+    const rect = card.getBoundingClientRect();
+    const localX = event.clientX - rect.left;
+    const localY = event.clientY - rect.top;
+    const px = localX / Math.max(rect.width, 1) - 0.5;
+    const py = localY / Math.max(rect.height, 1) - 0.5;
+    const tiltX = clampNumber(py * -10, -5.5, 5.5);
+    const tiltY = clampNumber(px * 12, -6.5, 6.5);
+
+    card.style.setProperty("--tilt-x", `${tiltX.toFixed(2)}deg`);
+    card.style.setProperty("--tilt-y", `${tiltY.toFixed(2)}deg`);
+    card.style.setProperty("--glow-x", `${(localX / rect.width) * 100}%`);
+    card.style.setProperty("--glow-y", `${(localY / rect.height) * 100}%`);
+    card.classList.add("is-tilt");
+  });
+
+  els.serviceOptions.addEventListener("pointerleave", () => {
+    if (!activeTiltCard) return;
+    resetCard(activeTiltCard);
+    activeTiltCard = null;
+  });
+
+  els.serviceOptions.addEventListener("pointerup", () => {
+    if (!activeTiltCard) return;
+    activeTiltCard.classList.remove("is-tilt");
+  });
+}
+
+function setupInteractivePressEffects() {
+  const interactiveSelector =
+    ".option, .region-action-btn, .region-compare-btn, .map-control-btn, .map-region-chip, .pro-tab, .pro-rail-btn, .pro-signal-card, .pro-region-row, .pro-primary-action, .workspace-back, .workspace-clear, .workspace-region-shortcut, .point-link, .floating-btn, .hero-social-link, .hero-services-link";
+
+  const pop = (node) => {
+    if (!(node instanceof HTMLElement)) return;
+    node.classList.remove("is-press");
+    void node.offsetWidth;
+    node.classList.add("is-press");
+    window.setTimeout(() => node.classList.remove("is-press"), 220);
+  };
+
+  document.addEventListener("pointerdown", (event) => {
+    const target = event.target.closest(interactiveSelector);
+    if (!(target instanceof HTMLElement)) return;
+    if (target.matches(":disabled") || target.getAttribute("aria-disabled") === "true") return;
+
+    pop(target);
+    addRipple(target, event.clientX, event.clientY);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const target = event.target.closest(interactiveSelector);
+    if (!(target instanceof HTMLElement)) return;
+    pop(target);
+  });
+}
+
+function addRipple(host, clientX, clientY) {
+  if (!(host instanceof HTMLElement)) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+  const rect = host.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 1.3;
+  const ripple = document.createElement("span");
+  ripple.className = "ui-ripple";
+  ripple.style.width = `${size}px`;
+  ripple.style.height = `${size}px`;
+  ripple.style.left = `${clientX - rect.left}px`;
+  ripple.style.top = `${clientY - rect.top}px`;
+  host.appendChild(ripple);
+
+  window.setTimeout(() => {
+    ripple.remove();
+  }, 620);
+}
+
+function mountExperienceHud() {
+  if (!els.appFlow || !els.serviceStep || document.getElementById("experienceHud")) {
+    els.experienceHud = document.getElementById("experienceHud");
+    return;
+  }
+
+  const hud = document.createElement("section");
+  hud.id = "experienceHud";
+  hud.className = "experience-hud card reveal";
+  hud.innerHTML = `
+    <div class="experience-hud-top">
+      <p class="experience-hud-kicker">Navigator</p>
+      <h2 class="experience-hud-title">Percorso Live</h2>
+      <p class="experience-hud-note" data-hud-note>Seleziona un servizio per iniziare.</p>
+    </div>
+    <div class="experience-hud-stats">
+      <article class="experience-stat">
+        <p class="experience-stat-label">Regioni</p>
+        <p class="experience-stat-value" data-hud-regions>0</p>
+      </article>
+      <article class="experience-stat">
+        <p class="experience-stat-label">Punti attivi</p>
+        <p class="experience-stat-value" data-hud-points>0</p>
+      </article>
+      <article class="experience-stat">
+        <p class="experience-stat-label">Servizio</p>
+        <p class="experience-stat-value experience-stat-value--text" data-hud-service>--</p>
+      </article>
+    </div>
+    <div class="experience-hud-steps">
+      ${EXPERIENCE_STEPS.map(
+        (stepId, index) => `
+          <span class="experience-step-pill" data-step-pill="${escapeHtmlAttr(stepId)}">
+            ${String(index + 1).padStart(2, "0")} ${escapeHtml(stepId)}
+          </span>
+        `
+      ).join("")}
+    </div>
+  `;
+
+  els.appFlow.insertBefore(hud, els.serviceStep);
+  els.experienceHud = hud;
+}
+
+function removeExperienceHud() {
+  const existing = document.getElementById("experienceHud");
+  if (existing?.parentNode) {
+    existing.parentNode.removeChild(existing);
+  }
+  els.experienceHud = null;
+}
+
+function updateExperienceHud() {
+  const hud = els.experienceHud || document.getElementById("experienceHud");
+  if (!hud) return;
+
+  const regionsValue = hud.querySelector("[data-hud-regions]");
+  const pointsValue = hud.querySelector("[data-hud-points]");
+  const serviceValue = hud.querySelector("[data-hud-service]");
+  const noteValue = hud.querySelector("[data-hud-note]");
+
+  const activeRegionsForService = getActiveRegionsForCurrentSelection();
+  const activePointsForService = getActivePointsCountForCurrentSelection();
+
+  if (regionsValue) {
+    regionsValue.textContent = String(activeRegionsForService);
+  }
+  if (pointsValue) {
+    pointsValue.textContent = String(activePointsForService);
+  }
+  if (serviceValue) {
+    serviceValue.textContent = state.service ? getServiceLabel(state.service) : "--";
+  }
+  if (noteValue) {
+    if (!state.service) {
+      noteValue.textContent = "Seleziona un servizio per iniziare.";
+    } else if (!state.region) {
+      noteValue.textContent = "Scegli una regione dalla mappa o dalla lista.";
+    } else {
+      noteValue.textContent = "Perfetto, ora esplora i punti attivi e apri i social disponibili.";
+    }
+  }
+
+  const progress = getJourneyProgressState();
+  hud.querySelectorAll("[data-step-pill]").forEach((pill) => {
+    const pillId = pill.getAttribute("data-step-pill");
+    const stateValue = progress[pillId];
+    pill.classList.toggle("is-current", stateValue === "current");
+    pill.classList.toggle("is-done", stateValue === "done");
+  });
+}
+
+function getJourneyProgressState() {
+  const stepStates = {
+    service: "pending",
+    region: "pending",
+    points: "pending",
+  };
+
+  if (!state.service) {
+    stepStates.service = "current";
+    return stepStates;
+  }
+
+  stepStates.service = "done";
+
+  stepStates.region = state.region ? "done" : "current";
+  stepStates.points = state.region ? "current" : "pending";
+  return stepStates;
+}
+
+function getActiveRegionsForCurrentSelection() {
+  if (!Array.isArray(appData.regions)) return 0;
+
+  if (!state.service) {
+    return appData.regions.filter((region) => (region.activePoints || []).length > 0).length;
+  }
+
+  return appData.regions.filter((region) => getActivePointsByRegion(region.id, state.service).length > 0).length;
+}
+
+function getActivePointsCountForCurrentSelection() {
+  if (!state.service) {
+    return (appData.regions || []).reduce((acc, region) => acc + (region.activePoints || []).length, 0);
+  }
+
+  if (state.region) {
+    return getActivePointsByRegion(state.region, state.service).length;
+  }
+
+  return getActivePointsByService(state.service).length;
 }
 
 function setupTelegram() {
@@ -94,7 +525,7 @@ async function refreshLiveData() {
   await loadAppDataFromServer();
   normalizeState();
   renderHeroSocialLinks();
-  renderRegionStep();
+  renderMapHomeStep();
   renderPointsStep();
 }
 
@@ -144,21 +575,26 @@ function fallbackData() {
       meetup: "Ritiro",
       delivery: "Consegna",
       ship: "Spedizione",
-      other: "Altro",
     },
     supportTelegramUrl: "https://t.me/SHLC26",
     regions: [],
-    otherCategories: {
-      antiscam: [],
-      lifestyle: [],
-      digitalSystems: [],
-    },
-    otherCategoryLabels: {
-      antiscam: "Antiscam",
-      lifestyle: "Lifestyle",
-      digitalSystems: "Digital Systems",
-    },
   };
+}
+
+function getAllMapRegions() {
+  return Object.keys(ITALY_REGION_NAMES).map((id) => ({
+    id,
+    name: ITALY_REGION_NAMES[id],
+    hubs: "",
+    activePoints: [],
+  }));
+}
+
+function getRegionById(regionId) {
+  const id = String(regionId || "").trim();
+  if (!id) return null;
+
+  return appData.regions.find((region) => region.id === id) || getAllMapRegions().find((region) => region.id === id) || null;
 }
 
 function selectService(serviceId) {
@@ -167,120 +603,165 @@ function selectService(serviceId) {
 
   state.service = service;
   state.region = null;
-  state.shipZone = null;
+  state.compareRegions = [];
 
   normalizeState();
-  highlightActiveOption(els.serviceOptions, `[data-service='${cssEscape(state.service)}']`);
+  if (els.serviceOptions) {
+    highlightActiveOption(els.serviceOptions, `[data-service='${cssEscape(state.service)}']`);
+  }
   renderRegionStep();
   renderPointsStep();
   triggerSelectionHaptic();
 
   window.requestAnimationFrame(() =>
     focusStepIfNeeded(els.selectionStep, {
-      focusSelector: "[data-region]:not([disabled]), [data-ship-zone]:not([disabled])",
+      focusSelector: "[data-region]:not([disabled])",
     })
   );
 }
 
 function selectRegion(regionId) {
-  if (!state.service || state.service === "ship") return;
-
-  const region = appData.regions.find((item) => item.id === regionId);
+  const region = getRegionById(regionId);
   if (!region) return;
 
   state.region = region.id;
-  state.shipZone = null;
+  state.service = detectBestServiceForRegion(region.id);
+  state.compareRegions = [];
+  state.screen = "region";
 
   normalizeState();
-  highlightActiveOption(els.selectionContent, `[data-region='${cssEscape(state.region)}']`);
+  renderMapHomeStep();
   renderPointsStep();
+  animateSelectedRegionPulse();
   triggerSelectionHaptic();
 
-  window.requestAnimationFrame(() =>
-    focusStepIfNeeded(els.pointsStep, {
-      focusSelector: ".point-link",
-    })
-  );
+  if (!IS_MAP_ONLY_HOME) {
+    window.requestAnimationFrame(() =>
+      focusStepIfNeeded(els.pointsStep, {
+        focusSelector: ".point-link",
+      })
+    );
+  }
 }
 
-function selectShipZone(zoneId) {
-  if (state.service !== "ship") return;
+function detectBestServiceForRegion(regionId) {
+  const region = appData.regions.find((item) => item.id === regionId);
+  if (!region) return null;
 
-  const normalizedZone = normalizeShipZoneId(zoneId);
-  if (!normalizedZone) return;
+  const candidates = ["meetup", "delivery", "ship"];
+  let bestService = null;
+  let bestCount = 0;
 
-  state.shipZone = normalizedZone;
-  state.region = null;
+  for (const serviceId of candidates) {
+    const count = getActivePointsByRegion(regionId, serviceId).length;
+    if (count > bestCount) {
+      bestCount = count;
+      bestService = serviceId;
+    }
+  }
 
-  normalizeState();
-  highlightActiveOption(els.selectionContent, `[data-ship-zone='${cssEscape(state.shipZone)}']`);
-  renderPointsStep();
-  triggerSelectionHaptic();
-
-  window.requestAnimationFrame(() =>
-    focusStepIfNeeded(els.pointsStep, {
-      focusSelector: ".point-link",
-    })
-  );
+  return bestCount > 0 ? bestService : null;
 }
 
 function normalizeState() {
   state.service = normalizeServiceId(state.service);
-  state.shipZone = normalizeShipZoneId(state.shipZone);
+  state.screen = state.screen === "region" ? "region" : "map";
 
   if (!state.service) {
-    state.region = null;
-    state.shipZone = null;
-    return;
-  }
-
-  if (state.service === "ship") {
-    state.region = null;
-    if (!state.shipZone) return;
-
-    const activeShipPoints = getActiveShipPointsByZone(state.shipZone);
-    if (activeShipPoints.length === 0) {
-      state.shipZone = null;
+    state.compareRegions = [];
+    if (state.region && !getRegionById(state.region)) {
+      state.region = null;
+    }
+    if (!state.region) {
+      state.screen = "map";
     }
     return;
   }
 
-  if (state.service === "other") {
-    state.region = null;
-    state.shipZone = null;
-    return;
-  }
-
-  state.shipZone = null;
-
-  const regionExists = appData.regions.some((region) => region.id === state.region);
+  const regionExists = Boolean(getRegionById(state.region));
   if (!regionExists) {
     state.region = null;
+    state.screen = "map";
   }
 
   if (!state.region) return;
 
   const activePoints = getActivePointsByRegion(state.region);
   if (activePoints.length === 0) {
-    state.region = null;
+    state.service = detectBestServiceForRegion(state.region);
+    if (!state.service) {
+      state.compareRegions = [];
+      return;
+    }
   }
+
+  const validCompare = (state.compareRegions || [])
+    .map((id) => String(id || "").trim())
+    .filter(Boolean)
+    .filter((id, index, arr) => arr.indexOf(id) === index)
+    .filter((id) => getActivePointsByRegion(id, state.service).length > 0)
+    .slice(0, 2);
+  state.compareRegions = validCompare;
+}
+
+function renderMapHomeStep() {
+  if (els.selectionHint) {
+    els.selectionHint.textContent = "Seleziona una regione dalla mappa.";
+  }
+  if (els.selectionTitle) {
+    els.selectionTitle.textContent = "Mappa interattiva d'Italia";
+  }
+
+  const regionMeta = getAllMapRegions().map((region) => {
+    const dataRegion = (appData.regions || []).find((item) => item.id === region.id);
+    const activePoints = Array.isArray(dataRegion?.activePoints) ? dataRegion.activePoints : [];
+    const normalizedRegion = {
+      ...region,
+      ...dataRegion,
+      id: region.id,
+      name: dataRegion?.name || region.name,
+      activePoints,
+    };
+
+    return {
+      region: normalizedRegion,
+      activePoints,
+      activeCount: activePoints.length,
+      totalCount: activePoints.length,
+      isDisabled: false,
+    };
+  });
+
+  const selectedMeta = regionMeta.find((entry) => entry.region.id === state.region) || null;
+  const mapSvg = buildInteractiveItalySvg(regionMeta, state.region);
+
+  els.selectionContent.innerHTML = `
+    <div class="app-screen-stack is-${escapeHtmlAttr(state.screen)}">
+      ${buildProfessionalMapScreen(regionMeta, selectedMeta, mapSvg)}
+      ${buildRegionWorkspaceScreen(regionMeta, selectedMeta)}
+    </div>
+  `;
+
+  els.selectionStep.classList.remove("hidden");
+  if (state.region) {
+    highlightActiveOption(els.selectionContent, `[data-region='${cssEscape(state.region)}']`);
+  }
+  applyMapViewportTransform();
+  updateExperienceHud();
 }
 
 function renderRegionStep() {
-  if (!state.service || state.service === "other") {
+  if (!state.service) {
     els.selectionStep.classList.add("hidden");
-    return;
-  }
-
-  if (state.service === "ship") {
-    renderShipZoneStep();
+    els.selectionContent.innerHTML = "";
+    updateExperienceHud();
     return;
   }
 
   if (els.selectionHint) {
-    els.selectionHint.textContent = "Le regioni non attive vengono disabilitate automaticamente.";
+    els.selectionHint.textContent = "Mappa interattiva: tocca una regione e il sistema mostra subito i punti attivi.";
   }
-  els.selectionTitle.textContent = `Seleziona la regione per ${getServiceLabel(state.service)}`;
+  els.selectionTitle.textContent = `Seleziona una regione per ${getServiceLabel(state.service)}`;
 
   if (!Array.isArray(appData.regions) || appData.regions.length === 0) {
     els.selectionContent.innerHTML = `
@@ -289,13 +770,20 @@ function renderRegionStep() {
       </div>
     `;
     els.selectionStep.classList.remove("hidden");
+    updateExperienceHud();
     return;
   }
 
-  const regionMeta = appData.regions.map((region) => ({
-    region,
-    activeCount: getActivePointsByRegion(region.id).length,
-  }));
+  const regionMeta = appData.regions.map((region) => {
+    const activePoints = getActivePointsByRegion(region.id, state.service);
+    return {
+      region,
+      activePoints,
+      activeCount: activePoints.length,
+      totalCount: Array.isArray(region.activePoints) ? region.activePoints.length : 0,
+      isDisabled: activePoints.length === 0,
+    };
+  });
 
   const activeRegions = regionMeta.filter((entry) => entry.activeCount > 0);
   if (!state.region && activeRegions.length === 1) {
@@ -309,124 +797,907 @@ function renderRegionStep() {
     }
   }
 
+  const selectedMeta = regionMeta.find((entry) => entry.region.id === state.region) || null;
+
+  const mapSvg = buildInteractiveItalySvg(regionMeta, state.region);
+
   const regionCards = regionMeta
-    .map(({ region, activeCount }) => {
+    .map(({ region, activeCount, totalCount }) => {
       const isDisabled = activeCount === 0;
       return `
-        <button
-          type="button"
-          class="option ${isDisabled ? "is-disabled" : ""}"
-          data-region="${escapeHtmlAttr(region.id)}"
-          ${isDisabled ? "disabled" : ""}
-        >
-          <span class="region-name">${escapeHtml(region.name)}</span>
-          <span class="region-meta">${formatAvailablePointsLabel(activeCount)}</span>
-          <span class="region-meta">${escapeHtml(region.hubs || "Nessun hub specificato")}</span>
-        </button>
+        <article class="region-card-shell">
+          <button
+            type="button"
+            class="option region-list-option ${isDisabled ? "is-disabled" : ""}"
+            data-region="${escapeHtmlAttr(region.id)}"
+            ${isDisabled ? "disabled" : ""}
+          >
+            <span class="region-name">${escapeHtml(region.name)}</span>
+            <span class="region-meta">${formatAvailablePointsLabel(activeCount)}</span>
+            <span class="region-meta">Totale regione: ${totalCount} ${formatPointWord(totalCount)}</span>
+            <span class="region-meta">${escapeHtml(region.hubs || "Nessun hub specificato")}</span>
+          </button>
+        </article>
       `;
     })
     .join("");
+  const explorerClass = state.region ? "italy-explorer is-region-selected" : "italy-explorer";
+  const mapStageClass = state.region ? "italy-map-stage is-minimized" : "italy-map-stage";
 
-  els.selectionContent.innerHTML = `<div class="region-grid">${regionCards}</div>`;
+  els.selectionContent.innerHTML = `
+    <div class="${explorerClass}">
+      <div class="${mapStageClass}" role="group" aria-label="Mappa interattiva delle regioni italiane">
+        <div class="italy-map-controls" aria-label="Controlli mappa">
+          <button type="button" class="map-control-btn" data-map-action="zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" class="map-control-btn" data-map-action="zoom-out" aria-label="Zoom out">−</button>
+          <button type="button" class="map-control-btn" data-map-action="pan-up" aria-label="Pan up">↑</button>
+          <button type="button" class="map-control-btn" data-map-action="pan-left" aria-label="Pan left">←</button>
+          <button type="button" class="map-control-btn" data-map-action="pan-right" aria-label="Pan right">→</button>
+          <button type="button" class="map-control-btn" data-map-action="pan-down" aria-label="Pan down">↓</button>
+          <button type="button" class="map-control-btn map-control-btn-reset" data-map-action="reset-view" aria-label="Reset map view">Reset</button>
+        </div>
+        <div class="italy-map-grid" aria-hidden="true"></div>
+        <div class="italy-map-viewport">
+          ${mapSvg}
+        </div>
+      </div>
+      ${buildRegionSpotlight(selectedMeta)}
+      <div class="region-grid">${regionCards}</div>
+    </div>
+  `;
   els.selectionStep.classList.remove("hidden");
 
   if (state.region) {
     highlightActiveOption(els.selectionContent, `[data-region='${cssEscape(state.region)}']`);
   }
+
+  applyMapViewportTransform();
+  updateExperienceHud();
 }
 
-function renderShipZoneStep() {
+function renderRegionPreviewStep() {
   if (els.selectionHint) {
-    els.selectionHint.textContent = "Scegli se spedire da Italia o da altri paesi dell'Unione Europea.";
+    els.selectionHint.textContent =
+      "Mappa live: clicca una regione e il sistema seleziona automaticamente il servizio migliore.";
   }
-  els.selectionTitle.textContent = "Seleziona l'origine per Ship";
+  els.selectionTitle.textContent = "Mappa Live Italia";
 
-  const zoneMeta = SHIP_ZONES.map((zone) => ({
-    ...zone,
-    activeCount: getActiveShipPointsByZone(zone.id).length,
-  }));
-
-  const activeZones = zoneMeta.filter((zone) => zone.activeCount > 0);
-  if (!state.shipZone && activeZones.length === 1) {
-    state.shipZone = activeZones[0].id;
+  if (!Array.isArray(appData.regions) || appData.regions.length === 0) {
+    els.selectionContent.innerHTML = `
+      <div class="points-empty">
+        Nessuna regione configurata al momento.
+      </div>
+    `;
+    els.selectionStep.classList.remove("hidden");
+    return;
   }
 
-  if (state.shipZone) {
-    const selected = zoneMeta.find((zone) => zone.id === state.shipZone);
-    if (!selected || selected.activeCount === 0) {
-      state.shipZone = null;
+  const regionMeta = appData.regions.map((region) => {
+    const activePoints = Array.isArray(region.activePoints) ? region.activePoints : [];
+    return {
+      region,
+      activePoints,
+      activeCount: activePoints.length,
+      totalCount: activePoints.length,
+    };
+  });
+
+  const mapSvg = buildInteractiveItalySvg(regionMeta, null);
+  const regionCards = regionMeta
+    .map(({ region, activeCount }) => {
+      const isDisabled = activeCount === 0;
+      const autoService = detectBestServiceForRegion(region.id);
+      const autoServiceLabel = autoService
+        ? `Auto servizio: ${getServiceLabel(autoService)}`
+        : "Nessun servizio attivo";
+
+      return `
+        <article class="region-card-shell">
+          <button
+            type="button"
+            class="option region-list-option ${isDisabled ? "is-disabled" : ""}"
+            data-region="${escapeHtmlAttr(region.id)}"
+            ${isDisabled ? "disabled" : ""}
+          >
+            <span class="region-name">${escapeHtml(region.name)}</span>
+            <span class="region-meta">${formatAvailablePointsLabel(activeCount)}</span>
+            <span class="region-meta">${escapeHtml(autoServiceLabel)}</span>
+            <span class="region-meta">${escapeHtml(region.hubs || "Nessun hub specificato")}</span>
+          </button>
+        </article>
+      `;
+    })
+    .join("");
+
+  els.selectionContent.innerHTML = `
+    <div class="preview-hint-pill">Live Preview attivo</div>
+    <div class="italy-explorer">
+      <div class="italy-map-stage hero-map-live" role="group" aria-label="Mappa live interattiva delle regioni">
+        <div class="italy-map-grid" aria-hidden="true"></div>
+        <div class="italy-map-viewport">
+          ${mapSvg}
+        </div>
+      </div>
+      <article class="region-spotlight">
+        <p class="region-spotlight-kicker">Preview Mode</p>
+        <h3 class="region-spotlight-title">Seleziona una regione per iniziare subito</h3>
+        <p class="region-spotlight-note">Il servizio viene impostato automaticamente in base ai punti attivi della regione.</p>
+      </article>
+      <div class="region-grid">${regionCards}</div>
+    </div>
+  `;
+
+  els.selectionStep.classList.remove("hidden");
+  applyMapViewportTransform();
+}
+
+function runRegionQuickAction(actionId) {
+  if (!state.service) return;
+
+  const activeRegionMeta = (appData.regions || [])
+    .map((region) => ({
+      region,
+      activeCount: getActivePointsByRegion(region.id, state.service).length,
+    }))
+    .filter((entry) => entry.activeCount > 0);
+
+  if (actionId === "reset") {
+    state.region = null;
+    state.compareRegions = [];
+    renderRegionStep();
+    renderPointsStep();
+    updateExperienceHud();
+    return;
+  }
+
+  if (actionId === "compare-reset") {
+    state.compareRegions = [];
+    renderRegionStep();
+    updateExperienceHud();
+    return;
+  }
+
+  if (activeRegionMeta.length === 0) return;
+
+  if (actionId === "best") {
+    const best = [...activeRegionMeta].sort((a, b) => b.activeCount - a.activeCount)[0];
+    if (best?.region?.id) {
+      selectRegion(best.region.id);
+    }
+    return;
+  }
+
+  if (actionId === "random") {
+    const pick = activeRegionMeta[Math.floor(Math.random() * activeRegionMeta.length)];
+    if (pick?.region?.id) {
+      selectRegion(pick.region.id);
     }
   }
+}
 
-  const zoneCards = zoneMeta
-    .map((zone) => {
-      const isDisabled = zone.activeCount === 0;
+function runScreenAction(actionId) {
+  if (actionId === "map") {
+    state.screen = "map";
+    renderMapHomeStep();
+    triggerSelectionHaptic();
+    return;
+  }
+
+  if (actionId === "region" && state.region) {
+    state.screen = "region";
+    renderMapHomeStep();
+    triggerSelectionHaptic();
+    return;
+  }
+
+  if (actionId === "clear-region") {
+    state.region = null;
+    state.service = null;
+    state.compareRegions = [];
+    state.screen = "map";
+    renderMapHomeStep();
+    renderPointsStep();
+    triggerSelectionHaptic();
+  }
+}
+
+function applyGeneratedRegionMapData() {
+  const generated = window.RIItalyRegionsMap?.regions;
+  if (!generated || typeof generated !== "object") return;
+  if (!isGeneratedRegionMapUsable(generated)) {
+    console.warn("Skipping generated region map data: invalid geometry bounds, using fallback map.");
+    return;
+  }
+
+  for (const [rawKey, shape] of Object.entries(generated)) {
+    const key = resolveRegionMapKey(rawKey);
+    if (!key || !shape || typeof shape.path !== "string") continue;
+
+    REGION_SVG_SHAPES[key] = {
+      path: shape.path,
+      cx: Number(shape.cx) || 0,
+      cy: Number(shape.cy) || 0,
+    };
+
+    REGION_MAP_FALLBACK_LAYOUT[key] = {
+      x: Number(shape.cx) || 0,
+      y: Number(shape.cy) || 0,
+    };
+  }
+}
+
+function isGeneratedRegionMapUsable(generatedRegions) {
+  if (!generatedRegions || typeof generatedRegions !== "object") return false;
+
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  let usableShapes = 0;
+
+  for (const shape of Object.values(generatedRegions)) {
+    if (!shape || typeof shape.path !== "string") continue;
+    const coords = shape.path.match(/-?\d*\.?\d+/g);
+    if (!coords || coords.length < 4) continue;
+
+    for (let i = 0; i + 1 < coords.length; i += 2) {
+      const x = Number(coords[i]);
+      const y = Number(coords[i + 1]);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+
+    usableShapes += 1;
+  }
+
+  if (usableShapes < 10) return false;
+  if (!Number.isFinite(minX) || !Number.isFinite(maxX) || !Number.isFinite(minY) || !Number.isFinite(maxY)) {
+    return false;
+  }
+
+  const width = maxX - minX;
+  const height = maxY - minY;
+  if (width < 140 || height < 140) return false;
+
+  const ratio = height / Math.max(width, 1);
+  return ratio > 0.55 && ratio < 2.5;
+}
+
+function resolveRegionMapKey(regionId) {
+  const raw = String(regionId || "")
+    .trim()
+    .toLowerCase();
+
+  if (!raw) return "";
+
+  const aliases = {
+    "valle-d-aosta": "valle-daosta",
+    "valle-daosta": "valle-daosta",
+    "valledaosta": "valle-daosta",
+    "trentino-altoadige": "trentino-alto-adige",
+    "trentino-alto-adige": "trentino-alto-adige",
+    "trentino-alto-adige-sudtirol": "trentino-alto-adige",
+    "trentino-alto-adige-sudtirol-": "trentino-alto-adige",
+    "friuli venezia giulia": "friuli-venezia-giulia",
+  };
+
+  if (aliases[raw]) return aliases[raw];
+
+  return raw
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[']/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function runMapAction(actionId) {
+  const nextScaleStep = 0.14;
+
+  if (actionId === "zoom-in") {
+    state.mapScale = clampNumber(state.mapScale + nextScaleStep, 0.9, 2.25);
+  } else if (actionId === "zoom-out") {
+    state.mapScale = clampNumber(state.mapScale - nextScaleStep, 0.9, 2.25);
+  } else if (actionId === "reset-view") {
+    state.mapScale = 1;
+    state.mapOffsetX = 0;
+    state.mapOffsetY = 0;
+  } else if (actionId === "pan-left") {
+    state.mapOffsetX -= 20;
+  } else if (actionId === "pan-right") {
+    state.mapOffsetX += 20;
+  } else if (actionId === "pan-up") {
+    state.mapOffsetY -= 20;
+  } else if (actionId === "pan-down") {
+    state.mapOffsetY += 20;
+  } else {
+    return;
+  }
+
+  clampMapOffsets();
+  applyMapViewportTransform();
+}
+
+function startMapPan(stage, event) {
+  if (!(stage instanceof HTMLElement)) return;
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+
+  mapPanSession = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    startOffsetX: state.mapOffsetX,
+    startOffsetY: state.mapOffsetY,
+  };
+
+  stage.classList.add("is-panning");
+}
+
+function handleMapPanMove(event) {
+  if (!mapPanSession || event.pointerId !== mapPanSession.pointerId) return;
+  event.preventDefault();
+
+  const dx = event.clientX - mapPanSession.startX;
+  const dy = event.clientY - mapPanSession.startY;
+  state.mapOffsetX = mapPanSession.startOffsetX + dx;
+  state.mapOffsetY = mapPanSession.startOffsetY + dy;
+  clampMapOffsets();
+  applyMapViewportTransform();
+}
+
+function stopMapPan(event) {
+  if (!mapPanSession) return;
+  if (event && event.pointerId !== undefined && event.pointerId !== mapPanSession.pointerId) return;
+  mapPanSession = null;
+  document.querySelectorAll(".italy-map-stage.is-panning").forEach((stage) => stage.classList.remove("is-panning"));
+}
+
+function clampMapOffsets() {
+  const limit = Math.round(130 * Math.max(1, state.mapScale - 0.82));
+  state.mapOffsetX = clampNumber(state.mapOffsetX, -limit, limit);
+  state.mapOffsetY = clampNumber(state.mapOffsetY, -limit, limit);
+}
+
+function applyMapViewportTransform() {
+  els.selectionContent
+    ?.querySelectorAll(".italy-map-viewport")
+    .forEach((viewport) => {
+      viewport.style.setProperty("--map-scale", String(state.mapScale));
+      viewport.style.setProperty("--map-offset-x", `${state.mapOffsetX}px`);
+      viewport.style.setProperty("--map-offset-y", `${state.mapOffsetY}px`);
+    });
+}
+
+function toggleCompareRegion(regionId) {
+  const regionKey = String(regionId || "").trim();
+  if (!regionKey || !state.service) return;
+
+  const isAvailable = getActivePointsByRegion(regionKey, state.service).length > 0;
+  if (!isAvailable) return;
+
+  const next = [...(state.compareRegions || [])];
+  const currentIndex = next.indexOf(regionKey);
+  if (currentIndex >= 0) {
+    next.splice(currentIndex, 1);
+  } else {
+    if (next.length >= 2) {
+      next.shift();
+    }
+    next.push(regionKey);
+  }
+
+  state.compareRegions = next;
+  renderRegionStep();
+  triggerSelectionHaptic();
+}
+
+function buildInteractiveItalySvg(regionMeta, selectedRegionId) {
+  const shapes = regionMeta
+    .map((entry, index) => {
+      const regionId = resolveRegionMapKey(entry.region.id);
+      const shape = REGION_SVG_SHAPES[regionId];
+      const fallback = REGION_MAP_FALLBACK_LAYOUT[regionId] || {
+        x: 70 + (index % 5) * 55,
+        y: 70 + Math.floor(index / 5) * 55,
+      };
+      const isSelected = selectedRegionId === entry.region.id;
+      const isCompared = (state.compareRegions || []).includes(entry.region.id);
+      const isDisabled = entry.isDisabled === true;
+      const heatClass = entry.activeCount >= 3 ? "is-hot" : entry.activeCount === 2 ? "is-warm" : "is-cool";
+      const baseClass = `italy-region-shape ${heatClass} ${isDisabled ? "is-disabled" : ""} ${isSelected ? "is-selected" : ""} ${isCompared ? "is-compared" : ""}`;
+
+      if (shape?.path) {
+        return `
+          <g class="italy-region-group">
+            <path
+              class="${baseClass}"
+              data-region="${escapeHtmlAttr(entry.region.id)}"
+              data-disabled="${isDisabled ? "true" : "false"}"
+              d="${shape.path}"
+              role="button"
+              tabindex="${isDisabled ? "-1" : "0"}"
+              aria-label="${escapeHtmlAttr(entry.region.name)} ${escapeHtmlAttr(formatAvailablePointsLabel(entry.activeCount))}"
+            />
+            <text class="italy-region-count" x="${shape.cx}" y="${shape.cy}">${entry.activeCount}</text>
+          </g>
+        `;
+      }
+
+      return `
+        <g class="italy-region-group">
+          <circle
+            class="${baseClass}"
+            data-region="${escapeHtmlAttr(entry.region.id)}"
+            data-disabled="${isDisabled ? "true" : "false"}"
+            cx="${fallback.x}"
+            cy="${fallback.y}"
+            r="18"
+            role="button"
+            tabindex="${isDisabled ? "-1" : "0"}"
+            aria-label="${escapeHtmlAttr(entry.region.name)} ${escapeHtmlAttr(formatAvailablePointsLabel(entry.activeCount))}"
+          ></circle>
+          <text class="italy-region-count" x="${fallback.x}" y="${fallback.y}">${entry.activeCount}</text>
+        </g>
+      `;
+    })
+    .join("");
+
+  const labels = regionMeta
+    .map((entry, index) => {
+      const regionId = resolveRegionMapKey(entry.region.id);
+      const shape = REGION_SVG_SHAPES[regionId];
+      const fallback = REGION_MAP_FALLBACK_LAYOUT[regionId] || {
+        x: 70 + (index % 5) * 55,
+        y: 70 + Math.floor(index / 5) * 55,
+      };
+      const lx = shape?.cx ?? fallback.x;
+      const ly = shape?.cy ?? fallback.y;
+      return `
+        <text class="italy-region-label" x="${lx}" y="${ly + 10}">${escapeHtml(entry.region.name)}</text>
+      `;
+    })
+    .join("");
+
+  return `
+    <svg class="italy-map-svg" viewBox="${escapeHtmlAttr(REGION_MAP_VIEWBOX)}" role="img" aria-label="Regioni d'Italia con punti attivi">
+      <g class="italy-region-layer">${shapes}</g>
+      <g class="italy-region-labels">${labels}</g>
+    </svg>
+  `;
+}
+
+function buildHomeRegionPanel(selectedMeta) {
+  if (!selectedMeta) {
+    return `
+      <aside class="map-selected-panel" aria-live="polite">
+        <div class="map-panel-head">
+          <span class="map-panel-kicker">Italia</span>
+          <span class="map-panel-status">20 regioni</span>
+        </div>
+        <strong class="map-panel-title">Seleziona regione</strong>
+        <span class="map-panel-meta">Mappa interattiva nazionale</span>
+      </aside>
+    `;
+  }
+
+  const services = buildRegionServiceMix(selectedMeta.activePoints);
+  return `
+    <aside class="map-selected-panel is-active" aria-live="polite">
+      <div class="map-panel-head">
+        <span class="map-panel-kicker">Regione</span>
+        <span class="map-panel-status">Selezionata</span>
+      </div>
+      <strong class="map-panel-title">${escapeHtml(selectedMeta.region.name)}</strong>
+      <span class="map-panel-meta">${escapeHtml(formatAvailablePointsLabel(selectedMeta.activeCount))}</span>
+      <div class="region-service-mix map-panel-services">${services}</div>
+    </aside>
+  `;
+}
+
+function buildHomeCommandDeck(regionMeta, selectedMeta) {
+  const totalRegions = Array.isArray(regionMeta) ? regionMeta.length : 0;
+  const activeRegions = regionMeta.filter((entry) => entry.activeCount > 0).length;
+  const totalPoints = regionMeta.reduce((sum, entry) => sum + entry.activeCount, 0);
+  const selectedName = selectedMeta?.region?.name || "Seleziona regione";
+  const selectedCount = selectedMeta ? formatAvailablePointsLabel(selectedMeta.activeCount) : "Mappa interattiva nazionale";
+  const selectedServices = selectedMeta ? buildRegionServiceMix(selectedMeta.activePoints) : "";
+  const sortedRegions = [...regionMeta].sort((a, b) => a.region.name.localeCompare(b.region.name, "it"));
+
+  const regionChips = sortedRegions
+    .map((entry) => {
+      const isSelected = selectedMeta?.region?.id === entry.region.id;
       return `
         <button
           type="button"
-          class="option ${isDisabled ? "is-disabled" : ""}"
-          data-ship-zone="${escapeHtmlAttr(zone.id)}"
-          ${isDisabled ? "disabled" : ""}
+          class="map-region-chip ${isSelected ? "active" : ""}"
+          data-region="${escapeHtmlAttr(entry.region.id)}"
+          aria-label="${escapeHtmlAttr(entry.region.name)}"
         >
-          <span class="region-name">${escapeHtml(zone.title)}</span>
-          <span class="region-meta">${formatAvailablePointsLabel(zone.activeCount)}</span>
-          <span class="region-meta">${escapeHtml(zone.hint)}</span>
+          <span>${escapeHtml(entry.region.name)}</span>
+          <b>${entry.activeCount}</b>
         </button>
       `;
     })
     .join("");
 
-  els.selectionContent.innerHTML = `<div class="region-grid">${zoneCards}</div>`;
-  els.selectionStep.classList.remove("hidden");
+  return `
+    <section class="map-command-deck" aria-label="Selezione regioni">
+      <article class="map-deck-card map-deck-selected" aria-live="polite">
+        <div class="map-panel-head">
+          <span class="map-panel-kicker">${selectedMeta ? "Regione" : "Italia"}</span>
+          <span class="map-panel-status">${selectedMeta ? "Selezionata" : `${totalRegions} regioni`}</span>
+        </div>
+        <strong class="map-panel-title">${escapeHtml(selectedName)}</strong>
+        <span class="map-panel-meta">${escapeHtml(selectedCount)}</span>
+        ${selectedServices ? `<div class="region-service-mix map-panel-services">${selectedServices}</div>` : ""}
+      </article>
 
-  if (state.shipZone) {
-    highlightActiveOption(els.selectionContent, `[data-ship-zone='${cssEscape(state.shipZone)}']`);
+      <article class="map-deck-card map-region-browser">
+        <div class="map-browser-head">
+          <span class="map-panel-kicker">Region selector</span>
+          <span class="map-browser-count">${activeRegions}/${totalRegions} attive</span>
+        </div>
+        <div class="map-region-chip-grid">
+          ${regionChips}
+        </div>
+      </article>
+
+      <article class="map-deck-card map-deck-stats">
+        <div class="map-stat-block">
+          <span>Regioni</span>
+          <strong>${totalRegions}</strong>
+        </div>
+        <div class="map-stat-block">
+          <span>Punti</span>
+          <strong>${totalPoints}</strong>
+        </div>
+      </article>
+    </section>
+  `;
+}
+
+function buildProfessionalMapScreen(regionMeta, selectedMeta, mapSvg) {
+  const totalRegions = Array.isArray(regionMeta) ? regionMeta.length : 0;
+  const activeRegions = regionMeta.filter((entry) => entry.activeCount > 0).length;
+  const totalPoints = regionMeta.reduce((sum, entry) => sum + entry.activeCount, 0);
+  const selectedName = selectedMeta?.region?.name || "Choose region";
+  const selectedCount = selectedMeta ? formatAvailablePointsLabel(selectedMeta.activeCount) : "No region selected";
+  const selectedServices = selectedMeta ? buildRegionServiceMix(selectedMeta.activePoints) : "";
+  const sortedRegions = [...regionMeta].sort((a, b) => a.region.name.localeCompare(b.region.name, "it"));
+  const topRegions = [...regionMeta]
+    .sort((a, b) => b.activeCount - a.activeCount || a.region.name.localeCompare(b.region.name, "it"))
+    .slice(0, 5);
+
+  const regionRows = sortedRegions
+    .map((entry) => {
+      const isSelected = selectedMeta?.region?.id === entry.region.id;
+      return `
+        <button type="button" class="pro-region-row ${isSelected ? "active" : ""}" data-region="${escapeHtmlAttr(entry.region.id)}">
+          <span class="pro-region-row-name">${escapeHtml(entry.region.name)}</span>
+          <span class="pro-region-row-meta">${entry.activeCount} pts</span>
+        </button>
+      `;
+    })
+    .join("");
+
+  const topRegionCards = topRegions
+    .map(
+      (entry) => `
+        <button type="button" class="pro-signal-card" data-region="${escapeHtmlAttr(entry.region.id)}">
+          <span>${escapeHtml(entry.region.name)}</span>
+          <strong>${entry.activeCount}</strong>
+        </button>
+      `
+    )
+    .join("");
+
+  return `
+    <section class="app-screen app-screen-map pro-screen-map" aria-label="Mappa regioni">
+      <div class="pro-app-shell">
+        <header class="pro-topbar">
+          <div class="pro-brand">
+            <span class="map-brand-mark" aria-hidden="true">RI</span>
+            <span>
+              <strong>Ristoranti d'Italia</strong>
+              <small>Operations console</small>
+            </span>
+          </div>
+          <nav class="pro-topnav" aria-label="Workspace">
+            <button type="button" class="pro-tab active" data-screen-action="map">Map</button>
+            <button type="button" class="pro-tab" ${selectedMeta ? 'data-screen-action="region"' : 'aria-disabled="true"'}>Region</button>
+          </nav>
+          <div class="pro-top-metrics" aria-label="Statistiche">
+            <span><b>${totalRegions}</b> Regioni</span>
+            <span><b>${totalPoints}</b> Punti</span>
+          </div>
+        </header>
+
+        <div class="pro-workspace-grid">
+          <nav class="pro-rail" aria-label="Azioni rapide">
+            <button type="button" class="pro-rail-btn active" data-screen-action="map" aria-label="Mappa">⌖</button>
+            <button type="button" class="pro-rail-btn" data-map-action="zoom-in" aria-label="Zoom in">+</button>
+            <button type="button" class="pro-rail-btn" data-map-action="zoom-out" aria-label="Zoom out">-</button>
+            <button type="button" class="pro-rail-btn" data-map-action="reset-view" aria-label="Reset">R</button>
+          </nav>
+
+          <main class="pro-map-canvas">
+            <div class="pro-canvas-header">
+              <div>
+                <span class="pro-kicker">Live region map</span>
+                <h2>Italy control surface</h2>
+              </div>
+              <div class="pro-canvas-actions">
+                <button type="button" class="map-control-btn" data-map-action="pan-up" aria-label="Pan up">↑</button>
+                <button type="button" class="map-control-btn" data-map-action="pan-left" aria-label="Pan left">←</button>
+                <button type="button" class="map-control-btn" data-map-action="pan-right" aria-label="Pan right">→</button>
+                <button type="button" class="map-control-btn" data-map-action="pan-down" aria-label="Pan down">↓</button>
+              </div>
+            </div>
+            <div class="italy-home-map-shell">
+              <div class="italy-map-stage italy-map-stage-home pro-map-stage ${state.region ? "has-selection" : ""}" role="group" aria-label="Mappa interattiva delle regioni italiane">
+                <div class="italy-map-grid" aria-hidden="true"></div>
+                <div class="italy-map-viewport">
+                  ${mapSvg}
+                </div>
+              </div>
+            </div>
+            <div class="pro-signal-strip">
+              ${topRegionCards}
+            </div>
+          </main>
+
+          <aside class="pro-inspector" aria-label="Region inspector">
+            <section class="pro-inspector-card pro-selected-region">
+              <span class="pro-kicker">${selectedMeta ? "Selected" : "Waiting"}</span>
+              <h3>${escapeHtml(selectedName)}</h3>
+              <p>${escapeHtml(selectedCount)}</p>
+              ${selectedServices ? `<div class="region-service-mix map-panel-services">${selectedServices}</div>` : ""}
+              <button type="button" class="pro-primary-action" ${selectedMeta ? 'data-screen-action="region"' : 'aria-disabled="true"'}>
+                Open workspace
+              </button>
+            </section>
+
+            <section class="pro-inspector-card pro-region-directory">
+              <div class="pro-directory-head">
+                <span class="pro-kicker">Region directory</span>
+                <b>${activeRegions}/${totalRegions}</b>
+              </div>
+              <div class="pro-region-list">
+                ${regionRows}
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
+  const isOpen = Boolean(selectedMeta);
+  const region = selectedMeta?.region || null;
+  const activePoints = selectedMeta ? sortPointsByStarsPriority([...(selectedMeta.activePoints || [])]) : [];
+  const totalPoints = activePoints.length;
+  const serviceMix = selectedMeta ? buildRegionServiceMix(activePoints) : "";
+  const nearbyRegions = [...regionMeta]
+    .filter((entry) => entry.region.id !== region?.id)
+    .sort((a, b) => b.activeCount - a.activeCount || a.region.name.localeCompare(b.region.name, "it"))
+    .slice(0, 6);
+
+  const pointCards = activePoints.length
+    ? activePoints
+        .map((point) => {
+          const fallbackInitials = getInitials(point.name);
+          const logoHtml = point.logo
+            ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" loading="lazy" decoding="async" data-logo-fallback="${escapeHtmlAttr(fallbackInitials)}" />`
+            : `<span class="point-logo-fallback">${escapeHtml(fallbackInitials)}</span>`;
+          const socials = Array.isArray(point.socials)
+            ? point.socials
+                .slice(0, 3)
+                .map(
+                  (link) => `
+                    <a class="point-link" href="${escapeHtmlAttr(link.url)}" target="_blank" rel="noopener noreferrer">
+                      ${escapeHtml(link.label)}
+                    </a>
+                  `
+                )
+                .join("")
+            : "";
+
+          return `
+            <article class="workspace-point-card">
+              <div class="workspace-point-logo">${logoHtml}</div>
+              <div class="workspace-point-body">
+                <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Point")}</span>
+                <h3>${escapeHtml(point.name)}</h3>
+                <p>${escapeHtml(point.details || point.address || "Dettagli non configurati.")}</p>
+                <div class="workspace-point-services">${buildPointServiceBadges(point.services)}</div>
+                <div class="workspace-point-links">${socials || `<span class="point-links-empty">Nessun social</span>`}</div>
+              </div>
+            </article>
+          `;
+        })
+        .join("")
+    : `
+      <article class="workspace-empty">
+        <span>Nessun punto attivo</span>
+        <strong>${region ? escapeHtml(region.name) : "Regione"}</strong>
+      </article>
+    `;
+
+  const nearbyButtons = nearbyRegions
+    .map(
+      (entry) => `
+        <button type="button" class="workspace-region-shortcut" data-region="${escapeHtmlAttr(entry.region.id)}">
+          <span>${escapeHtml(entry.region.name)}</span>
+          <b>${entry.activeCount}</b>
+        </button>
+      `
+    )
+    .join("");
+
+  return `
+    <section class="app-screen app-screen-region ${isOpen ? "is-ready" : ""}" aria-label="Dettaglio regione">
+      <div class="workspace-shell">
+        <header class="workspace-header">
+          <button type="button" class="workspace-back" data-screen-action="map" aria-label="Torna alla mappa">←</button>
+          <div class="workspace-title-block">
+            <span>${isOpen ? "Region workspace" : "No region"}</span>
+            <h2>${escapeHtml(region?.name || "Seleziona una regione")}</h2>
+          </div>
+          <button type="button" class="workspace-clear" data-screen-action="clear-region">Reset</button>
+        </header>
+
+        <main class="workspace-main">
+          <section class="workspace-hero-card">
+            <div class="workspace-hero-meta">
+              <span class="map-panel-status">${totalPoints} punti</span>
+              <span class="map-panel-status">${regionMeta.length} regioni</span>
+            </div>
+            <h3>${escapeHtml(region?.name || "Italia")}</h3>
+            <p>${escapeHtml(region?.hubs || "Workspace regionale con punti, servizi e scorciatoie operative.")}</p>
+            <div class="region-service-mix workspace-service-mix">${serviceMix}</div>
+          </section>
+
+          <section class="workspace-points-panel">
+            <div class="workspace-section-head">
+              <span>Punti attivi</span>
+              <strong>${totalPoints}</strong>
+            </div>
+            <div class="workspace-point-grid">
+              ${pointCards}
+            </div>
+          </section>
+
+          <aside class="workspace-side-panel">
+            <div class="workspace-section-head">
+              <span>Altre regioni</span>
+              <strong>${nearbyRegions.length}</strong>
+            </div>
+            <div class="workspace-region-list">
+              ${nearbyButtons}
+            </div>
+          </aside>
+        </main>
+      </div>
+    </section>
+  `;
+}
+
+function buildRegionSpotlight(selectedMeta) {
+  if (!selectedMeta) {
+    return `
+      <article class="region-spotlight">
+        <p class="region-spotlight-kicker">Italy radar</p>
+        <h3 class="region-spotlight-title">Seleziona un pin per vedere i punti attivi</h3>
+        <p class="region-spotlight-note">Il pannello mostrerà subito i servizi disponibili per ogni punto della regione.</p>
+      </article>
+    `;
   }
+
+  const serviceMix = buildRegionServiceMix(selectedMeta.activePoints);
+  const pointsPreview = selectedMeta.activePoints
+    .slice(0, 4)
+    .map((point) => {
+      const pointServices = Array.isArray(point.services)
+        ? point.services
+            .filter((serviceId) => VALID_SERVICES.includes(serviceId))
+            .map(
+              (serviceId) =>
+                `<span class="region-point-service">${escapeHtml(getServiceLabel(serviceId))}</span>`
+            )
+            .join("")
+        : "";
+
+      return `
+        <article class="region-point-preview">
+          <h4>${escapeHtml(point.name)}</h4>
+          <p>${escapeHtml(point.address || point.details || "Dettagli disponibili nel passaggio successivo.")}</p>
+          <div class="region-point-services">${pointServices || `<span class="region-point-service">N/D</span>`}</div>
+        </article>
+      `;
+    })
+    .join("");
+
+  const morePointsCount = Math.max(0, selectedMeta.activeCount - 4);
+  const morePointsLabel =
+    morePointsCount > 0
+      ? `<p class="region-spotlight-note">+${morePointsCount} altri ${formatPointWord(morePointsCount)} disponibili dopo la selezione.</p>`
+      : `<p class="region-spotlight-note">Tutti i punti attivi della regione sono già in anteprima.</p>`;
+
+  return `
+    <article class="region-spotlight">
+      <p class="region-spotlight-kicker">Regione selezionata</p>
+      <h3 class="region-spotlight-title">${escapeHtml(selectedMeta.region.name)}</h3>
+      <p class="region-spotlight-note">${escapeHtml(selectedMeta.region.hubs || "Hub non specificati")}</p>
+      <div class="region-service-mix">${serviceMix}</div>
+      <div class="region-spotlight-points">${pointsPreview}</div>
+      ${morePointsLabel}
+    </article>
+  `;
+}
+
+function buildRegionServiceMix(pointsList) {
+  const counts = {};
+  for (const serviceId of VALID_SERVICES) {
+    counts[serviceId] = 0;
+  }
+
+  for (const point of pointsList || []) {
+    for (const serviceId of point?.services || []) {
+      if (!VALID_SERVICES.includes(serviceId)) continue;
+      counts[serviceId] += 1;
+    }
+  }
+
+  return VALID_SERVICES.map((serviceId) => {
+    const amount = counts[serviceId] || 0;
+    const isActive = amount > 0;
+    return `
+      <span class="region-service-chip ${isActive ? "is-active" : ""}">
+        ${escapeHtml(getServiceLabel(serviceId))} <b>${amount}</b>
+      </span>
+    `;
+  }).join("");
 }
 
 function renderPointsStep() {
-  if (!state.service) {
-    els.pointsStep.classList.add("hidden");
+  if (IS_MAP_ONLY_HOME) {
+    els.pointsStep?.classList.add("hidden");
+    updateExperienceHud();
     return;
   }
 
-  let activePoints = [];
-  let emptyMessage = "";
-
-  if (state.service === "ship") {
-    if (!state.shipZone) {
-      els.pointsStep.classList.add("hidden");
-      return;
-    }
-    const shipZoneLabel = getShipZoneLabel(state.shipZone);
-    activePoints = getActiveShipPointsByZone(state.shipZone);
-    els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} - Ship da ${shipZoneLabel}`;
-    emptyMessage = "Nessun punto disponibile per questa origine di spedizione.";
-  } else if (state.service === "other") {
-    activePoints = getActivePointsByService("other");
-    els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} - Other`;
-    emptyMessage = "Nessun punto Other disponibile al momento.";
-    els.pointsStep.classList.remove("hidden");
-  } else {
-    if (!state.region) {
-      els.pointsStep.classList.add("hidden");
-      return;
-    }
-
-    const region = appData.regions.find((item) => item.id === state.region);
-    if (!region) {
-      els.pointsStep.classList.add("hidden");
-      return;
-    }
-
-    activePoints = getActivePointsByRegion(region.id);
-
-    els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} in ${region.name}`;
-    emptyMessage = "Nessun punto disponibile per questo servizio nella regione selezionata.";
+  if (!state.service) {
+    els.pointsStep.classList.add("hidden");
+    updateExperienceHud();
+    return;
   }
+
+  if (!state.region) {
+    els.pointsStep.classList.add("hidden");
+    updateExperienceHud();
+    return;
+  }
+
+  const region = appData.regions.find((item) => item.id === state.region);
+  if (!region) {
+    els.pointsStep.classList.add("hidden");
+    updateExperienceHud();
+    return;
+  }
+
+  let activePoints = getActivePointsByRegion(region.id, state.service);
+  els.pointsTitle.textContent = `${formatActivePointsTitle(activePoints.length)} in ${region.name} · ${getServiceLabel(state.service)}`;
+  const emptyMessage = "Nessun punto disponibile per questo servizio nella regione selezionata.";
 
   activePoints = sortPointsByStarsPriority(activePoints);
   prefetchPointLogos(activePoints);
+  const previousRects = capturePointCardRects(els.pointsContent);
 
   if (activePoints.length === 0) {
     els.pointsContent.innerHTML = `
@@ -435,6 +1706,7 @@ function renderPointsStep() {
       </div>
     `;
     els.pointsStep.classList.remove("hidden");
+    updateExperienceHud();
     return;
   }
 
@@ -463,19 +1735,29 @@ function renderPointsStep() {
     const mediaType = resolvePointMediaType(point.mediaType, point.mediaUrl);
     const mediaHtml = buildPointMediaMarkup(mediaType, point.mediaUrl, point.name);
     const shipCountryText = getPointShipCountryText(point);
+    const serviceBadges = buildPointServiceBadges(point.services);
+    const regionBadge = point.regionName
+      ? `<span class="point-region-chip">${escapeHtml(point.regionName)}</span>`
+      : "";
+    const socialCount = Array.isArray(point.socials) ? point.socials.length : 0;
 
     return {
       category: point.categoryLabel || point.category || "Other",
       html: `
-        <article class="point-card" aria-label="Punto ${escapeHtmlAttr(point.name)}">
+        <article class="point-card" data-point-id="${escapeHtmlAttr(point.id || point.name)}" aria-label="Punto ${escapeHtmlAttr(point.name)}">
           <header class="point-header">
             <div class="point-logo">${logoHtml}</div>
             <div>
+              <div class="point-head-meta">
+                ${regionBadge}
+                <span class="point-social-chip">${socialCount} social</span>
+              </div>
               <h3 class="point-name">${escapeHtml(point.name)}</h3>
               ${point.categoryLabel ? `<p class="point-category">${escapeHtml(point.categoryLabel)}</p>` : ""}
               ${shipCountryText ? `<p class="point-ship-country">${escapeHtml(shipCountryText)}</p>` : ""}
             </div>
           </header>
+          <div class="point-service-row">${serviceBadges}</div>
           ${mediaHtml ? `<div class="point-media point-media-${mediaType}">${mediaHtml}</div>` : ""}
           <div class="point-details-block">
             ${buildStarMeter(clampStars(point.stars))}
@@ -487,33 +1769,106 @@ function renderPointsStep() {
     };
   });
 
-  if (state.service === "other") {
-    const grouped = cardTemplates.reduce((acc, item) => {
-      const key = item.category || "Other";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(item.html);
-      return acc;
-    }, {});
-
-    const groupedHtml = Object.entries(grouped)
-      .map(
-        ([categoryLabel, pointsHtml]) => `
-          <section class="other-view-group">
-            <h3 class="other-view-group-title">${escapeHtml(categoryLabel)}</h3>
-            <div class="points-grid">${pointsHtml.join("")}</div>
-          </section>
-        `
-      )
-      .join("");
-
-    els.pointsContent.innerHTML = groupedHtml;
-  } else {
-    const cards = cardTemplates.map((item) => item.html).join("");
-    els.pointsContent.innerHTML = `<div class="points-grid">${cards}</div>`;
-  }
+  const cards = cardTemplates.map((item) => item.html).join("");
+  els.pointsContent.innerHTML = `<div class="points-grid">${cards}</div>`;
 
   applySmartLogoFit(els.pointsContent);
+  animatePointCardsFlip(els.pointsContent, previousRects);
   els.pointsStep.classList.remove("hidden");
+  updateExperienceHud();
+}
+
+function capturePointCardRects(scope) {
+  const map = new Map();
+  const host = scope instanceof HTMLElement ? scope : document;
+  host.querySelectorAll(".point-card[data-point-id]").forEach((card) => {
+    const id = card.getAttribute("data-point-id");
+    if (!id) return;
+    map.set(id, card.getBoundingClientRect());
+  });
+  return map;
+}
+
+function animatePointCardsFlip(scope, previousRects) {
+  if (!(scope instanceof HTMLElement) || !(previousRects instanceof Map)) return;
+
+  const cards = [...scope.querySelectorAll(".point-card[data-point-id]")];
+  cards.forEach((card, index) => {
+    const id = card.getAttribute("data-point-id");
+    if (!id) return;
+    const next = card.getBoundingClientRect();
+    const prev = previousRects.get(id);
+
+    if (prev) {
+      const dx = prev.left - next.left;
+      const dy = prev.top - next.top;
+      const dw = prev.width ? prev.width / Math.max(next.width, 1) : 1;
+      const dh = prev.height ? prev.height / Math.max(next.height, 1) : 1;
+
+      safeAnimate(
+        card,
+        [
+          {
+            transform: `translate(${dx}px, ${dy}px) scale(${dw}, ${dh})`,
+            opacity: 0.72,
+          },
+          {
+            transform: "translate(0, 0) scale(1, 1)",
+            opacity: 1,
+          },
+        ],
+        {
+          duration: 440,
+          easing: "cubic-bezier(0.2, 0.9, 0.24, 1)",
+          fill: "both",
+          delay: Math.min(index * 22, 120),
+        }
+      );
+      return;
+    }
+
+    safeAnimate(
+      card,
+      [
+        { transform: "translateY(14px) scale(0.985)", opacity: 0 },
+        { transform: "translateY(0) scale(1)", opacity: 1 },
+      ],
+      {
+        duration: 360,
+        easing: "cubic-bezier(0.2, 0.9, 0.24, 1)",
+        fill: "both",
+        delay: Math.min(index * 28, 150),
+      }
+    );
+  });
+}
+
+function animateSelectedRegionPulse() {
+  const selected = els.selectionContent?.querySelector(".italy-region-shape.active, .italy-region-shape.is-selected");
+  if (!(selected instanceof SVGElement)) return;
+
+  safeAnimate(
+    selected,
+    [
+      { transform: "scale(1)", filter: "brightness(1)" },
+      { transform: "scale(1.04)", filter: "brightness(1.12)" },
+      { transform: "scale(1)", filter: "brightness(1)" },
+    ],
+    {
+      duration: 440,
+      easing: "cubic-bezier(0.2, 0.9, 0.24, 1)",
+      fill: "both",
+    }
+  );
+}
+
+function safeAnimate(node, keyframes, options) {
+  if (!node || typeof node.animate !== "function") return null;
+  try {
+    return node.animate(keyframes, options);
+  } catch {
+    return null;
+  }
 }
 
 function getActivePointsByRegion(regionId, serviceId = state.service) {
@@ -528,62 +1883,11 @@ function getActivePointsByRegion(regionId, serviceId = state.service) {
 function getActivePointsByService(serviceId) {
   if (!serviceId) return [];
 
-  const regionPoints = (appData.regions || []).flatMap((region) =>
+  return (appData.regions || []).flatMap((region) =>
     (region.activePoints || [])
       .filter((point) => Array.isArray(point.services) && point.services.includes(serviceId))
       .map((point) => ({ ...point, regionName: region.name }))
   );
-
-  if (serviceId !== "other") {
-    return regionPoints;
-  }
-
-  const categoryLabels = {
-    ...{
-      antiscam: "Antiscam",
-      lifestyle: "Lifestyle",
-      digitalSystems: "Digital Systems",
-    },
-    ...(appData.otherCategoryLabels || {}),
-  };
-
-  const otherPoints = Object.entries(appData.otherCategories || {}).flatMap(([category, points]) => {
-    if (!Array.isArray(points)) return [];
-    return points.map((point) => ({
-      id: point.id,
-      name: point.name,
-      details: point.details || "",
-      logo: point.logo || "",
-      mediaType: resolvePointMediaType(point.mediaType, point.mediaUrl),
-      mediaUrl: point.mediaUrl || "",
-      stars: Number(point.stars) || 0,
-      services: Array.isArray(point.services) ? point.services : ["other"],
-      socials: Array.isArray(point.socials) ? point.socials : [],
-      category,
-      categoryLabel: categoryLabels[category] || category,
-    }));
-  });
-
-  return [...regionPoints, ...otherPoints];
-}
-
-function getActiveShipPointsByZone(zoneId) {
-  const normalizedZone = normalizeShipZoneId(zoneId);
-  if (!normalizedZone) return [];
-
-  const result = [];
-  for (const region of appData.regions || []) {
-    const regionPoints = getActivePointsByRegion(region.id, "ship");
-    for (const point of regionPoints) {
-      if (resolveShipZoneForPoint(point, region) !== normalizedZone) continue;
-      result.push({
-        ...point,
-        regionName: region.name,
-      });
-    }
-  }
-
-  return result;
 }
 
 function sortPointsByStarsPriority(points) {
@@ -601,21 +1905,6 @@ function sortPointsByStarsPriority(points) {
     .map((entry) => entry.point);
 }
 
-function resolveShipZoneForPoint(point, region) {
-  const explicitZone = normalizeShipZoneId(point?.shipOrigin);
-  if (explicitZone) return explicitZone;
-
-  const regionZone = normalizeShipZoneId(region?.shipOrigin);
-  if (regionZone) return regionZone;
-
-  const probe = `${region?.id || ""} ${region?.name || ""} ${region?.hubs || ""}`.toLowerCase();
-  if (/\b(ue|eu|unione europea|european union)\b/.test(probe)) {
-    return "eu";
-  }
-
-  return "italy";
-}
-
 function normalizeShipZoneId(zoneId) {
   const candidate = String(zoneId || "")
     .trim()
@@ -624,11 +1913,6 @@ function normalizeShipZoneId(zoneId) {
     return candidate;
   }
   return null;
-}
-
-function getShipZoneLabel(zoneId) {
-  const zone = SHIP_ZONES.find((item) => item.id === zoneId);
-  return zone?.id === "eu" ? "UE" : "Italia";
 }
 
 function formatPointWord(count) {
@@ -645,12 +1929,32 @@ function formatActivePointsTitle(count) {
 }
 
 function getPointShipCountryText(point) {
-  if (state.service !== "ship" || state.shipZone !== "eu") return "";
+  if (state.service !== "ship") return "";
   const country = String(point?.shipCountry || "").trim();
-  if (!country) {
-    return "Paese di spedizione: non specificato";
+  if (country) return `Paese di spedizione: ${country}`;
+
+  const originZone = normalizeShipZoneId(point?.shipOrigin);
+  if (originZone === "eu") return "Paese di spedizione: UE";
+  if (originZone === "italy") return "Paese di spedizione: Italia";
+  return "Paese di spedizione: non specificato";
+}
+
+function buildPointServiceBadges(services) {
+  const list = Array.isArray(services)
+    ? services.filter((serviceId, index, arr) => VALID_SERVICES.includes(serviceId) && arr.indexOf(serviceId) === index)
+    : [];
+
+  if (list.length === 0) {
+    return `<span class="point-service-pill">N/D</span>`;
   }
-  return `Paese di spedizione: ${country}`;
+
+  return list
+    .map(
+      (serviceId) => `
+        <span class="point-service-pill">${escapeHtml(getServiceLabel(serviceId))}</span>
+      `
+    )
+    .join("");
 }
 
 function renderHeroSocialLinks() {
@@ -698,11 +2002,10 @@ function updateScrollTopButton() {
 }
 
 function highlightActiveOption(container, selector) {
-  container.querySelectorAll(".option.active").forEach((node) => node.classList.remove("active"));
-  const active = container.querySelector(selector);
-  if (active) {
-    active.classList.add("active");
-  }
+  container
+    .querySelectorAll("[data-service].active, [data-region].active, [data-region-action].active")
+    .forEach((node) => node.classList.remove("active"));
+  container.querySelectorAll(selector).forEach((node) => node.classList.add("active"));
 }
 
 function focusStepIfNeeded(stepElement, options = {}) {
