@@ -290,6 +290,7 @@ function setupInteractiveUi() {
   setupServiceCardTilt();
   setupInteractivePressEffects();
   setupAmbientPointer();
+  setupPointerAwareSurfaces();
 }
 
 function setupServiceCardTilt() {
@@ -428,6 +429,51 @@ function setupAmbientPointer() {
       shell.style.removeProperty("--cursor-y");
       shell.style.removeProperty("--map-tilt-x");
       shell.style.removeProperty("--map-tilt-y");
+    },
+    { passive: true }
+  );
+}
+
+function setupPointerAwareSurfaces() {
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+  const surfaceSelector = ".workspace-point-card, .map-ux-dock, .map-ux-action, .point-link, .region-service-chip, .point-service-pill";
+
+  document.addEventListener(
+    "pointermove",
+    (event) => {
+      const surface = event.target.closest(surfaceSelector);
+      if (!(surface instanceof HTMLElement)) return;
+
+      const rect = surface.getBoundingClientRect();
+      const localX = event.clientX - rect.left;
+      const localY = event.clientY - rect.top;
+      const x = clampNumber((localX / Math.max(rect.width, 1)) * 100, 0, 100);
+      const y = clampNumber((localY / Math.max(rect.height, 1)) * 100, 0, 100);
+      const pushX = clampNumber((x - 50) * 0.035, -1.8, 1.8);
+      const pushY = clampNumber((y - 50) * 0.035, -1.8, 1.8);
+
+      surface.style.setProperty("--card-x", `${x.toFixed(2)}%`);
+      surface.style.setProperty("--card-y", `${y.toFixed(2)}%`);
+      surface.style.setProperty("--magnet-x", `${pushX.toFixed(2)}px`);
+      surface.style.setProperty("--magnet-y", `${pushY.toFixed(2)}px`);
+      surface.classList.add("is-pointer-aware");
+    },
+    { passive: true }
+  );
+
+  document.addEventListener(
+    "pointerout",
+    (event) => {
+      const surface = event.target.closest(surfaceSelector);
+      if (!(surface instanceof HTMLElement)) return;
+      if (surface.contains(event.relatedTarget)) return;
+
+      surface.classList.remove("is-pointer-aware");
+      surface.style.removeProperty("--card-x");
+      surface.style.removeProperty("--card-y");
+      surface.style.removeProperty("--magnet-x");
+      surface.style.removeProperty("--magnet-y");
     },
     { passive: true }
   );
@@ -1744,8 +1790,10 @@ function buildRegionServiceMix(pointsList) {
     const amount = counts[serviceId] || 0;
     const isActive = amount > 0;
     return `
-      <span class="region-service-chip ${isActive ? "is-active" : ""}">
-        ${escapeHtml(getServiceLabel(serviceId))} <b>${amount}</b>
+      <span class="region-service-chip region-service-chip-${escapeHtmlAttr(serviceId)} ${isActive ? "is-active" : ""}">
+        <i aria-hidden="true">${escapeHtml(getServiceIcon(serviceId))}</i>
+        <span>${escapeHtml(getServiceLabel(serviceId))}</span>
+        <b>${isActive ? "Disponibile" : "Non attivo"}</b>
       </span>
     `;
   }).join("");
@@ -2037,10 +2085,22 @@ function buildPointServiceBadges(services) {
   return list
     .map(
       (serviceId) => `
-        <span class="point-service-pill">${escapeHtml(getServiceLabel(serviceId))}</span>
+        <span class="point-service-pill point-service-pill-${escapeHtmlAttr(serviceId)}">
+          <i aria-hidden="true">${escapeHtml(getServiceIcon(serviceId))}</i>
+          <span>${escapeHtml(getServiceLabel(serviceId))}</span>
+        </span>
       `
     )
     .join("");
+}
+
+function getServiceIcon(serviceId) {
+  const icons = {
+    meetup: "●",
+    delivery: "↗",
+    ship: "◆",
+  };
+  return icons[serviceId] || "•";
 }
 
 function renderHeroSocialLinks() {

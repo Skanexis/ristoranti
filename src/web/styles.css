@@ -7040,3 +7040,573 @@ body.map-only-page {
   }
 }
 
+/* Premium point cards */
+.workspace-point-grid {
+  gap: 14px;
+}
+
+.workspace-point-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "logo body"
+    "logo body";
+  min-height: 178px;
+  gap: 16px;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(99, 255, 166, 0.3);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 16% 16%, rgba(95, 255, 170, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.02)),
+    rgba(7, 18, 13, 0.84);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 24px 70px rgba(0, 0, 0, 0.36);
+  isolation: isolate;
+}
+
+.workspace-point-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(115deg, transparent 0 30%, rgba(255, 255, 255, 0.2) 45%, transparent 58%),
+    radial-gradient(circle at var(--card-x, 20%) var(--card-y, 20%), rgba(70, 255, 154, 0.22), transparent 24%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.workspace-point-card::after {
+  content: "";
+  position: absolute;
+  right: -44px;
+  bottom: -48px;
+  width: 128px;
+  height: 128px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(53, 255, 148, 0.15), transparent 66%);
+  pointer-events: none;
+}
+
+.workspace-point-card:hover::before,
+.workspace-point-card:focus-within::before {
+  opacity: 1;
+}
+
+.workspace-point-logo {
+  grid-area: logo;
+  width: 86px;
+  height: 86px;
+  align-self: start;
+  border-radius: 18px;
+  border-color: rgba(106, 255, 171, 0.42);
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.16), transparent 34%),
+    linear-gradient(135deg, rgba(55, 255, 148, 0.18), rgba(4, 11, 8, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(0, 0, 0, 0.36),
+    0 16px 36px rgba(0, 0, 0, 0.36),
+    0 0 30px rgba(53, 255, 148, 0.14);
+}
+
+.workspace-point-logo img {
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+.point-logo-fallback {
+  color: var(--ri-mint-2);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.03em;
+}
+
+.workspace-point-body {
+  grid-area: body;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  align-content: start;
+  min-width: 0;
+  gap: 8px;
+}
+
+.workspace-point-type {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  color: rgba(232, 255, 239, 0.58);
+  background: transparent;
+  font-size: 0.72rem;
+  font-weight: 1000;
+  letter-spacing: 0.1em;
+}
+
+.workspace-point-body h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(1.24rem, 2.2vw, 1.65rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.workspace-point-body p {
+  max-width: 38ch;
+  color: rgba(235, 255, 242, 0.68);
+  font-size: 0.88rem;
+  line-height: 1.32;
+  -webkit-line-clamp: 2;
+}
+
+.workspace-point-services {
+  margin-top: 2px;
+  gap: 7px;
+}
+
+.workspace-point-services .region-service-chip {
+  min-height: 27px;
+  padding: 0 11px;
+  border-color: rgba(98, 255, 166, 0.34);
+  border-radius: 999px;
+  color: #dfffea;
+  background:
+    linear-gradient(135deg, rgba(53, 255, 148, 0.18), rgba(53, 255, 148, 0.06)),
+    rgba(255, 255, 255, 0.035);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.workspace-point-services .region-service-chip b {
+  color: var(--ri-mint-2);
+}
+
+.workspace-point-links {
+  align-self: end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.workspace-point-links .point-link {
+  min-height: 42px;
+  padding: 0 17px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
+  color: #f4fff7;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.028)),
+    rgba(3, 8, 6, 0.76);
+  font-size: 0.82rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workspace-point-links .point-link:first-child {
+  border-color: rgba(96, 255, 166, 0.44);
+  color: #06110b;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.76), transparent 30%),
+    linear-gradient(135deg, #c9ffdc, #45ff99 48%, #13b869);
+  box-shadow: 0 14px 34px rgba(53, 255, 148, 0.17);
+}
+
+.workspace-point-links .point-link::after {
+  content: "↗";
+  margin-left: 8px;
+  opacity: 0.62;
+  transition: transform 180ms var(--ri-ease-out), opacity 180ms ease;
+}
+
+.workspace-point-links .point-link:hover::after {
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+.workspace-point-card:hover .workspace-point-logo {
+  border-color: rgba(213, 255, 225, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 1px rgba(53, 255, 148, 0.18),
+    0 20px 42px rgba(0, 0, 0, 0.4),
+    0 0 42px rgba(53, 255, 148, 0.24);
+}
+
+@media (max-width: 1100px) {
+  .workspace-point-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .workspace-point-card {
+    grid-template-columns: 74px minmax(0, 1fr);
+    min-height: 0;
+    gap: 12px;
+    padding: 13px;
+    border-radius: 22px;
+  }
+
+  .workspace-point-logo {
+    width: 74px;
+    height: 74px;
+    border-radius: 16px;
+  }
+
+  .workspace-point-logo img {
+    border-radius: 13px;
+  }
+
+  .workspace-point-body {
+    gap: 7px;
+  }
+
+  .workspace-point-body h3 {
+    font-size: 1.22rem;
+  }
+
+  .workspace-point-body p {
+    font-size: 0.8rem;
+  }
+
+  .workspace-point-links {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .workspace-point-links .point-link {
+    justify-content: center;
+    min-height: 40px;
+  }
+}
+
+/* Service pills redesign */
+.region-service-mix,
+.workspace-point-services,
+.point-service-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.region-service-chip,
+.point-service-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
+  color: rgba(238, 255, 245, 0.72);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    rgba(5, 11, 8, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-size: 0.76rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.region-service-chip i,
+.point-service-pill i {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border-radius: 999px;
+  color: #06110b;
+  background: rgba(238, 255, 245, 0.52);
+  font-style: normal;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.region-service-chip span,
+.point-service-pill span {
+  line-height: 1;
+}
+
+.region-service-chip b {
+  display: none;
+}
+
+.region-service-chip.is-active,
+.point-service-pill {
+  border-color: rgba(91, 255, 160, 0.38);
+  color: #f3fff7;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 32%),
+    linear-gradient(135deg, rgba(53, 255, 148, 0.2), rgba(53, 255, 148, 0.055)),
+    rgba(5, 15, 10, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 28px rgba(53, 255, 148, 0.08);
+}
+
+.region-service-chip.is-active i,
+.point-service-pill i {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.84), transparent 32%),
+    linear-gradient(135deg, #baffcf, #35ff94 58%, #12ad65);
+  box-shadow: 0 0 18px rgba(53, 255, 148, 0.24);
+}
+
+.region-service-chip:not(.is-active) {
+  opacity: 0.42;
+  filter: grayscale(0.45);
+}
+
+.workspace-point-services .region-service-chip,
+.workspace-point-services .point-service-pill {
+  min-height: 32px;
+  padding-right: 11px;
+  font-size: 0.74rem;
+}
+
+.point-service-pill-meetup i,
+.region-service-chip-meetup.is-active i {
+  color: #052016;
+}
+
+.point-service-pill-delivery i,
+.region-service-chip-delivery.is-active i {
+  color: #061625;
+}
+
+.point-service-pill-ship i,
+.region-service-chip-ship.is-active i {
+  color: #190b05;
+}
+
+/* Interaction polish */
+.workspace-point-card,
+.map-ux-dock,
+.map-ux-action,
+.point-link,
+.region-service-chip,
+.point-service-pill {
+  --magnet-x: 0px;
+  --magnet-y: 0px;
+}
+
+.workspace-point-card.is-pointer-aware {
+  transform:
+    translate3d(var(--magnet-x), var(--magnet-y), 0)
+    translateY(-5px)
+    scale(1.012);
+}
+
+.workspace-point-card.is-pointer-aware::before {
+  opacity: 1;
+}
+
+.workspace-point-card.is-pointer-aware .workspace-point-logo img {
+  transform: scale(1.045);
+}
+
+.workspace-point-logo img {
+  transition: transform 260ms var(--ri-ease-out), filter 260ms ease;
+}
+
+.workspace-point-card.is-pointer-aware .workspace-point-body h3 {
+  text-shadow:
+    0 0 18px rgba(53, 255, 148, 0.2),
+    0 12px 28px rgba(0, 0, 0, 0.34);
+}
+
+.region-service-chip,
+.point-service-pill {
+  position: relative;
+  overflow: hidden;
+  transform: translate3d(var(--magnet-x), var(--magnet-y), 0);
+  transition:
+    transform 190ms var(--ri-ease-out),
+    border-color 190ms ease,
+    box-shadow 190ms ease,
+    background 190ms ease,
+    opacity 190ms ease;
+}
+
+.region-service-chip::after,
+.point-service-pill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 0 28%, rgba(255, 255, 255, 0.22) 44%, transparent 62%);
+  opacity: 0;
+  transform: translateX(-80%);
+}
+
+.region-service-chip.is-active::after,
+.point-service-pill::after {
+  animation: servicePillSweep 4.4s ease-in-out infinite;
+}
+
+.region-service-chip.is-pointer-aware,
+.point-service-pill.is-pointer-aware {
+  border-color: rgba(181, 255, 210, 0.54);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 14px 34px rgba(53, 255, 148, 0.14);
+}
+
+.region-service-chip.is-pointer-aware i,
+.point-service-pill.is-pointer-aware i {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+.region-service-chip i,
+.point-service-pill i {
+  transition: transform 190ms var(--ri-ease-out), box-shadow 190ms ease;
+}
+
+.map-ux-action,
+.workspace-point-links .point-link {
+  transform: translate3d(var(--magnet-x), var(--magnet-y), 0);
+}
+
+.map-ux-action.is-pointer-aware,
+.workspace-point-links .point-link.is-pointer-aware {
+  filter: brightness(1.07) saturate(1.1);
+}
+
+.map-ux-action::before,
+.workspace-point-links .point-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--card-x, 50%) var(--card-y, 50%), rgba(255, 255, 255, 0.34), transparent 28%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.map-ux-action.is-pointer-aware::before,
+.workspace-point-links .point-link.is-pointer-aware::before {
+  opacity: 1;
+}
+
+.map-ux-dock.is-pointer-aware {
+  transform: translate(-50%, 0) translate3d(var(--magnet-x), var(--magnet-y), 0) scale(1.006);
+}
+
+.map-ux-dock.is-selected::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at var(--card-x, 50%) var(--card-y, 50%), rgba(53, 255, 148, 0.18), transparent 30%),
+    linear-gradient(115deg, transparent 0 35%, rgba(255, 255, 255, 0.16) 48%, transparent 62%);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.map-ux-dock.is-selected.is-pointer-aware::before {
+  opacity: 1;
+}
+
+.map-ux-dock.is-selected .map-ux-action {
+  animation: ctaBreath 3.2s ease-in-out infinite;
+}
+
+.workspace-point-card:nth-child(odd) .workspace-point-logo {
+  animation: logoSoftPulse 4.8s ease-in-out infinite;
+}
+
+.workspace-point-card:nth-child(even) .workspace-point-logo {
+  animation: logoSoftPulse 5.6s ease-in-out 700ms infinite;
+}
+
+@keyframes servicePillSweep {
+  0%,
+  54% {
+    opacity: 0;
+    transform: translateX(-90%);
+  }
+
+  64% {
+    opacity: 0.65;
+  }
+
+  82%,
+  100% {
+    opacity: 0;
+    transform: translateX(90%);
+  }
+}
+
+@keyframes ctaBreath {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.34),
+      0 18px 44px rgba(53, 255, 148, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.46),
+      0 20px 58px rgba(53, 255, 148, 0.32);
+  }
+}
+
+@keyframes logoSoftPulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 0 0 1px rgba(0, 0, 0, 0.36),
+      0 16px 36px rgba(0, 0, 0, 0.36),
+      0 0 30px rgba(53, 255, 148, 0.14);
+  }
+
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 0 0 1px rgba(53, 255, 148, 0.22),
+      0 18px 38px rgba(0, 0, 0, 0.38),
+      0 0 42px rgba(53, 255, 148, 0.22);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .workspace-point-card:active {
+    transform: scale(0.992);
+  }
+
+  .point-service-pill:active,
+  .region-service-chip:active,
+  .workspace-point-links .point-link:active,
+  .map-ux-action:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .region-service-chip::after,
+  .point-service-pill::after,
+  .map-ux-dock.is-selected .map-ux-action,
+  .workspace-point-card .workspace-point-logo {
+    animation: none !important;
+  }
+}
+
