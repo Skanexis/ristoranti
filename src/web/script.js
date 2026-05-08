@@ -343,7 +343,7 @@ function setupServiceCardTilt() {
 
 function setupInteractivePressEffects() {
   const interactiveSelector =
-    ".option, .region-action-btn, .region-compare-btn, .map-control-btn, .map-region-chip, .pro-tab, .pro-rail-btn, .pro-signal-card, .pro-region-row, .pro-primary-action, .map-ux-action, .map-ux-service-btn, .map-ux-clear, .workspace-back, .workspace-clear, .workspace-region-shortcut, .point-link, .floating-btn, .hero-social-link, .hero-services-link";
+    ".option, .region-action-btn, .region-compare-btn, .map-control-btn, .map-region-chip, .pro-tab, .pro-rail-btn, .pro-signal-card, .pro-region-row, .pro-primary-action, .map-ux-action, .map-ux-service-btn, .workspace-service-tab, .map-ux-clear, .workspace-back, .workspace-clear, .workspace-region-shortcut, .point-link, .floating-btn, .hero-social-link, .hero-services-link";
 
   const pop = (node) => {
     if (!(node instanceof HTMLElement)) return;
@@ -437,7 +437,7 @@ function setupAmbientPointer() {
 function setupPointerAwareSurfaces() {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
-  const surfaceSelector = ".workspace-point-card, .map-ux-dock, .map-ux-action, .map-ux-service-btn, .point-link, .region-service-chip, .point-service-pill";
+  const surfaceSelector = ".workspace-point-card, .map-ux-dock, .map-ux-action, .map-ux-service-btn, .workspace-service-tab, .point-link, .region-service-chip, .point-service-pill";
 
   document.addEventListener(
     "pointermove",
@@ -734,10 +734,16 @@ function selectRegion(regionId) {
   if (!region) return;
   if (IS_MAP_ONLY_HOME && getMapSelectablePoints(region).length === 0) return;
 
+  const previousService = ["meetup", "delivery"].includes(state.service) ? state.service : null;
+  const preservedService =
+    IS_MAP_ONLY_HOME && previousService && getActivePointsByRegion(region.id, previousService).length > 0
+      ? previousService
+      : null;
+
   state.region = region.id;
-  state.service = IS_MAP_ONLY_HOME ? null : detectBestServiceForRegion(region.id);
+  state.service = IS_MAP_ONLY_HOME ? preservedService : detectBestServiceForRegion(region.id);
   state.compareRegions = [];
-  state.screen = IS_MAP_ONLY_HOME ? "map" : "region";
+  state.screen = IS_MAP_ONLY_HOME && preservedService ? "region" : IS_MAP_ONLY_HOME ? "map" : "region";
 
   normalizeState();
   renderMapHomeStep();
@@ -1646,26 +1652,70 @@ function buildMapServiceChoiceButton(serviceId, count) {
   `;
 }
 
+function buildWorkspaceServiceTabs(currentService, meetupCount, deliveryCount) {
+  return `
+    <div class="workspace-service-tabs" aria-label="Cambia servizio">
+      ${buildWorkspaceServiceTab("meetup", meetupCount, currentService)}
+      ${buildWorkspaceServiceTab("delivery", deliveryCount, currentService)}
+    </div>
+  `;
+}
+
+function buildWorkspaceServiceTab(serviceId, count, currentService) {
+  const isActive = currentService === serviceId;
+  const isDisabled = count <= 0;
+  return `
+    <button
+      type="button"
+      class="workspace-service-tab ${isActive ? "is-active" : ""}"
+      data-screen-action="service:${escapeHtmlAttr(serviceId)}"
+      ${isDisabled ? "disabled" : ""}
+    >
+      ${getServiceIconMarkup(serviceId)}
+      <span>${escapeHtml(getServiceLabel(serviceId))}</span>
+      <b>${count}</b>
+    </button>
+  `;
+}
+
 function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const isOpen = Boolean(selectedMeta);
   const region = selectedMeta?.region || null;
+  const serviceSelected = ["meetup", "delivery"].includes(state.service);
+  const meetupCount = region ? getActivePointsByRegion(region.id, "meetup").length : 0;
+  const deliveryCount = region ? getActivePointsByRegion(region.id, "delivery").length : 0;
   const activePoints =
-    selectedMeta && state.service
+    selectedMeta && serviceSelected
       ? sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service))
       : [];
   const totalPoints = activePoints.length;
-  const serviceMix = state.service ? buildPointServiceBadges([state.service]) : "";
+  const serviceMix = serviceSelected ? buildPointServiceBadges([state.service]) : "";
   const nearbyRegions = [...regionMeta]
     .filter((entry) => entry.region.id !== region?.id)
     .map((entry) => {
-      const activeCount = state.service ? getActivePointsByRegion(entry.region.id, state.service).length : entry.activeCount;
+      const activeCount = serviceSelected ? getActivePointsByRegion(entry.region.id, state.service).length : entry.activeCount;
       return { ...entry, activeCount };
     })
     .filter((entry) => entry.activeCount > 0)
     .sort((a, b) => b.activeCount - a.activeCount || a.region.name.localeCompare(b.region.name, "it"))
     .slice(0, 6);
 
-  const pointCards = activePoints.length
+  const serviceChooserCard =
+    selectedMeta && !serviceSelected
+      ? `
+        <article class="workspace-service-select">
+          <span>Servizio</span>
+          <strong>${escapeHtml(region?.name || "Regione")}</strong>
+          <p>Scegli Meetup o Delivery per vedere solo le card disponibili.</p>
+          <div class="workspace-service-select-actions">
+            ${buildMapServiceChoiceButton("meetup", meetupCount)}
+            ${buildMapServiceChoiceButton("delivery", deliveryCount)}
+          </div>
+        </article>
+      `
+      : "";
+
+  const pointCards = serviceChooserCard || (activePoints.length
     ? activePoints
         .map((point) => {
           const fallbackInitials = getInitials(point.name);
@@ -1686,13 +1736,13 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
             : "";
 
           return `
-            <article class="workspace-point-card">
-              <div class="workspace-point-logo">${logoHtml}</div>
+            <article class="workspace-point-card" style="display:grid;grid-template-columns:104px minmax(0, 1fr);min-height:0;gap:18px;padding:18px;overflow:hidden;">
+              <div class="workspace-point-logo" style="width:104px;height:104px;">${logoHtml}</div>
               <div class="workspace-point-body">
                 <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Punto")}</span>
                 <h3>${escapeHtml(point.name)}</h3>
                 <p>${escapeHtml(point.details || point.address || "Dettagli non configurati.")}</p>
-                <div class="workspace-point-services">${buildPointServiceBadges(state.service ? [state.service] : point.services)}</div>
+                <div class="workspace-point-services">${buildPointServiceBadges(serviceSelected ? [state.service] : point.services)}</div>
                 <div class="workspace-point-links">${socials || `<span class="point-links-empty">Nessun social</span>`}</div>
               </div>
             </article>
@@ -1704,7 +1754,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
         <span>Nessun punto attivo</span>
         <strong>${region ? escapeHtml(region.name) : "Regione"}</strong>
       </article>
-    `;
+    `);
 
   const nearbyButtons = nearbyRegions
     .map(
@@ -1729,7 +1779,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
           <button type="button" class="workspace-clear" data-screen-action="clear-region">Reimposta</button>
         </header>
 
-        <main class="workspace-main">
+        <main class="workspace-main" style="grid-template-columns:minmax(0, 1fr) minmax(150px, 210px);gap:14px;overflow:hidden;">
           <section class="workspace-hero-card">
             <div class="workspace-hero-meta">
               <span class="map-panel-status">${totalPoints} punti</span>
@@ -1743,10 +1793,11 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
 
           <section class="workspace-points-panel">
             <div class="workspace-section-head">
-              <span>Punti attivi</span>
-              <strong>${totalPoints}</strong>
+              <span>${serviceSelected ? `Punti ${escapeHtml(getServiceLabel(state.service))}` : "Scegli servizio"}</span>
+              <strong>${serviceSelected ? totalPoints : meetupCount + deliveryCount}</strong>
             </div>
-            <div class="workspace-point-grid">
+            ${selectedMeta ? buildWorkspaceServiceTabs(state.service, meetupCount, deliveryCount) : ""}
+            <div class="workspace-point-grid" style="display:grid;grid-template-columns:1fr;gap:14px;overflow-x:hidden;">
               ${pointCards}
             </div>
           </section>
@@ -2212,7 +2263,12 @@ function renderHeroSocialLinks() {
 }
 
 function getServiceLabel(serviceId) {
-  return appData.serviceLabels?.[serviceId] || serviceId;
+  const forcedLabels = {
+    meetup: "Meetup",
+    delivery: "Delivery",
+    ship: "Ship",
+  };
+  return forcedLabels[serviceId] || appData.serviceLabels?.[serviceId] || serviceId;
 }
 
 function normalizeServiceId(serviceId) {

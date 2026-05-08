@@ -464,7 +464,7 @@ async function handleStaticRequest(req, res, pathname) {
     "Referrer-Policy": "same-origin",
   };
 
-  if (filePath.endsWith(".html")) {
+  if ([".html", ".css", ".js", ".json"].includes(ext)) {
     headers["Cache-Control"] = "no-store";
   } else {
     headers["Cache-Control"] = "public, max-age=300";

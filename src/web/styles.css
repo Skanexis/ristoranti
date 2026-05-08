@@ -7613,18 +7613,21 @@ body.map-only-page {
 
 .map-ux-action,
 .map-ux-service-btn,
+.workspace-service-tab,
 .workspace-point-links .point-link {
   transform: translate3d(var(--magnet-x), var(--magnet-y), 0);
 }
 
 .map-ux-action.is-pointer-aware,
 .map-ux-service-btn.is-pointer-aware,
+.workspace-service-tab.is-pointer-aware,
 .workspace-point-links .point-link.is-pointer-aware {
   filter: brightness(1.07) saturate(1.1);
 }
 
 .map-ux-action::before,
 .map-ux-service-btn::before,
+.workspace-service-tab::before,
 .workspace-point-links .point-link::before {
   content: "";
   position: absolute;
@@ -7637,6 +7640,7 @@ body.map-only-page {
 
 .map-ux-action.is-pointer-aware::before,
 .map-ux-service-btn.is-pointer-aware::before,
+.workspace-service-tab.is-pointer-aware::before,
 .workspace-point-links .point-link.is-pointer-aware::before {
   opacity: 1;
 }
@@ -7975,6 +7979,136 @@ body.map-only-page {
   font-size: 0.72rem;
 }
 
+.workspace-service-select {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(99, 255, 166, 0.34);
+  border-radius: 24px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(53, 255, 148, 0.18), transparent 32%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
+    rgba(5, 14, 10, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 22px 62px rgba(0, 0, 0, 0.34);
+}
+
+.workspace-service-select > span {
+  color: rgba(232, 255, 239, 0.58);
+  font-size: 0.74rem;
+  font-weight: 1000;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.workspace-service-select > strong {
+  color: #ffffff;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 0.92;
+}
+
+.workspace-service-select > p {
+  margin: 0;
+  color: rgba(239, 255, 245, 0.72);
+  font-size: 0.95rem;
+}
+
+.workspace-service-select-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.workspace-service-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: -2px 0 6px;
+}
+
+.workspace-service-tab {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 44px;
+  gap: 8px;
+  border: 1px solid rgba(99, 255, 166, 0.24);
+  border-radius: 16px;
+  padding: 6px 9px 6px 6px;
+  color: rgba(239, 255, 245, 0.76);
+  background: rgba(255, 255, 255, 0.045);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 180ms var(--ri-ease-out),
+    border-color 180ms ease,
+    background 180ms ease,
+    opacity 180ms ease;
+}
+
+.workspace-service-tab.is-active {
+  border-color: rgba(181, 255, 210, 0.7);
+  color: #06110b;
+  background:
+    radial-gradient(circle at 32% 20%, rgba(255, 255, 255, 0.7), transparent 30%),
+    linear-gradient(135deg, #c9ffdc, #45ff99 48%, #13b869);
+}
+
+.workspace-service-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.workspace-service-tab i {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+  color: #06110b;
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.84), transparent 32%),
+    linear-gradient(135deg, #baffcf, #35ff94 58%, #12ad65);
+}
+
+.workspace-service-tab.is-active i {
+  background: rgba(6, 17, 11, 0.16);
+}
+
+.workspace-service-tab .service-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.workspace-service-tab span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.72rem;
+  font-weight: 1000;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.workspace-service-tab b {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  color: #06110b;
+  background: rgba(53, 255, 148, 0.85);
+  font-size: 0.68rem;
+}
+
+.workspace-service-tab.is-active b {
+  color: #f4fff7;
+  background: rgba(3, 17, 10, 0.76);
+}
+
 @media (max-width: 900px) {
   .app-screen-region .workspace-main {
     grid-template-columns: 1fr;
@@ -8019,6 +8153,14 @@ body.map-only-page {
   .app-screen-region .workspace-point-services .point-service-pill {
     min-width: 0;
     flex: 1 1 100%;
+  }
+
+  .workspace-service-select-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-service-tabs {
+    grid-template-columns: 1fr;
   }
 }
 
