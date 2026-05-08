@@ -8395,6 +8395,7 @@ body.map-only-page {
   .static-map-shell .italy-region-shape {
     stroke: rgba(139, 255, 187, 0.94);
     stroke-width: 1.55;
+    contain: paint;
   }
 
   .static-map-shell .italy-region-shape:not(.is-disabled):hover,
@@ -8406,11 +8407,48 @@ body.map-only-page {
     stroke-width: 2.15;
   }
 
+  .static-map-shell .italy-region-shape.is-tapping {
+    animation: mobileRegionTap 210ms cubic-bezier(0.18, 0.9, 0.2, 1) both !important;
+  }
+
+  .static-map-shell.has-region-selection .italy-region-shape.is-selected {
+    animation: mobileRegionSelectedReveal 260ms cubic-bezier(0.18, 0.9, 0.2, 1) both !important;
+  }
+
+  .static-map-shell.has-region-selection .italy-region-halo {
+    animation: mobileRegionHaloReveal 320ms cubic-bezier(0.18, 0.9, 0.2, 1) both !important;
+  }
+
   .static-map-shell .italy-region-label {
     font-size: 6px;
     letter-spacing: 0;
     stroke-width: 2.45px;
     text-shadow: none;
+  }
+
+  .map-ux-layer,
+  .map-ux-dock,
+  .map-ux-service-dock,
+  .map-ux-service-choice,
+  .map-ux-service-btn {
+    contain: layout style;
+  }
+
+  .map-ux-service-dock {
+    animation: mobileServiceDockIn 260ms cubic-bezier(0.18, 0.9, 0.2, 1) both !important;
+  }
+
+  .map-ux-service-choice {
+    animation: mobileServiceChoiceIn 220ms cubic-bezier(0.18, 0.9, 0.2, 1) 80ms both;
+  }
+
+  .map-ux-service-btn {
+    animation: mobileServiceButtonIn 220ms cubic-bezier(0.18, 0.9, 0.2, 1) 75ms both;
+    touch-action: manipulation;
+  }
+
+  .map-ux-service-btn:nth-child(2) {
+    animation-delay: 115ms;
   }
 
   .static-map-shell:not(.has-region-selection) .map-ux-dock {
@@ -8448,6 +8486,99 @@ body.map-only-page {
 
   .static-map-shell:not(.has-region-selection) .map-ux-dock-copy p {
     display: none;
+  }
+}
+
+@keyframes mobileRegionTap {
+  0% {
+    opacity: 0.82;
+    stroke-width: 1.55;
+  }
+
+  45% {
+    opacity: 1;
+    stroke-width: 3.1;
+  }
+
+  100% {
+    opacity: 1;
+    stroke-width: 2.15;
+  }
+}
+
+@keyframes mobileRegionSelectedReveal {
+  0% {
+    opacity: 0.72;
+    stroke-width: 1.65;
+  }
+
+  58% {
+    opacity: 1;
+    stroke-width: 2.9;
+  }
+
+  100% {
+    opacity: 1;
+    stroke-width: 2.15;
+  }
+}
+
+@keyframes mobileRegionHaloReveal {
+  from {
+    opacity: 0;
+    stroke-width: 2.4;
+  }
+
+  to {
+    opacity: 0.74;
+    stroke-width: 4.8;
+  }
+}
+
+@keyframes mobileServiceDockIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes mobileServiceChoiceIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mobileServiceButtonIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce), (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  .static-map-shell .italy-region-shape.is-tapping,
+  .static-map-shell.has-region-selection .italy-region-shape.is-selected,
+  .static-map-shell.has-region-selection .italy-region-halo,
+  .map-ux-service-dock,
+  .map-ux-service-choice,
+  .map-ux-service-btn {
+    animation: none !important;
   }
 }
 

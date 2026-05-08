@@ -416,8 +416,16 @@ function addRipple(host, clientX, clientY) {
 
 function flashRegionPress(regionNode) {
   if (!regionNode?.classList) return;
-  if (isCoarsePointerDevice()) return;
   regionNode.classList.remove("is-tapping");
+
+  if (isCoarsePointerDevice()) {
+    window.requestAnimationFrame(() => {
+      regionNode.classList.add("is-tapping");
+      window.setTimeout(() => regionNode.classList?.remove("is-tapping"), 210);
+    });
+    return;
+  }
+
   void regionNode.getBoundingClientRect?.();
   regionNode.classList.add("is-tapping");
   window.setTimeout(() => regionNode.classList?.remove("is-tapping"), 260);
@@ -513,7 +521,7 @@ function commitRegionSelection(regionId) {
     return;
   }
 
-  window.setTimeout(() => selectRegion(regionId), 120);
+  window.setTimeout(() => selectRegion(regionId), isCoarsePointerDevice() ? 145 : 120);
 }
 
 function mountExperienceHud() {
