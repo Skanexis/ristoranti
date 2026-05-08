@@ -1,8 +1,8 @@
 {
   "serviceLabels": {
-    "meetup": "Ritiro",
-    "delivery": "Consegna",
-    "ship": "Spedizione"
+    "meetup": "Meetup",
+    "delivery": "Delivery",
+    "ship": "Ship"
   },
   "supportTelegramUrl": "https://t.me/SHLC26",
   "regions": [

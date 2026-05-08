@@ -10,9 +10,9 @@
 
   const DEFAULT_DATA = {
     serviceLabels: {
-      meetup: "Ritiro",
-      delivery: "Consegna",
-      ship: "Spedizione",
+      meetup: "Meetup",
+      delivery: "Delivery",
+      ship: "Ship",
       other: "Altro",
     },
     supportTelegramUrl: "https://t.me/SHLC26",
@@ -883,9 +883,9 @@
     const serviceLabels =
       data.serviceLabels && typeof data.serviceLabels === "object"
         ? {
-            meetup: sanitizeString(data.serviceLabels.meetup) || "Ritiro",
-            delivery: sanitizeString(data.serviceLabels.delivery) || "Consegna",
-            ship: sanitizeString(data.serviceLabels.ship) || "Spedizione",
+            meetup: sanitizeString(data.serviceLabels.meetup) || "Meetup",
+            delivery: sanitizeString(data.serviceLabels.delivery) || "Delivery",
+            ship: sanitizeString(data.serviceLabels.ship) || "Ship",
             other: sanitizeString(data.serviceLabels.other) || "Altro",
           }
         : clone(DEFAULT_DATA.serviceLabels);

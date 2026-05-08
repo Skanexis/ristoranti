@@ -343,7 +343,7 @@ function setupServiceCardTilt() {
 
 function setupInteractivePressEffects() {
   const interactiveSelector =
-    ".option, .region-action-btn, .region-compare-btn, .map-control-btn, .map-region-chip, .pro-tab, .pro-rail-btn, .pro-signal-card, .pro-region-row, .pro-primary-action, .map-ux-action, .map-ux-clear, .workspace-back, .workspace-clear, .workspace-region-shortcut, .point-link, .floating-btn, .hero-social-link, .hero-services-link";
+    ".option, .region-action-btn, .region-compare-btn, .map-control-btn, .map-region-chip, .pro-tab, .pro-rail-btn, .pro-signal-card, .pro-region-row, .pro-primary-action, .map-ux-action, .map-ux-service-btn, .map-ux-clear, .workspace-back, .workspace-clear, .workspace-region-shortcut, .point-link, .floating-btn, .hero-social-link, .hero-services-link";
 
   const pop = (node) => {
     if (!(node instanceof HTMLElement)) return;
@@ -437,7 +437,7 @@ function setupAmbientPointer() {
 function setupPointerAwareSurfaces() {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
-  const surfaceSelector = ".workspace-point-card, .map-ux-dock, .map-ux-action, .point-link, .region-service-chip, .point-service-pill";
+  const surfaceSelector = ".workspace-point-card, .map-ux-dock, .map-ux-action, .map-ux-service-btn, .point-link, .region-service-chip, .point-service-pill";
 
   document.addEventListener(
     "pointermove",
@@ -681,9 +681,9 @@ function normalizeDataInput(input) {
 function fallbackData() {
   return {
     serviceLabels: {
-      meetup: "Ritiro",
-      delivery: "Consegna",
-      ship: "Spedizione",
+      meetup: "Meetup",
+      delivery: "Delivery",
+      ship: "Ship",
     },
     supportTelegramUrl: "https://t.me/SHLC26",
     regions: [],
@@ -732,9 +732,10 @@ function selectService(serviceId) {
 function selectRegion(regionId) {
   const region = getRegionById(regionId);
   if (!region) return;
+  if (IS_MAP_ONLY_HOME && getMapSelectablePoints(region).length === 0) return;
 
   state.region = region.id;
-  state.service = detectBestServiceForRegion(region.id);
+  state.service = IS_MAP_ONLY_HOME ? null : detectBestServiceForRegion(region.id);
   state.compareRegions = [];
   state.screen = IS_MAP_ONLY_HOME ? "map" : "region";
 
@@ -757,7 +758,7 @@ function detectBestServiceForRegion(regionId) {
   const region = appData.regions.find((item) => item.id === regionId);
   if (!region) return null;
 
-  const candidates = ["meetup", "delivery", "ship"];
+  const candidates = IS_MAP_ONLY_HOME ? ["meetup", "delivery"] : ["meetup", "delivery", "ship"];
   let bestService = null;
   let bestCount = 0;
 
@@ -823,13 +824,13 @@ function renderMapHomeStep() {
 
   const regionMeta = getAllMapRegions().map((region) => {
     const dataRegion = (appData.regions || []).find((item) => item.id === region.id);
-    const activePoints = Array.isArray(dataRegion?.activePoints) ? dataRegion.activePoints : [];
+    const activePoints = getMapSelectablePoints(dataRegion);
     const normalizedRegion = {
       ...region,
       ...dataRegion,
       id: region.id,
       name: dataRegion?.name || region.name,
-      activePoints,
+      activePoints: Array.isArray(dataRegion?.activePoints) ? dataRegion.activePoints : [],
     };
 
     return {
@@ -837,7 +838,7 @@ function renderMapHomeStep() {
       activePoints,
       activeCount: activePoints.length,
       totalCount: activePoints.length,
-      isDisabled: false,
+      isDisabled: activePoints.length === 0,
     };
   });
 
@@ -1085,6 +1086,21 @@ function runRegionQuickAction(actionId) {
 }
 
 function runScreenAction(actionId) {
+  if (String(actionId || "").startsWith("service:") && state.region) {
+    const service = normalizeServiceId(String(actionId).slice("service:".length));
+    if (!["meetup", "delivery"].includes(service)) return;
+    if (getActivePointsByRegion(state.region, service).length === 0) return;
+
+    state.service = service;
+    state.compareRegions = [];
+    state.screen = "region";
+    normalizeState();
+    renderMapHomeStep();
+    renderPointsStep();
+    triggerSelectionHaptic();
+    return;
+  }
+
   if (actionId === "map") {
     state.screen = "map";
     renderMapHomeStep();
@@ -1093,6 +1109,7 @@ function runScreenAction(actionId) {
   }
 
   if (actionId === "region" && state.region) {
+    if (!state.service) return;
     state.screen = "region";
     renderMapHomeStep();
     triggerSelectionHaptic();
@@ -1551,7 +1568,8 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
   const totalPoints = regionMeta.reduce((sum, entry) => sum + entry.activeCount, 0);
 
   if (selectedMeta) {
-    const serviceMix = buildRegionServiceMix(selectedMeta.activePoints);
+    const meetupCount = getActivePointsByRegion(selectedMeta.region.id, "meetup").length;
+    const deliveryCount = getActivePointsByRegion(selectedMeta.region.id, "delivery").length;
     return `
       <div class="map-ux-layer" aria-live="polite">
         <header class="map-ux-topbar">
@@ -1565,17 +1583,16 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
           <button type="button" class="map-ux-clear" data-screen-action="clear-region" aria-label="Cancella selezione">Cambia</button>
         </header>
 
-        <aside class="map-ux-dock is-selected">
+        <aside class="map-ux-dock is-selected map-ux-service-dock">
           <div class="map-ux-dock-copy">
             <span class="map-ux-kicker">Regione selezionata</span>
             <strong>${escapeHtml(selectedMeta.region.name)}</strong>
-            <p>${escapeHtml(formatAvailablePointsLabel(selectedMeta.activeCount))}</p>
-            ${serviceMix ? `<div class="region-service-mix map-ux-services">${serviceMix}</div>` : ""}
+            <p>Scegli un servizio per vedere solo le card disponibili.</p>
+            <div class="map-ux-service-choice" aria-label="Scegli servizio">
+              ${buildMapServiceChoiceButton("meetup", meetupCount)}
+              ${buildMapServiceChoiceButton("delivery", deliveryCount)}
+            </div>
           </div>
-          <button type="button" class="map-ux-action" data-screen-action="region">
-            <span>Apri punti</span>
-            <b>→</b>
-          </button>
         </aside>
       </div>
     `;
@@ -1609,14 +1626,42 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
   `;
 }
 
+function buildMapServiceChoiceButton(serviceId, count) {
+  const isDisabled = count <= 0;
+  const label = getServiceLabel(serviceId);
+  return `
+    <button
+      type="button"
+      class="map-ux-service-btn map-ux-service-btn-${escapeHtmlAttr(serviceId)}"
+      data-screen-action="service:${escapeHtmlAttr(serviceId)}"
+      ${isDisabled ? "disabled" : ""}
+      aria-label="${escapeHtmlAttr(label)}: ${escapeHtmlAttr(formatAvailablePointsLabel(count))}"
+    >
+      ${getServiceIconMarkup(serviceId)}
+      <span>
+        <b>${escapeHtml(label)}</b>
+        <small>${escapeHtml(formatAvailablePointsLabel(count))}</small>
+      </span>
+    </button>
+  `;
+}
+
 function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const isOpen = Boolean(selectedMeta);
   const region = selectedMeta?.region || null;
-  const activePoints = selectedMeta ? sortPointsByStarsPriority([...(selectedMeta.activePoints || [])]) : [];
+  const activePoints =
+    selectedMeta && state.service
+      ? sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service))
+      : [];
   const totalPoints = activePoints.length;
-  const serviceMix = selectedMeta ? buildRegionServiceMix(activePoints) : "";
+  const serviceMix = state.service ? buildPointServiceBadges([state.service]) : "";
   const nearbyRegions = [...regionMeta]
     .filter((entry) => entry.region.id !== region?.id)
+    .map((entry) => {
+      const activeCount = state.service ? getActivePointsByRegion(entry.region.id, state.service).length : entry.activeCount;
+      return { ...entry, activeCount };
+    })
+    .filter((entry) => entry.activeCount > 0)
     .sort((a, b) => b.activeCount - a.activeCount || a.region.name.localeCompare(b.region.name, "it"))
     .slice(0, 6);
 
@@ -1647,7 +1692,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
                 <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Punto")}</span>
                 <h3>${escapeHtml(point.name)}</h3>
                 <p>${escapeHtml(point.details || point.address || "Dettagli non configurati.")}</p>
-                <div class="workspace-point-services">${buildPointServiceBadges(point.services)}</div>
+                <div class="workspace-point-services">${buildPointServiceBadges(state.service ? [state.service] : point.services)}</div>
                 <div class="workspace-point-links">${socials || `<span class="point-links-empty">Nessun social</span>`}</div>
               </div>
             </article>
@@ -1688,6 +1733,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
           <section class="workspace-hero-card">
             <div class="workspace-hero-meta">
               <span class="map-panel-status">${totalPoints} punti</span>
+              <span class="map-panel-status">${escapeHtml(state.service ? getServiceLabel(state.service) : "Servizio")}</span>
               <span class="map-panel-status">${regionMeta.length} regioni</span>
             </div>
             <h3>${escapeHtml(region?.name || "Italia")}</h3>
@@ -2011,6 +2057,15 @@ function getActivePointsByRegion(regionId, serviceId = state.service) {
 
   return (region.activePoints || []).filter(
     (point) => Array.isArray(point.services) && point.services.includes(serviceId)
+  );
+}
+
+function getMapSelectablePoints(region) {
+  const points = Array.isArray(region?.activePoints) ? region.activePoints : [];
+  return points.filter(
+    (point) =>
+      Array.isArray(point?.services) &&
+      (point.services.includes("meetup") || point.services.includes("delivery"))
   );
 }
 

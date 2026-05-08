@@ -1,9 +1,9 @@
 
 const store = window.RIDataStore;
 const FALLBACK_SERVICE_LABELS = {
-  meetup: "Ritiro",
-  delivery: "Consegna",
-  ship: "Spedizione",
+  meetup: "Meetup",
+  delivery: "Delivery",
+  ship: "Ship",
   other: "Altro",
 };
 const API = {
