@@ -6904,3 +6904,139 @@ body.map-only-page {
   }
 }
 
+/* Keep selected dock from covering the map */
+.static-map-shell.has-region-selection .italy-map-viewport {
+  transform:
+    translate3d(0, -8.5dvh, 0)
+    rotateX(var(--map-tilt-x))
+    rotateY(var(--map-tilt-y))
+    translateZ(0) !important;
+}
+
+.static-map-shell.has-region-selection .italy-map-svg {
+  width: min(78vw, 980px);
+  height: min(72dvh, 700px);
+}
+
+.static-map-shell.has-region-selection .map-ux-dock.is-selected {
+  width: min(720px, calc(100vw - 44px));
+  min-height: 116px;
+  padding: 16px 18px;
+  border-radius: 30px;
+}
+
+.static-map-shell.has-region-selection .map-ux-dock-copy strong {
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+}
+
+.static-map-shell.has-region-selection .map-ux-services {
+  margin-top: 8px;
+}
+
+@media (max-height: 820px) and (min-width: 761px) {
+  .static-map-shell.has-region-selection .italy-map-viewport {
+    transform:
+      translate3d(0, -10dvh, 0)
+      rotateX(var(--map-tilt-x))
+      rotateY(var(--map-tilt-y))
+      translateZ(0) !important;
+  }
+
+  .static-map-shell.has-region-selection .italy-map-svg {
+    width: min(74vw, 900px);
+    height: min(66dvh, 620px);
+  }
+
+  .static-map-shell.has-region-selection .map-ux-dock.is-selected {
+    width: min(650px, calc(100vw - 44px));
+    min-height: 96px;
+    padding: 12px 14px;
+    border-radius: 26px;
+  }
+
+  .static-map-shell.has-region-selection .map-ux-dock-copy strong {
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  }
+
+  .static-map-shell.has-region-selection .map-ux-dock-copy p {
+    margin-top: 4px;
+  }
+
+  .static-map-shell.has-region-selection .map-ux-services {
+    display: none;
+  }
+
+  .static-map-shell.has-region-selection .map-ux-action {
+    min-height: 48px;
+    padding: 0 14px 0 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .static-map-shell.has-region-selection .italy-map-viewport {
+    transform: translate3d(0, -4dvh, 0) !important;
+  }
+
+  .static-map-shell.has-region-selection .italy-map-svg {
+    width: 96vw;
+    height: auto;
+    max-height: calc(100dvh - 178px);
+  }
+
+  .static-map-shell.has-region-selection .map-ux-dock.is-selected {
+    width: min(366px, calc(100vw - 20px));
+    min-height: 0;
+    padding: 10px;
+    border-radius: 22px;
+  }
+
+  .static-map-shell.has-region-selection .map-ux-dock-copy strong {
+    font-size: clamp(1.55rem, 7.4vw, 1.95rem);
+  }
+}
+
+/* Laptop-safe map area: keep bottom UI outside Italy */
+@media (min-width: 761px) {
+  .static-map-shell:not(.has-region-selection) .italy-map-viewport {
+    transform:
+      translate3d(0, -4.5dvh, 0)
+      rotateX(var(--map-tilt-x))
+      rotateY(var(--map-tilt-y))
+      translateZ(0) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-svg {
+    width: min(84vw, 1040px);
+    height: min(82dvh, 790px);
+  }
+}
+
+@media (min-width: 761px) and (max-height: 900px) {
+  .static-map-shell:not(.has-region-selection) .italy-map-viewport {
+    transform:
+      translate3d(0, -5.5dvh, 0)
+      rotateX(var(--map-tilt-x))
+      rotateY(var(--map-tilt-y))
+      translateZ(0) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-svg {
+    width: min(78vw, 940px);
+    height: min(76dvh, 650px);
+  }
+}
+
+@media (min-width: 761px) and (max-height: 720px) {
+  .static-map-shell:not(.has-region-selection) .map-ux-dock,
+  .static-map-shell.has-region-selection .map-ux-dock.is-selected {
+    bottom: 12px;
+    min-height: 80px;
+    padding: 10px 12px;
+    border-radius: 24px;
+  }
+
+  .map-ux-dock-copy strong {
+    font-size: clamp(1.7rem, 3vw, 2.25rem);
+  }
+}
+

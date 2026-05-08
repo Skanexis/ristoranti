@@ -1484,7 +1484,7 @@ function buildHomeCommandDeck(regionMeta, selectedMeta) {
 function buildProfessionalMapScreen(regionMeta, selectedMeta, mapSvg) {
   return `
     <section class="app-screen app-screen-map pro-screen-map static-map-screen" aria-label="Mappa d'Italia">
-      <div class="static-map-shell">
+      <div class="static-map-shell ${selectedMeta ? "has-region-selection" : ""}">
         <div class="italy-home-map-shell" aria-label="Mappa interattiva delle regioni italiane">
           <div class="italy-map-stage italy-map-stage-home pro-map-stage pro-static-map ${state.region ? "has-selection" : ""}" role="group" aria-label="Seleziona una regione italiana">
             <div class="italy-map-grid" aria-hidden="true"></div>
