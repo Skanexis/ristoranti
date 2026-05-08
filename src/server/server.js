@@ -222,6 +222,7 @@ async function handleApiRequest(req, res, pathname) {
   }
 
   if (pathname === "/api/public-data" && method === "GET") {
+    currentData = loadDataFromDisk();
     const publicData = normalizeInputData(currentData);
     sendJson(res, 200, { data: publicData });
     return;

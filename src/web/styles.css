@@ -7890,3 +7890,135 @@ body.map-only-page {
   grid-template-columns: 1fr;
 }
 
+/* Region workspace readability pass */
+.app-screen-region .workspace-main {
+  grid-template-columns: minmax(0, 1fr) minmax(168px, 236px);
+  gap: 14px;
+  overflow: hidden;
+}
+
+.app-screen-region .workspace-hero-card {
+  display: none;
+}
+
+.app-screen-region .workspace-points-panel,
+.app-screen-region .workspace-side-panel,
+.app-screen-region .workspace-point-grid {
+  min-width: 0;
+}
+
+.app-screen-region .workspace-points-panel {
+  overflow: hidden;
+}
+
+.app-screen-region .workspace-point-grid {
+  grid-template-columns: 1fr !important;
+  gap: 14px;
+  overflow-x: hidden;
+}
+
+.app-screen-region .workspace-point-card {
+  grid-template-columns: 104px minmax(0, 1fr);
+  min-height: 0;
+  gap: 18px;
+  padding: 18px;
+}
+
+.app-screen-region .workspace-point-logo {
+  width: 104px;
+  height: 104px;
+}
+
+.app-screen-region .workspace-point-body {
+  gap: 10px;
+}
+
+.app-screen-region .workspace-point-body h3 {
+  font-size: clamp(1.65rem, 4vw, 2.55rem);
+  line-height: 0.96;
+}
+
+.app-screen-region .workspace-point-body p {
+  max-width: 52ch;
+  font-size: 0.95rem;
+  line-height: 1.36;
+}
+
+.app-screen-region .workspace-point-services .point-service-pill {
+  flex: 0 1 auto;
+  min-width: 128px;
+}
+
+.app-screen-region .workspace-side-panel {
+  padding: 10px;
+}
+
+.app-screen-region .workspace-region-list {
+  gap: 8px;
+}
+
+.app-screen-region .workspace-region-shortcut {
+  min-height: 48px;
+  padding: 0 9px;
+  gap: 8px;
+}
+
+.app-screen-region .workspace-region-shortcut span {
+  font-size: 0.7rem;
+  line-height: 1.12;
+  white-space: normal;
+}
+
+.app-screen-region .workspace-region-shortcut b {
+  min-width: 28px;
+  height: 28px;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 900px) {
+  .app-screen-region .workspace-main {
+    grid-template-columns: 1fr;
+  }
+
+  .app-screen-region .workspace-side-panel {
+    max-height: 116px;
+  }
+
+  .app-screen-region .workspace-region-list {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .app-screen-region .workspace-region-shortcut {
+    flex: 0 0 142px;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-screen-region .workspace-point-card {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 12px;
+    padding: 13px;
+  }
+
+  .app-screen-region .workspace-point-logo {
+    width: 72px;
+    height: 72px;
+  }
+
+  .app-screen-region .workspace-point-body h3 {
+    font-size: clamp(1.18rem, 7vw, 1.58rem);
+    line-height: 1.02;
+  }
+
+  .app-screen-region .workspace-point-body p {
+    font-size: 0.8rem;
+  }
+
+  .app-screen-region .workspace-point-services .point-service-pill {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+}
+
