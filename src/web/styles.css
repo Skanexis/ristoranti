@@ -7908,24 +7908,28 @@ body.map-only-page {
 }
 
 .app-screen-region .workspace-points-panel {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 9px;
   overflow: hidden;
 }
 
 .app-screen-region .workspace-point-grid {
-  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  grid-template-columns: repeat(2, minmax(292px, 1fr));
   align-content: start;
-  grid-auto-rows: minmax(184px, auto);
-  gap: 14px;
+  grid-auto-rows: minmax(154px, auto);
+  gap: 9px;
   overflow-x: hidden;
+  padding-top: 1px;
 }
 
 .app-screen-region .workspace-point-card {
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: 90px minmax(0, 1fr);
   grid-template-areas: "media body";
   grid-template-rows: auto;
-  min-height: 184px;
-  gap: 16px;
-  padding: 16px;
+  min-height: 154px;
+  gap: 11px;
+  padding: 11px;
   align-items: start;
   overflow: hidden;
 }
@@ -7934,25 +7938,25 @@ body.map-only-page {
   grid-area: media;
   display: grid;
   align-content: start;
-  gap: 8px;
+  gap: 5px;
   min-width: 0;
 }
 
 .app-screen-region .workspace-point-logo {
   grid-area: auto;
-  width: 92px;
-  height: 92px;
+  width: 78px;
+  height: 78px;
   justify-self: center;
 }
 
 .app-screen-region .workspace-point-body {
-  gap: 8px;
+  gap: 5px;
 }
 
 .app-screen-region .workspace-point-body h3 {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 1.62rem;
+  font-size: 1.38rem;
   line-height: 1;
   letter-spacing: 0;
   text-overflow: clip;
@@ -7964,42 +7968,53 @@ body.map-only-page {
 
 .app-screen-region .workspace-point-body p {
   max-width: none;
-  font-size: 0.88rem;
-  line-height: 1.32;
+  font-size: 0.78rem;
+  line-height: 1.26;
   -webkit-line-clamp: 2;
 }
 
 .app-screen-region .workspace-point-services .point-service-pill {
   width: 100%;
   min-width: 0;
-  min-height: 30px;
+  min-height: 24px;
   justify-content: center;
-  padding: 0 8px 0 6px;
-  gap: 6px;
-  font-size: 0.66rem;
+  padding: 0 6px 0 4px;
+  gap: 4px;
+  font-size: 0.58rem;
   letter-spacing: 0.02em;
+}
+
+.app-screen-region .workspace-point-services .point-service-pill i {
+  width: 18px;
+  height: 18px;
+  flex-basis: 18px;
+}
+
+.app-screen-region .workspace-point-services .service-icon svg {
+  width: 13px;
+  height: 13px;
 }
 
 .app-screen-region .workspace-point-links {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-self: end;
-  gap: 7px;
-  margin-top: 4px;
+  gap: 5px;
+  margin-top: 2px;
   width: 100%;
 }
 
 .app-screen-region .workspace-point-links .point-link {
-  min-height: 34px;
-  padding: 0 9px;
-  font-size: 0.74rem;
+  min-height: 28px;
+  padding: 0 7px;
+  font-size: 0.66rem;
   font-weight: 1000;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   white-space: nowrap;
 }
 
 .app-screen-region .workspace-point-links .point-link::after {
-  margin-left: 5px;
+  margin-left: 4px;
 }
 
 .app-screen-region .workspace-point-links .point-link:only-child {
@@ -8007,7 +8022,7 @@ body.map-only-page {
 }
 
 .app-screen-region .workspace-side-panel {
-  padding: 10px;
+  padding: 8px;
 }
 
 .app-screen-region .workspace-region-list {
@@ -8076,20 +8091,22 @@ body.map-only-page {
 .workspace-service-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin: -2px 0 6px;
+  gap: 6px;
+  margin: 0 0 3px;
+  position: relative;
+  z-index: 2;
 }
 
 .workspace-service-tab {
   position: relative;
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-columns: 25px minmax(0, 1fr) auto;
   align-items: center;
-  min-height: 44px;
-  gap: 8px;
+  min-height: 36px;
+  gap: 6px;
   border: 1px solid rgba(99, 255, 166, 0.24);
-  border-radius: 16px;
-  padding: 6px 9px 6px 6px;
+  border-radius: 13px;
+  padding: 5px 7px 5px 5px;
   color: rgba(239, 255, 245, 0.76);
   background: rgba(255, 255, 255, 0.045);
   cursor: pointer;
@@ -8117,9 +8134,9 @@ body.map-only-page {
 .workspace-service-tab i {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 12px;
+  width: 25px;
+  height: 25px;
+  border-radius: 10px;
   color: #06110b;
   background:
     radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.84), transparent 32%),
@@ -8131,14 +8148,14 @@ body.map-only-page {
 }
 
 .workspace-service-tab .service-icon svg {
-  width: 17px;
-  height: 17px;
+  width: 14px;
+  height: 14px;
 }
 
 .workspace-service-tab span {
   min-width: 0;
   overflow: hidden;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 1000;
   letter-spacing: 0.04em;
   text-overflow: ellipsis;
@@ -8149,12 +8166,12 @@ body.map-only-page {
 .workspace-service-tab b {
   display: grid;
   place-items: center;
-  min-width: 24px;
-  height: 24px;
+  min-width: 20px;
+  height: 20px;
   border-radius: 999px;
   color: #06110b;
   background: rgba(53, 255, 148, 0.85);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
 }
 
 .workspace-service-tab.is-active b {
@@ -8168,7 +8185,7 @@ body.map-only-page {
   }
 
   .app-screen-region .workspace-point-grid {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, minmax(250px, 1fr));
   }
 
   .app-screen-region .workspace-side-panel {
@@ -8194,30 +8211,30 @@ body.map-only-page {
 
 @media (max-width: 520px) {
   .app-screen-region .workspace-point-card {
-    grid-template-columns: 78px minmax(0, 1fr);
+    grid-template-columns: 70px minmax(0, 1fr);
     min-height: 0;
-    gap: 12px;
-    padding: 13px;
+    gap: 9px;
+    padding: 10px;
   }
 
   .app-screen-region .workspace-point-logo {
-    width: 72px;
-    height: 72px;
+    width: 64px;
+    height: 64px;
   }
 
   .app-screen-region .workspace-point-body h3 {
-    font-size: 1.28rem;
+    font-size: 1.12rem;
     line-height: 1.02;
   }
 
   .app-screen-region .workspace-point-body p {
-    font-size: 0.8rem;
+    font-size: 0.72rem;
   }
 
   .app-screen-region .workspace-point-services .point-service-pill {
     min-width: 0;
-    min-height: 28px;
-    font-size: 0.6rem;
+    min-height: 22px;
+    font-size: 0.56rem;
   }
 
   .app-screen-region .workspace-point-links {
@@ -8226,9 +8243,9 @@ body.map-only-page {
   }
 
   .app-screen-region .workspace-point-links .point-link {
-    min-height: 32px;
-    padding: 0 7px;
-    font-size: 0.68rem;
+    min-height: 28px;
+    padding: 0 6px;
+    font-size: 0.62rem;
   }
 
   .workspace-service-select-actions {
