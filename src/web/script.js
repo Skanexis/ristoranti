@@ -186,7 +186,7 @@ const REGION_MAP_VIEWBOX =
     : "0 0 360 430";
 const REGION_MAP_DISPLAY_VIEWBOX = "10 10 326 410";
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
-const LOGO_PREFETCH_LIMIT = 10;
+const LOGO_PREFETCH_LIMIT = 5;
 const warmedLogoOrigins = new Set();
 const prefetchedLogoUrls = new Set();
 const IS_MAP_ONLY_HOME = document.querySelector(".map-only-app") !== null;
@@ -235,6 +235,7 @@ async function initializeAppData() {
   renderMapHomeStep();
   renderPointsStep();
   updateExperienceHud();
+  window.dispatchEvent(new CustomEvent("ri:app-ready"));
 }
 
 function bindEvents() {
@@ -857,6 +858,8 @@ function normalizeState() {
 }
 
 function renderMapHomeStep() {
+  const hadMarkup = Boolean(els.selectionContent?.firstElementChild);
+
   if (els.selectionHint) {
     els.selectionHint.textContent = "Seleziona una regione dalla mappa.";
   }
@@ -886,7 +889,10 @@ function renderMapHomeStep() {
 
   const selectedMeta = regionMeta.find((entry) => entry.region.id === state.region) || null;
   if (selectedMeta && ["meetup", "delivery"].includes(state.service)) {
-    prefetchPointLogos(sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service)));
+    prefetchPointLogos(
+      sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service)),
+      isCoarsePointerDevice() ? 3 : LOGO_PREFETCH_LIMIT
+    );
   }
   const mapSvg = buildInteractiveItalySvg(regionMeta, state.region);
 
@@ -898,6 +904,9 @@ function renderMapHomeStep() {
   `;
 
   els.selectionStep.classList.remove("hidden");
+  if (hadMarkup) {
+    markMapHomeTransition();
+  }
   if (state.region) {
     highlightActiveOption(els.selectionContent, `[data-region='${cssEscape(state.region)}']`);
   }
@@ -1148,7 +1157,9 @@ function runScreenAction(actionId) {
 
   if (actionId === "map") {
     state.screen = "map";
-    renderMapHomeStep();
+    if (!setMapHomeScreenMode("map")) {
+      renderMapHomeStep();
+    }
     triggerSelectionHaptic();
     return;
   }
@@ -1156,7 +1167,9 @@ function runScreenAction(actionId) {
   if (actionId === "region" && state.region) {
     if (!state.service) return;
     state.screen = "region";
-    renderMapHomeStep();
+    if (!setMapHomeScreenMode("region")) {
+      renderMapHomeStep();
+    }
     triggerSelectionHaptic();
     return;
   }
@@ -1170,6 +1183,29 @@ function runScreenAction(actionId) {
     renderPointsStep();
     triggerSelectionHaptic();
   }
+}
+
+function setMapHomeScreenMode(screen) {
+  if (!IS_MAP_ONLY_HOME) return false;
+  const nextScreen = screen === "region" ? "region" : "map";
+  const stack = els.selectionContent?.querySelector(".app-screen-stack");
+  if (!(stack instanceof HTMLElement)) return false;
+
+  stack.classList.toggle("is-map", nextScreen === "map");
+  stack.classList.toggle("is-region", nextScreen === "region");
+  stack.setAttribute("data-screen", nextScreen);
+  return true;
+}
+
+function markMapHomeTransition() {
+  const content = els.selectionContent;
+  if (!(content instanceof HTMLElement)) return;
+
+  content.classList.remove("is-soft-refresh");
+  window.requestAnimationFrame(() => {
+    content.classList.add("is-soft-refresh");
+    window.setTimeout(() => content.classList.remove("is-soft-refresh"), 240);
+  });
 }
 
 function applyGeneratedRegionMapData() {
@@ -1739,7 +1775,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
       : [];
   const totalPoints = activePoints.length;
   const serviceMix = serviceSelected ? buildPointServiceBadges([state.service]) : "";
-  const priorityLogoLimit = isCoarsePointerDevice() ? 10 : 6;
+  const priorityLogoLimit = isCoarsePointerDevice() ? 3 : 5;
   const nearbyRegions = [...regionMeta]
     .filter((entry) => entry.region.id !== region?.id)
     .map((entry) => {
@@ -2457,13 +2493,13 @@ function buildPointMediaMarkup(mediaType, mediaUrl, pointName) {
   return `<img src="${escapeHtmlAttr(safeUrl)}" alt="Media ${escapeHtmlAttr(pointName || "punto")}" loading="lazy" />`;
 }
 
-function prefetchPointLogos(points) {
+function prefetchPointLogos(points, limit = LOGO_PREFETCH_LIMIT) {
   if (!Array.isArray(points) || points.length === 0) return;
 
   points
     .map((point) => String(point?.logo || "").trim())
     .filter(isHttpUrl)
-    .slice(0, LOGO_PREFETCH_LIMIT)
+    .slice(0, limit)
     .forEach((url) => {
       if (prefetchedLogoUrls.has(url)) return;
       prefetchedLogoUrls.add(url);
@@ -2751,8 +2787,11 @@ function setupMobilePreloader() {
     return;
   }
 
-  const preloaderVisibleMs = isTelegramClient ? 850 : 1200;
-  const preloaderExitMs = 300;
+  const preloaderVisibleMs = 5000;
+  const preloaderMaxMs = isTelegramClient ? 5600 : 6500;
+  const preloaderExitMs = 420;
+  let minTimeElapsed = false;
+  let appReady = false;
   let preloaderDone = false;
 
   const finishPreloader = () => {
@@ -2764,7 +2803,27 @@ function setupMobilePreloader() {
     }, preloaderExitMs);
   };
 
-  window.setTimeout(finishPreloader, preloaderVisibleMs);
+  const finishWhenReady = () => {
+    if (preloaderDone) return;
+    if (minTimeElapsed && appReady) {
+      finishPreloader();
+    }
+  };
+
+  window.setTimeout(() => {
+    minTimeElapsed = true;
+    finishWhenReady();
+  }, preloaderVisibleMs);
+  window.setTimeout(finishPreloader, preloaderMaxMs);
+
+  window.addEventListener(
+    "ri:app-ready",
+    () => {
+      appReady = true;
+      finishWhenReady();
+    },
+    { once: true }
+  );
 
   window.addEventListener("pageshow", (event) => {
     if (event.persisted && body.classList.contains("preload-pending")) {
