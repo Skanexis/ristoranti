@@ -7920,17 +7920,29 @@ body.map-only-page {
 }
 
 .app-screen-region .workspace-point-card {
-  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-areas: "media body";
+  grid-template-rows: auto;
   min-height: 184px;
-  gap: 14px;
+  gap: 16px;
   padding: 16px;
   align-items: start;
   overflow: hidden;
 }
 
+.app-screen-region .workspace-point-media {
+  grid-area: media;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+
 .app-screen-region .workspace-point-logo {
+  grid-area: auto;
   width: 92px;
   height: 92px;
+  justify-self: center;
 }
 
 .app-screen-region .workspace-point-body {
@@ -7958,12 +7970,40 @@ body.map-only-page {
 }
 
 .app-screen-region .workspace-point-services .point-service-pill {
-  flex: 0 1 auto;
-  min-width: 112px;
+  width: 100%;
+  min-width: 0;
+  min-height: 30px;
+  justify-content: center;
+  padding: 0 8px 0 6px;
+  gap: 6px;
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
 }
 
 .app-screen-region .workspace-point-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-self: end;
+  gap: 7px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.app-screen-region .workspace-point-links .point-link {
+  min-height: 34px;
+  padding: 0 9px;
+  font-size: 0.74rem;
+  font-weight: 1000;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.app-screen-region .workspace-point-links .point-link::after {
+  margin-left: 5px;
+}
+
+.app-screen-region .workspace-point-links .point-link:only-child {
+  grid-column: auto;
 }
 
 .app-screen-region .workspace-side-panel {
@@ -8154,7 +8194,7 @@ body.map-only-page {
 
 @media (max-width: 520px) {
   .app-screen-region .workspace-point-card {
-    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
     min-height: 0;
     gap: 12px;
     padding: 13px;
@@ -8176,7 +8216,19 @@ body.map-only-page {
 
   .app-screen-region .workspace-point-services .point-service-pill {
     min-width: 0;
-    flex: 1 1 100%;
+    min-height: 28px;
+    font-size: 0.6rem;
+  }
+
+  .app-screen-region .workspace-point-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .app-screen-region .workspace-point-links .point-link {
+    min-height: 32px;
+    padding: 0 7px;
+    font-size: 0.68rem;
   }
 
   .workspace-service-select-actions {

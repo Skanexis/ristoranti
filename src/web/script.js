@@ -1737,12 +1737,14 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
 
           return `
             <article class="workspace-point-card">
-              <div class="workspace-point-logo">${logoHtml}</div>
+              <div class="workspace-point-media">
+                <div class="workspace-point-logo">${logoHtml}</div>
+                <div class="workspace-point-services">${buildPointServiceBadges(serviceSelected ? [state.service] : point.services)}</div>
+              </div>
               <div class="workspace-point-body">
                 <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Punto")}</span>
                 <h3>${escapeHtml(point.name)}</h3>
                 <p>${escapeHtml(point.details || point.address || "Dettagli non configurati.")}</p>
-                <div class="workspace-point-services">${buildPointServiceBadges(serviceSelected ? [state.service] : point.services)}</div>
                 <div class="workspace-point-links">${socials || `<span class="point-links-empty">Nessun social</span>`}</div>
               </div>
             </article>
