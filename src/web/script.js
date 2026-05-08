@@ -186,7 +186,7 @@ const REGION_MAP_VIEWBOX =
     : "0 0 360 430";
 const REGION_MAP_DISPLAY_VIEWBOX = "10 10 326 410";
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
-const LOGO_PREFETCH_LIMIT = 6;
+const LOGO_PREFETCH_LIMIT = 10;
 const warmedLogoOrigins = new Set();
 const prefetchedLogoUrls = new Set();
 const IS_MAP_ONLY_HOME = document.querySelector(".map-only-app") !== null;
@@ -885,6 +885,9 @@ function renderMapHomeStep() {
   });
 
   const selectedMeta = regionMeta.find((entry) => entry.region.id === state.region) || null;
+  if (selectedMeta && ["meetup", "delivery"].includes(state.service)) {
+    prefetchPointLogos(sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service)));
+  }
   const mapSvg = buildInteractiveItalySvg(regionMeta, state.region);
 
   els.selectionContent.innerHTML = `
@@ -1736,6 +1739,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
       : [];
   const totalPoints = activePoints.length;
   const serviceMix = serviceSelected ? buildPointServiceBadges([state.service]) : "";
+  const priorityLogoLimit = isCoarsePointerDevice() ? 10 : 6;
   const nearbyRegions = [...regionMeta]
     .filter((entry) => entry.region.id !== region?.id)
     .map((entry) => {
@@ -1763,10 +1767,13 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
 
   const pointCards = serviceChooserCard || (activePoints.length
     ? activePoints
-        .map((point) => {
+        .map((point, index) => {
           const fallbackInitials = getInitials(point.name);
+          const priorityLogo = index < priorityLogoLimit;
           const logoHtml = point.logo
-            ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" loading="lazy" decoding="async" data-logo-fallback="${escapeHtmlAttr(fallbackInitials)}" />`
+            ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" width="96" height="96" loading="${
+                priorityLogo ? "eager" : "lazy"
+              }" decoding="async" fetchpriority="${priorityLogo ? "high" : "auto"}" data-logo-fallback="${escapeHtmlAttr(fallbackInitials)}" />`
             : `<span class="point-logo-fallback">${escapeHtml(fallbackInitials)}</span>`;
           const socials = Array.isArray(point.socials)
             ? point.socials

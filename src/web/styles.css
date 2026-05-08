@@ -8438,17 +8438,101 @@ body.map-only-page {
     animation: mobileServiceDockIn 260ms cubic-bezier(0.18, 0.9, 0.2, 1) both !important;
   }
 
+  .static-map-shell.has-region-selection .map-ux-dock.is-selected.map-ux-service-dock {
+    width: min(430px, calc(100vw - 12px));
+    padding: 12px;
+  }
+
   .map-ux-service-choice {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     animation: mobileServiceChoiceIn 220ms cubic-bezier(0.18, 0.9, 0.2, 1) 80ms both;
+    gap: 8px;
+    margin-top: 13px;
   }
 
   .map-ux-service-btn {
     animation: mobileServiceButtonIn 220ms cubic-bezier(0.18, 0.9, 0.2, 1) 75ms both;
+    grid-template-columns: 34px minmax(0, 1fr);
+    min-height: 60px;
+    gap: 8px;
+    padding: 8px 9px 8px 7px;
     touch-action: manipulation;
+  }
+
+  .map-ux-service-btn i {
+    width: 34px;
+    height: 34px;
+    border-radius: 14px;
+  }
+
+  .map-ux-service-btn .service-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .map-ux-service-btn b {
+    font-size: 0.82rem;
+    line-height: 1;
+  }
+
+  .map-ux-service-btn small {
+    margin-top: 3px;
+    font-size: 0.62rem;
+    line-height: 1.08;
+    white-space: normal;
   }
 
   .map-ux-service-btn:nth-child(2) {
     animation-delay: 115ms;
+  }
+
+  .app-screen-region .workspace-point-card {
+    animation: none !important;
+    content-visibility: auto;
+    contain: layout paint style;
+    contain-intrinsic-size: 154px;
+  }
+
+  .app-screen-region .workspace-point-card:nth-child(2),
+  .app-screen-region .workspace-point-card:nth-child(3),
+  .app-screen-region .workspace-point-card:nth-child(4) {
+    animation-delay: 0ms !important;
+  }
+
+  .app-screen-region .workspace-point-logo {
+    animation: none !important;
+  }
+
+  .workspace-service-select {
+    width: 100%;
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .workspace-service-select-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .workspace-service-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 7px;
+  }
+
+  .workspace-service-tab {
+    min-height: 40px;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    padding: 6px 8px 6px 6px;
+  }
+
+  .workspace-service-tab i {
+    width: 28px;
+    height: 28px;
+  }
+
+  .workspace-service-tab span {
+    font-size: 0.7rem;
   }
 
   .static-map-shell:not(.has-region-selection) .map-ux-dock {
@@ -8486,6 +8570,14 @@ body.map-only-page {
 
   .static-map-shell:not(.has-region-selection) .map-ux-dock-copy p {
     display: none;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (max-width: 360px) {
+  .map-ux-service-choice,
+  .workspace-service-select-actions,
+  .workspace-service-tabs {
+    grid-template-columns: 1fr;
   }
 }
 
