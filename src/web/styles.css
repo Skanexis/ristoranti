@@ -7890,10 +7890,6 @@ body.map-only-page {
   }
 }
 
-.workspace-point-grid {
-  grid-template-columns: 1fr;
-}
-
 /* Region workspace readability pass */
 .app-screen-region .workspace-main {
   grid-template-columns: minmax(0, 1fr) minmax(168px, 236px);
@@ -7916,41 +7912,58 @@ body.map-only-page {
 }
 
 .app-screen-region .workspace-point-grid {
-  grid-template-columns: 1fr !important;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  align-content: start;
+  grid-auto-rows: minmax(184px, auto);
   gap: 14px;
   overflow-x: hidden;
 }
 
 .app-screen-region .workspace-point-card {
-  grid-template-columns: 104px minmax(0, 1fr);
-  min-height: 0;
-  gap: 18px;
-  padding: 18px;
+  grid-template-columns: 92px minmax(0, 1fr);
+  min-height: 184px;
+  gap: 14px;
+  padding: 16px;
+  align-items: start;
+  overflow: hidden;
 }
 
 .app-screen-region .workspace-point-logo {
-  width: 104px;
-  height: 104px;
+  width: 92px;
+  height: 92px;
 }
 
 .app-screen-region .workspace-point-body {
-  gap: 10px;
+  gap: 8px;
 }
 
 .app-screen-region .workspace-point-body h3 {
-  font-size: clamp(1.65rem, 4vw, 2.55rem);
-  line-height: 0.96;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 1.62rem;
+  line-height: 1;
+  letter-spacing: 0;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .app-screen-region .workspace-point-body p {
-  max-width: 52ch;
-  font-size: 0.95rem;
-  line-height: 1.36;
+  max-width: none;
+  font-size: 0.88rem;
+  line-height: 1.32;
+  -webkit-line-clamp: 2;
 }
 
 .app-screen-region .workspace-point-services .point-service-pill {
   flex: 0 1 auto;
-  min-width: 128px;
+  min-width: 112px;
+}
+
+.app-screen-region .workspace-point-links {
+  align-self: end;
 }
 
 .app-screen-region .workspace-side-panel {
@@ -8114,6 +8127,10 @@ body.map-only-page {
     grid-template-columns: 1fr;
   }
 
+  .app-screen-region .workspace-point-grid {
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+  }
+
   .app-screen-region .workspace-side-panel {
     max-height: 116px;
   }
@@ -8129,9 +8146,16 @@ body.map-only-page {
   }
 }
 
+@media (max-width: 640px) {
+  .app-screen-region .workspace-point-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 520px) {
   .app-screen-region .workspace-point-card {
     grid-template-columns: 72px minmax(0, 1fr);
+    min-height: 0;
     gap: 12px;
     padding: 13px;
   }
@@ -8142,7 +8166,7 @@ body.map-only-page {
   }
 
   .app-screen-region .workspace-point-body h3 {
-    font-size: clamp(1.18rem, 7vw, 1.58rem);
+    font-size: 1.28rem;
     line-height: 1.02;
   }
 

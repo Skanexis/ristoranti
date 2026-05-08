@@ -1736,8 +1736,8 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
             : "";
 
           return `
-            <article class="workspace-point-card" style="display:grid;grid-template-columns:104px minmax(0, 1fr);min-height:0;gap:18px;padding:18px;overflow:hidden;">
-              <div class="workspace-point-logo" style="width:104px;height:104px;">${logoHtml}</div>
+            <article class="workspace-point-card">
+              <div class="workspace-point-logo">${logoHtml}</div>
               <div class="workspace-point-body">
                 <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Punto")}</span>
                 <h3>${escapeHtml(point.name)}</h3>
@@ -1779,7 +1779,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
           <button type="button" class="workspace-clear" data-screen-action="clear-region">Reimposta</button>
         </header>
 
-        <main class="workspace-main" style="grid-template-columns:minmax(0, 1fr) minmax(150px, 210px);gap:14px;overflow:hidden;">
+        <main class="workspace-main">
           <section class="workspace-hero-card">
             <div class="workspace-hero-meta">
               <span class="map-panel-status">${totalPoints} punti</span>
@@ -1797,7 +1797,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
               <strong>${serviceSelected ? totalPoints : meetupCount + deliveryCount}</strong>
             </div>
             ${selectedMeta ? buildWorkspaceServiceTabs(state.service, meetupCount, deliveryCount) : ""}
-            <div class="workspace-point-grid" style="display:grid;grid-template-columns:1fr;gap:14px;overflow-x:hidden;">
+            <div class="workspace-point-grid">
               ${pointCards}
             </div>
           </section>
