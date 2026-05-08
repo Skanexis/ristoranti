@@ -7610,3 +7610,140 @@ body.map-only-page {
   }
 }
 
+/* Point card fit fixes */
+.workspace-point-card {
+  align-items: start;
+  grid-template-rows: auto;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+.workspace-point-body {
+  grid-template-rows: auto;
+  align-content: start;
+}
+
+.workspace-point-body h3 {
+  overflow: visible;
+  letter-spacing: 0;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.workspace-point-body p,
+.workspace-point-type {
+  overflow-wrap: anywhere;
+}
+
+.workspace-point-services {
+  min-width: 0;
+  align-items: flex-start;
+}
+
+.workspace-point-services .point-service-pill {
+  flex: 1 1 min(100%, 136px);
+  justify-content: flex-start;
+}
+
+.region-service-chip,
+.point-service-pill {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.region-service-chip span,
+.point-service-pill span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.service-icon svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.service-icon svg circle {
+  fill: currentColor;
+}
+
+.service-icon-delivery svg circle {
+  fill: none;
+}
+
+@media (max-width: 520px) {
+  .workspace-point-card {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .workspace-point-logo {
+    width: 64px;
+    height: 64px;
+  }
+
+  .workspace-point-body h3 {
+    font-size: clamp(1rem, 5.1vw, 1.22rem);
+    line-height: 1.06;
+  }
+
+  .workspace-point-body p {
+    font-size: 0.76rem;
+  }
+
+  .workspace-point-services {
+    gap: 6px;
+  }
+
+  .workspace-point-services .point-service-pill {
+    flex-basis: calc(50% - 3px);
+    min-height: 34px;
+    padding: 0 8px 0 6px;
+    gap: 6px;
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+  }
+
+  .workspace-point-services .point-service-pill-ship {
+    flex-basis: 100%;
+  }
+
+  .region-service-chip i,
+  .point-service-pill i {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+  }
+
+  .workspace-point-links .point-link {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .workspace-point-card {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-point-logo {
+    width: 72px;
+    height: 72px;
+  }
+
+  .workspace-point-services .point-service-pill {
+    flex-basis: 100%;
+  }
+}
+

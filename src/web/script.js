@@ -1791,7 +1791,7 @@ function buildRegionServiceMix(pointsList) {
     const isActive = amount > 0;
     return `
       <span class="region-service-chip region-service-chip-${escapeHtmlAttr(serviceId)} ${isActive ? "is-active" : ""}">
-        <i aria-hidden="true">${escapeHtml(getServiceIcon(serviceId))}</i>
+        ${getServiceIconMarkup(serviceId)}
         <span>${escapeHtml(getServiceLabel(serviceId))}</span>
         <b>${isActive ? "Disponibile" : "Non attivo"}</b>
       </span>
@@ -2086,7 +2086,7 @@ function buildPointServiceBadges(services) {
     .map(
       (serviceId) => `
         <span class="point-service-pill point-service-pill-${escapeHtmlAttr(serviceId)}">
-          <i aria-hidden="true">${escapeHtml(getServiceIcon(serviceId))}</i>
+          ${getServiceIconMarkup(serviceId)}
           <span>${escapeHtml(getServiceLabel(serviceId))}</span>
         </span>
       `
@@ -2094,13 +2094,52 @@ function buildPointServiceBadges(services) {
     .join("");
 }
 
-function getServiceIcon(serviceId) {
-  const icons = {
-    meetup: "●",
-    delivery: "↗",
-    ship: "◆",
-  };
-  return icons[serviceId] || "•";
+function getServiceIconMarkup(serviceId) {
+  const iconClass = `service-icon service-icon-${escapeHtmlAttr(serviceId)}`;
+
+  if (serviceId === "meetup") {
+    return `
+      <i class="${iconClass}" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11Z"></path>
+          <circle cx="12" cy="10" r="2.4"></circle>
+        </svg>
+      </i>
+    `;
+  }
+
+  if (serviceId === "delivery") {
+    return `
+      <i class="${iconClass}" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M3 7h11v9H3z"></path>
+          <path d="M14 10h3.7l3.3 3.4V16h-7z"></path>
+          <circle cx="7" cy="17" r="2"></circle>
+          <circle cx="18" cy="17" r="2"></circle>
+        </svg>
+      </i>
+    `;
+  }
+
+  if (serviceId === "ship") {
+    return `
+      <i class="${iconClass}" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M4 8.2 12 4l8 4.2v8.6L12 21l-8-4.2Z"></path>
+          <path d="m4.5 8.5 7.5 4 7.5-4"></path>
+          <path d="M12 12.5V21"></path>
+        </svg>
+      </i>
+    `;
+  }
+
+  return `
+    <i class="${iconClass}" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <circle cx="12" cy="12" r="5"></circle>
+      </svg>
+    </i>
+  `;
 }
 
 function renderHeroSocialLinks() {
