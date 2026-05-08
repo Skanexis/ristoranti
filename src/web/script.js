@@ -162,6 +162,7 @@ const REGION_MAP_VIEWBOX =
   typeof window.RIItalyRegionsMap.viewBox === "string"
     ? window.RIItalyRegionsMap.viewBox
     : "0 0 360 430";
+const REGION_MAP_DISPLAY_VIEWBOX = "10 10 326 410";
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
 const LOGO_PREFETCH_LIMIT = 6;
 const warmedLogoOrigins = new Set();
@@ -250,7 +251,8 @@ function bindEvents() {
 
     const regionButton = event.target.closest("[data-region]");
     if (!regionButton || regionButton.disabled || regionButton.getAttribute("data-disabled") === "true") return;
-    selectRegion(regionButton.dataset.region);
+    flashRegionPress(regionButton);
+    commitRegionSelection(regionButton.dataset.region);
   });
 
   els.selectionContent.addEventListener("keydown", (event) => {
@@ -258,12 +260,18 @@ function bindEvents() {
     const regionNode = event.target.closest("[data-region]");
     if (!regionNode || regionNode.getAttribute("data-disabled") === "true") return;
     event.preventDefault();
-    selectRegion(regionNode.dataset.region);
+    flashRegionPress(regionNode);
+    commitRegionSelection(regionNode.dataset.region);
   });
 
   els.selectionContent.addEventListener("pointerdown", (event) => {
     const stage = event.target.closest(".italy-map-stage");
     if (!stage) return;
+    const regionNode = event.target.closest("[data-region]");
+    if (regionNode && regionNode.getAttribute("data-disabled") !== "true") {
+      flashRegionPress(regionNode);
+    }
+    if (stage.classList.contains("pro-static-map")) return;
     if (event.target.closest("[data-region]") || event.target.closest("[data-map-action]")) return;
     startMapPan(stage, event);
   });
@@ -281,6 +289,7 @@ function bindEvents() {
 function setupInteractiveUi() {
   setupServiceCardTilt();
   setupInteractivePressEffects();
+  setupAmbientPointer();
 }
 
 function setupServiceCardTilt() {
@@ -333,7 +342,7 @@ function setupServiceCardTilt() {
 
 function setupInteractivePressEffects() {
   const interactiveSelector =
-    ".option, .region-action-btn, .region-compare-btn, .map-control-btn, .map-region-chip, .pro-tab, .pro-rail-btn, .pro-signal-card, .pro-region-row, .pro-primary-action, .workspace-back, .workspace-clear, .workspace-region-shortcut, .point-link, .floating-btn, .hero-social-link, .hero-services-link";
+    ".option, .region-action-btn, .region-compare-btn, .map-control-btn, .map-region-chip, .pro-tab, .pro-rail-btn, .pro-signal-card, .pro-region-row, .pro-primary-action, .map-ux-action, .map-ux-clear, .workspace-back, .workspace-clear, .workspace-region-shortcut, .point-link, .floating-btn, .hero-social-link, .hero-services-link";
 
   const pop = (node) => {
     if (!(node instanceof HTMLElement)) return;
@@ -379,6 +388,60 @@ function addRipple(host, clientX, clientY) {
   }, 620);
 }
 
+function flashRegionPress(regionNode) {
+  if (!regionNode?.classList) return;
+  regionNode.classList.remove("is-tapping");
+  void regionNode.getBoundingClientRect?.();
+  regionNode.classList.add("is-tapping");
+  window.setTimeout(() => regionNode.classList?.remove("is-tapping"), 260);
+}
+
+function setupAmbientPointer() {
+  if (!els.selectionContent || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+  els.selectionContent.addEventListener(
+    "pointermove",
+    (event) => {
+      const shell = event.target.closest(".static-map-shell");
+      if (!(shell instanceof HTMLElement)) return;
+
+      const rect = shell.getBoundingClientRect();
+      const x = clampNumber(((event.clientX - rect.left) / Math.max(rect.width, 1)) * 100, 0, 100);
+      const y = clampNumber(((event.clientY - rect.top) / Math.max(rect.height, 1)) * 100, 0, 100);
+      const tiltX = clampNumber((y - 50) * -0.045, -2.2, 2.2);
+      const tiltY = clampNumber((x - 50) * 0.055, -2.4, 2.4);
+
+      shell.style.setProperty("--cursor-x", `${x.toFixed(2)}%`);
+      shell.style.setProperty("--cursor-y", `${y.toFixed(2)}%`);
+      shell.style.setProperty("--map-tilt-x", `${tiltX.toFixed(2)}deg`);
+      shell.style.setProperty("--map-tilt-y", `${tiltY.toFixed(2)}deg`);
+    },
+    { passive: true }
+  );
+
+  els.selectionContent.addEventListener(
+    "pointerleave",
+    (event) => {
+      const shell = event.target.closest?.(".static-map-shell") || els.selectionContent.querySelector(".static-map-shell");
+      if (!(shell instanceof HTMLElement)) return;
+      shell.style.removeProperty("--cursor-x");
+      shell.style.removeProperty("--cursor-y");
+      shell.style.removeProperty("--map-tilt-x");
+      shell.style.removeProperty("--map-tilt-y");
+    },
+    { passive: true }
+  );
+}
+
+function commitRegionSelection(regionId) {
+  if (!IS_MAP_ONLY_HOME) {
+    selectRegion(regionId);
+    return;
+  }
+
+  window.setTimeout(() => selectRegion(regionId), 120);
+}
+
 function mountExperienceHud() {
   if (!els.appFlow || !els.serviceStep || document.getElementById("experienceHud")) {
     els.experienceHud = document.getElementById("experienceHud");
@@ -390,7 +453,7 @@ function mountExperienceHud() {
   hud.className = "experience-hud card reveal";
   hud.innerHTML = `
     <div class="experience-hud-top">
-      <p class="experience-hud-kicker">Navigator</p>
+      <p class="experience-hud-kicker">Navigatore</p>
       <h2 class="experience-hud-title">Percorso Live</h2>
       <p class="experience-hud-note" data-hud-note>Seleziona un servizio per iniziare.</p>
     </div>
@@ -627,7 +690,7 @@ function selectRegion(regionId) {
   state.region = region.id;
   state.service = detectBestServiceForRegion(region.id);
   state.compareRegions = [];
-  state.screen = "region";
+  state.screen = IS_MAP_ONLY_HOME ? "map" : "region";
 
   normalizeState();
   renderMapHomeStep();
@@ -830,11 +893,11 @@ function renderRegionStep() {
         <div class="italy-map-controls" aria-label="Controlli mappa">
           <button type="button" class="map-control-btn" data-map-action="zoom-in" aria-label="Zoom in">+</button>
           <button type="button" class="map-control-btn" data-map-action="zoom-out" aria-label="Zoom out">−</button>
-          <button type="button" class="map-control-btn" data-map-action="pan-up" aria-label="Pan up">↑</button>
-          <button type="button" class="map-control-btn" data-map-action="pan-left" aria-label="Pan left">←</button>
-          <button type="button" class="map-control-btn" data-map-action="pan-right" aria-label="Pan right">→</button>
-          <button type="button" class="map-control-btn" data-map-action="pan-down" aria-label="Pan down">↓</button>
-          <button type="button" class="map-control-btn map-control-btn-reset" data-map-action="reset-view" aria-label="Reset map view">Reset</button>
+          <button type="button" class="map-control-btn" data-map-action="pan-up" aria-label="Sposta in alto">↑</button>
+          <button type="button" class="map-control-btn" data-map-action="pan-left" aria-label="Sposta a sinistra">←</button>
+          <button type="button" class="map-control-btn" data-map-action="pan-right" aria-label="Sposta a destra">→</button>
+          <button type="button" class="map-control-btn" data-map-action="pan-down" aria-label="Sposta in basso">↓</button>
+          <button type="button" class="map-control-btn map-control-btn-reset" data-map-action="reset-view" aria-label="Ripristina vista mappa">Reimposta</button>
         </div>
         <div class="italy-map-grid" aria-hidden="true"></div>
         <div class="italy-map-viewport">
@@ -1196,6 +1259,7 @@ function toggleCompareRegion(regionId) {
 }
 
 function buildInteractiveItalySvg(regionMeta, selectedRegionId) {
+  let selectedHalo = "";
   const shapes = regionMeta
     .map((entry, index) => {
       const regionId = resolveRegionMapKey(entry.region.id);
@@ -1211,6 +1275,16 @@ function buildInteractiveItalySvg(regionMeta, selectedRegionId) {
       const baseClass = `italy-region-shape ${heatClass} ${isDisabled ? "is-disabled" : ""} ${isSelected ? "is-selected" : ""} ${isCompared ? "is-compared" : ""}`;
 
       if (shape?.path) {
+        if (isSelected) {
+          selectedHalo = `
+            <path
+              class="italy-region-halo"
+              d="${shape.path}"
+              aria-hidden="true"
+            />
+          `;
+        }
+
         return `
           <g class="italy-region-group">
             <path
@@ -1224,6 +1298,18 @@ function buildInteractiveItalySvg(regionMeta, selectedRegionId) {
             />
             <text class="italy-region-count" x="${shape.cx}" y="${shape.cy}">${entry.activeCount}</text>
           </g>
+        `;
+      }
+
+      if (isSelected) {
+        selectedHalo = `
+          <circle
+            class="italy-region-halo"
+            cx="${fallback.x}"
+            cy="${fallback.y}"
+            r="20"
+            aria-hidden="true"
+          ></circle>
         `;
       }
 
@@ -1256,14 +1342,49 @@ function buildInteractiveItalySvg(regionMeta, selectedRegionId) {
       };
       const lx = shape?.cx ?? fallback.x;
       const ly = shape?.cy ?? fallback.y;
+      const isSelected = selectedRegionId === entry.region.id;
       return `
-        <text class="italy-region-label" x="${lx}" y="${ly + 10}">${escapeHtml(entry.region.name)}</text>
+        <text class="italy-region-label ${isSelected ? "is-selected" : ""}" x="${lx}" y="${ly + 10}">${escapeHtml(entry.region.name)}</text>
       `;
     })
     .join("");
 
   return `
-    <svg class="italy-map-svg" viewBox="${escapeHtmlAttr(REGION_MAP_VIEWBOX)}" role="img" aria-label="Regioni d'Italia con punti attivi">
+    <svg class="italy-map-svg" viewBox="${escapeHtmlAttr(REGION_MAP_DISPLAY_VIEWBOX || REGION_MAP_VIEWBOX)}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Regioni d'Italia con punti attivi">
+      <defs>
+        <linearGradient id="italyRegionFill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#123629" stop-opacity="0.78" />
+          <stop offset="52%" stop-color="#0b211a" stop-opacity="0.62" />
+          <stop offset="100%" stop-color="#07110f" stop-opacity="0.82" />
+        </linearGradient>
+        <linearGradient id="italyRegionWarmFill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1f5f43" stop-opacity="0.86" />
+          <stop offset="100%" stop-color="#0d241b" stop-opacity="0.72" />
+        </linearGradient>
+        <linearGradient id="italyRegionHotFill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#2ee68c" stop-opacity="0.92" />
+          <stop offset="100%" stop-color="#10452f" stop-opacity="0.82" />
+        </linearGradient>
+        <linearGradient id="italyRegionSelectedFill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f7fff9" stop-opacity="0.96" />
+          <stop offset="38%" stop-color="#4dff9d" stop-opacity="0.9" />
+          <stop offset="100%" stop-color="#11824f" stop-opacity="0.88" />
+        </linearGradient>
+        <filter id="italySelectedGlow" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+          <feDropShadow dx="0" dy="0" stdDeviation="2.4" flood-color="#f7fff9" flood-opacity="0.92" />
+          <feDropShadow dx="0" dy="0" stdDeviation="6.4" flood-color="#32ff8f" flood-opacity="0.68" />
+          <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000000" flood-opacity="0.42" />
+        </filter>
+        <filter id="italyHaloGlow" x="-55%" y="-55%" width="210%" height="210%" color-interpolation-filters="sRGB">
+          <feGaussianBlur stdDeviation="3.2" result="blur" />
+          <feColorMatrix
+            in="blur"
+            type="matrix"
+            values="0 0 0 0 0.15  0 0 0 0 1  0 0 0 0 0.52  0 0 0 0.9 0"
+          />
+        </filter>
+      </defs>
+      <g class="italy-region-halo-layer">${selectedHalo}</g>
       <g class="italy-region-layer">${shapes}</g>
       <g class="italy-region-labels">${labels}</g>
     </svg>
@@ -1361,119 +1482,84 @@ function buildHomeCommandDeck(regionMeta, selectedMeta) {
 }
 
 function buildProfessionalMapScreen(regionMeta, selectedMeta, mapSvg) {
+  return `
+    <section class="app-screen app-screen-map pro-screen-map static-map-screen" aria-label="Mappa d'Italia">
+      <div class="static-map-shell">
+        <div class="italy-home-map-shell" aria-label="Mappa interattiva delle regioni italiane">
+          <div class="italy-map-stage italy-map-stage-home pro-map-stage pro-static-map ${state.region ? "has-selection" : ""}" role="group" aria-label="Seleziona una regione italiana">
+            <div class="italy-map-grid" aria-hidden="true"></div>
+            <div class="italy-map-viewport">
+              ${mapSvg}
+            </div>
+          </div>
+        </div>
+        ${buildMapUxOverlay(regionMeta, selectedMeta)}
+      </div>
+    </section>
+  `;
+}
+
+function buildMapUxOverlay(regionMeta, selectedMeta) {
   const totalRegions = Array.isArray(regionMeta) ? regionMeta.length : 0;
   const activeRegions = regionMeta.filter((entry) => entry.activeCount > 0).length;
   const totalPoints = regionMeta.reduce((sum, entry) => sum + entry.activeCount, 0);
-  const selectedName = selectedMeta?.region?.name || "Choose region";
-  const selectedCount = selectedMeta ? formatAvailablePointsLabel(selectedMeta.activeCount) : "No region selected";
-  const selectedServices = selectedMeta ? buildRegionServiceMix(selectedMeta.activePoints) : "";
-  const sortedRegions = [...regionMeta].sort((a, b) => a.region.name.localeCompare(b.region.name, "it"));
-  const topRegions = [...regionMeta]
-    .sort((a, b) => b.activeCount - a.activeCount || a.region.name.localeCompare(b.region.name, "it"))
-    .slice(0, 5);
 
-  const regionRows = sortedRegions
-    .map((entry) => {
-      const isSelected = selectedMeta?.region?.id === entry.region.id;
-      return `
-        <button type="button" class="pro-region-row ${isSelected ? "active" : ""}" data-region="${escapeHtmlAttr(entry.region.id)}">
-          <span class="pro-region-row-name">${escapeHtml(entry.region.name)}</span>
-          <span class="pro-region-row-meta">${entry.activeCount} pts</span>
-        </button>
-      `;
-    })
-    .join("");
-
-  const topRegionCards = topRegions
-    .map(
-      (entry) => `
-        <button type="button" class="pro-signal-card" data-region="${escapeHtmlAttr(entry.region.id)}">
-          <span>${escapeHtml(entry.region.name)}</span>
-          <strong>${entry.activeCount}</strong>
-        </button>
-      `
-    )
-    .join("");
-
-  return `
-    <section class="app-screen app-screen-map pro-screen-map" aria-label="Mappa regioni">
-      <div class="pro-app-shell">
-        <header class="pro-topbar">
-          <div class="pro-brand">
-            <span class="map-brand-mark" aria-hidden="true">RI</span>
+  if (selectedMeta) {
+    const serviceMix = buildRegionServiceMix(selectedMeta.activePoints);
+    return `
+      <div class="map-ux-layer" aria-live="polite">
+        <header class="map-ux-topbar">
+          <div class="map-ux-brand">
+            <span class="map-ux-mark" aria-hidden="true">RI</span>
             <span>
-              <strong>Ristoranti d'Italia</strong>
-              <small>Operations console</small>
+              <b>Ristoranti d'Italia</b>
+              <small>Mappa interattiva</small>
             </span>
           </div>
-          <nav class="pro-topnav" aria-label="Workspace">
-            <button type="button" class="pro-tab active" data-screen-action="map">Map</button>
-            <button type="button" class="pro-tab" ${selectedMeta ? 'data-screen-action="region"' : 'aria-disabled="true"'}>Region</button>
-          </nav>
-          <div class="pro-top-metrics" aria-label="Statistiche">
-            <span><b>${totalRegions}</b> Regioni</span>
-            <span><b>${totalPoints}</b> Punti</span>
-          </div>
+          <button type="button" class="map-ux-clear" data-screen-action="clear-region" aria-label="Cancella selezione">Cambia</button>
         </header>
 
-        <div class="pro-workspace-grid">
-          <nav class="pro-rail" aria-label="Azioni rapide">
-            <button type="button" class="pro-rail-btn active" data-screen-action="map" aria-label="Mappa">⌖</button>
-            <button type="button" class="pro-rail-btn" data-map-action="zoom-in" aria-label="Zoom in">+</button>
-            <button type="button" class="pro-rail-btn" data-map-action="zoom-out" aria-label="Zoom out">-</button>
-            <button type="button" class="pro-rail-btn" data-map-action="reset-view" aria-label="Reset">R</button>
-          </nav>
-
-          <main class="pro-map-canvas">
-            <div class="pro-canvas-header">
-              <div>
-                <span class="pro-kicker">Live region map</span>
-                <h2>Italy control surface</h2>
-              </div>
-              <div class="pro-canvas-actions">
-                <button type="button" class="map-control-btn" data-map-action="pan-up" aria-label="Pan up">↑</button>
-                <button type="button" class="map-control-btn" data-map-action="pan-left" aria-label="Pan left">←</button>
-                <button type="button" class="map-control-btn" data-map-action="pan-right" aria-label="Pan right">→</button>
-                <button type="button" class="map-control-btn" data-map-action="pan-down" aria-label="Pan down">↓</button>
-              </div>
-            </div>
-            <div class="italy-home-map-shell">
-              <div class="italy-map-stage italy-map-stage-home pro-map-stage ${state.region ? "has-selection" : ""}" role="group" aria-label="Mappa interattiva delle regioni italiane">
-                <div class="italy-map-grid" aria-hidden="true"></div>
-                <div class="italy-map-viewport">
-                  ${mapSvg}
-                </div>
-              </div>
-            </div>
-            <div class="pro-signal-strip">
-              ${topRegionCards}
-            </div>
-          </main>
-
-          <aside class="pro-inspector" aria-label="Region inspector">
-            <section class="pro-inspector-card pro-selected-region">
-              <span class="pro-kicker">${selectedMeta ? "Selected" : "Waiting"}</span>
-              <h3>${escapeHtml(selectedName)}</h3>
-              <p>${escapeHtml(selectedCount)}</p>
-              ${selectedServices ? `<div class="region-service-mix map-panel-services">${selectedServices}</div>` : ""}
-              <button type="button" class="pro-primary-action" ${selectedMeta ? 'data-screen-action="region"' : 'aria-disabled="true"'}>
-                Open workspace
-              </button>
-            </section>
-
-            <section class="pro-inspector-card pro-region-directory">
-              <div class="pro-directory-head">
-                <span class="pro-kicker">Region directory</span>
-                <b>${activeRegions}/${totalRegions}</b>
-              </div>
-              <div class="pro-region-list">
-                ${regionRows}
-              </div>
-            </section>
-          </aside>
-        </div>
+        <aside class="map-ux-dock is-selected">
+          <div class="map-ux-dock-copy">
+            <span class="map-ux-kicker">Regione selezionata</span>
+            <strong>${escapeHtml(selectedMeta.region.name)}</strong>
+            <p>${escapeHtml(formatAvailablePointsLabel(selectedMeta.activeCount))}</p>
+            ${serviceMix ? `<div class="region-service-mix map-ux-services">${serviceMix}</div>` : ""}
+          </div>
+          <button type="button" class="map-ux-action" data-screen-action="region">
+            <span>Apri punti</span>
+            <b>→</b>
+          </button>
+        </aside>
       </div>
-    </section>
+    `;
+  }
+
+  return `
+    <div class="map-ux-layer" aria-live="polite">
+      <header class="map-ux-topbar">
+        <div class="map-ux-brand">
+          <span class="map-ux-mark" aria-hidden="true">RI</span>
+          <span>
+            <b>Ristoranti d'Italia</b>
+            <small>Seleziona una regione</small>
+          </span>
+        </div>
+        <div class="map-ux-mini-stats" aria-label="Statistiche mappa">
+          <span><b>${activeRegions}</b> attive</span>
+          <span><b>${totalPoints}</b> punti</span>
+        </div>
+      </header>
+
+      <aside class="map-ux-dock">
+        <div class="map-ux-pulse" aria-hidden="true"></div>
+        <div class="map-ux-dock-copy">
+          <span class="map-ux-kicker">${totalRegions} regioni italiane</span>
+          <strong>Tocca una regione</strong>
+          <p>La mappa evidenzia la selezione e mostra i punti disponibili.</p>
+        </div>
+      </aside>
+    </div>
   `;
 }
 
@@ -1512,7 +1598,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
             <article class="workspace-point-card">
               <div class="workspace-point-logo">${logoHtml}</div>
               <div class="workspace-point-body">
-                <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Point")}</span>
+                <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Punto")}</span>
                 <h3>${escapeHtml(point.name)}</h3>
                 <p>${escapeHtml(point.details || point.address || "Dettagli non configurati.")}</p>
                 <div class="workspace-point-services">${buildPointServiceBadges(point.services)}</div>
@@ -1546,10 +1632,10 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
         <header class="workspace-header">
           <button type="button" class="workspace-back" data-screen-action="map" aria-label="Torna alla mappa">←</button>
           <div class="workspace-title-block">
-            <span>${isOpen ? "Region workspace" : "No region"}</span>
+            <span>${isOpen ? "Area regione" : "Nessuna regione"}</span>
             <h2>${escapeHtml(region?.name || "Seleziona una regione")}</h2>
           </div>
-          <button type="button" class="workspace-clear" data-screen-action="clear-region">Reset</button>
+          <button type="button" class="workspace-clear" data-screen-action="clear-region">Reimposta</button>
         </header>
 
         <main class="workspace-main">
@@ -1559,7 +1645,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
               <span class="map-panel-status">${regionMeta.length} regioni</span>
             </div>
             <h3>${escapeHtml(region?.name || "Italia")}</h3>
-            <p>${escapeHtml(region?.hubs || "Workspace regionale con punti, servizi e scorciatoie operative.")}</p>
+            <p>${escapeHtml(region?.hubs || "Area regionale con punti, servizi e scorciatoie operative.")}</p>
             <div class="region-service-mix workspace-service-mix">${serviceMix}</div>
           </section>
 
@@ -1592,7 +1678,7 @@ function buildRegionSpotlight(selectedMeta) {
   if (!selectedMeta) {
     return `
       <article class="region-spotlight">
-        <p class="region-spotlight-kicker">Italy radar</p>
+        <p class="region-spotlight-kicker">Radar Italia</p>
         <h3 class="region-spotlight-title">Seleziona un pin per vedere i punti attivi</h3>
         <p class="region-spotlight-note">Il pannello mostrerà subito i servizi disponibili per ogni punto della regione.</p>
       </article>
