@@ -156,6 +156,28 @@ const ITALY_REGION_NAMES = {
   sardegna: "Sardegna",
   sicilia: "Sicilia",
 };
+const MOBILE_REGION_LABELS = {
+  "valle-daosta": "VAL D'AOSTA",
+  piemonte: "PIEMONTE",
+  liguria: "LIGURIA",
+  lombardia: "LOMBARDIA",
+  "trentino-alto-adige": "TRENTINO",
+  veneto: "VENETO",
+  "friuli-venezia-giulia": "FRIULI",
+  "emilia-romagna": "EMILIA",
+  toscana: "TOSCANA",
+  umbria: "UMBRIA",
+  marche: "MARCHE",
+  lazio: "LAZIO",
+  abruzzo: "ABRUZZO",
+  molise: "MOLISE",
+  campania: "CAMPANIA",
+  basilicata: "BASILICATA",
+  calabria: "CALABRIA",
+  puglia: "PUGLIA",
+  sardegna: "SARDEGNA",
+  sicilia: "SICILIA",
+};
 const REGION_MAP_VIEWBOX =
   typeof window !== "undefined" &&
   window.RIItalyRegionsMap &&
@@ -295,6 +317,7 @@ function setupInteractiveUi() {
 
 function setupServiceCardTilt() {
   if (!els.serviceOptions) return;
+  if (isCoarsePointerDevice()) return;
 
   const resetCard = (card) => {
     if (!(card instanceof HTMLElement)) return;
@@ -357,6 +380,7 @@ function setupInteractivePressEffects() {
     const target = event.target.closest(interactiveSelector);
     if (!(target instanceof HTMLElement)) return;
     if (target.matches(":disabled") || target.getAttribute("aria-disabled") === "true") return;
+    if (isCoarsePointerDevice()) return;
 
     pop(target);
     addRipple(target, event.clientX, event.clientY);
@@ -373,6 +397,7 @@ function setupInteractivePressEffects() {
 function addRipple(host, clientX, clientY) {
   if (!(host instanceof HTMLElement)) return;
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  if (isCoarsePointerDevice()) return;
 
   const rect = host.getBoundingClientRect();
   const size = Math.max(rect.width, rect.height) * 1.3;
@@ -391,6 +416,7 @@ function addRipple(host, clientX, clientY) {
 
 function flashRegionPress(regionNode) {
   if (!regionNode?.classList) return;
+  if (isCoarsePointerDevice()) return;
   regionNode.classList.remove("is-tapping");
   void regionNode.getBoundingClientRect?.();
   regionNode.classList.add("is-tapping");
@@ -399,6 +425,7 @@ function flashRegionPress(regionNode) {
 
 function setupAmbientPointer() {
   if (!els.selectionContent || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  if (isCoarsePointerDevice()) return;
 
   els.selectionContent.addEventListener(
     "pointermove",
@@ -436,6 +463,7 @@ function setupAmbientPointer() {
 
 function setupPointerAwareSurfaces() {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  if (isCoarsePointerDevice()) return;
 
   const surfaceSelector = ".workspace-point-card, .map-ux-dock, .map-ux-action, .map-ux-service-btn, .workspace-service-tab, .point-link, .region-service-chip, .point-service-pill";
 
@@ -1227,6 +1255,15 @@ function resolveRegionMapKey(regionId) {
     .replace(/^-+|-+$/g, "");
 }
 
+function getRegionMapLabel(region, regionMapKey) {
+  const fullName = String(region?.name || "");
+  const mobileLabel = MOBILE_REGION_LABELS[regionMapKey];
+  const shouldUseMobileLabel =
+    isCoarsePointerDevice() || Boolean(window.matchMedia?.("(max-width: 760px)").matches);
+
+  return shouldUseMobileLabel && mobileLabel ? mobileLabel : fullName;
+}
+
 function runMapAction(actionId) {
   const nextScaleStep = 0.14;
 
@@ -1412,8 +1449,9 @@ function buildInteractiveItalySvg(regionMeta, selectedRegionId) {
       const lx = shape?.cx ?? fallback.x;
       const ly = shape?.cy ?? fallback.y;
       const isSelected = selectedRegionId === entry.region.id;
+      const label = getRegionMapLabel(entry.region, regionId);
       return `
-        <text class="italy-region-label ${isSelected ? "is-selected" : ""}" x="${lx}" y="${ly + 10}">${escapeHtml(entry.region.name)}</text>
+        <text class="italy-region-label ${isSelected ? "is-selected" : ""}" x="${lx}" y="${ly + 10}">${escapeHtml(label)}</text>
       `;
     })
     .join("");
@@ -2077,6 +2115,8 @@ function animatePointCardsFlip(scope, previousRects) {
 }
 
 function animateSelectedRegionPulse() {
+  if (isCoarsePointerDevice()) return;
+
   const selected = els.selectionContent?.querySelector(".italy-region-shape.active, .italy-region-shape.is-selected");
   if (!(selected instanceof SVGElement)) return;
 

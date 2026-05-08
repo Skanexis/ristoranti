@@ -6294,6 +6294,103 @@ body.map-only-page {
   opacity: 1;
 }
 
+@media (hover: none) and (pointer: coarse), (max-width: 760px) {
+  .map-only-page,
+  .static-map-screen,
+  .static-map-shell,
+  .static-map-shell .italy-map-svg,
+  .static-map-shell .italy-region-shape {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .static-map-screen::before,
+  .static-map-shell::before {
+    animation: none !important;
+    mix-blend-mode: normal;
+  }
+
+  .static-map-shell {
+    perspective: none;
+  }
+
+  .static-map-shell .italy-map-viewport {
+    transform: translate3d(0, 1dvh, 0) !important;
+    transition: none !important;
+    will-change: auto;
+  }
+
+  .static-map-shell .italy-map-svg {
+    animation: none !important;
+    filter: drop-shadow(0 0 1px rgba(231, 255, 237, 0.84)) !important;
+    shape-rendering: auto;
+    transform: translateZ(0);
+  }
+
+  .static-map-shell .italy-region-shape {
+    filter: none !important;
+    transform: none !important;
+    transition:
+      fill 90ms ease,
+      stroke 90ms ease,
+      opacity 90ms ease !important;
+    stroke: rgba(139, 255, 187, 0.94);
+    stroke-width: 1.55;
+    touch-action: manipulation;
+  }
+
+  .static-map-shell .italy-region-shape:not(.is-disabled):hover,
+  .static-map-shell [data-region]:focus-visible.italy-region-shape,
+  .static-map-shell .italy-region-shape.is-tapping,
+  .static-map-shell .italy-region-shape:not(.is-disabled):active,
+  .static-map-shell .italy-region-shape.is-selected {
+    animation: none !important;
+    filter: none !important;
+    fill: url("#italyRegionSelectedFill");
+    stroke: rgba(250, 255, 251, 0.98);
+    stroke-width: 2.15;
+  }
+
+  .static-map-shell .italy-region-halo {
+    animation: none !important;
+    filter: none !important;
+    mix-blend-mode: normal;
+    opacity: 0.74;
+    stroke: rgba(213, 255, 225, 0.96);
+    stroke-width: 4.8;
+  }
+
+  .static-map-shell .italy-region-label {
+    filter: none !important;
+    font-size: 6px;
+    letter-spacing: 0;
+    opacity: 0.96;
+    paint-order: stroke fill;
+    stroke: rgba(0, 5, 4, 0.94);
+    stroke-width: 2.45px;
+    text-rendering: optimizeLegibility;
+    text-shadow: none;
+  }
+
+  .static-map-shell .italy-region-label.is-selected {
+    filter: none !important;
+    stroke-width: 2.8px;
+  }
+
+  .map-ux-brand,
+  .map-ux-mini-stats,
+  .map-ux-clear,
+  .map-ux-dock,
+  .map-ux-action,
+  .map-ux-service-btn {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .ui-ripple {
+    display: none !important;
+  }
+}
+
 .workspace-shell {
   background:
     radial-gradient(circle at 18% 16%, rgba(53, 255, 148, 0.12), transparent 28%),
@@ -8254,6 +8351,61 @@ body.map-only-page {
 
   .workspace-service-tabs {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Final mobile map performance override */
+@media (hover: none) and (pointer: coarse), (max-width: 760px) {
+  .static-map-shell .italy-map-viewport,
+  .static-map-shell:not(.has-region-selection) .italy-map-viewport {
+    transform: translate3d(0, 1dvh, 0) !important;
+    transition: none !important;
+    will-change: auto;
+  }
+
+  .static-map-shell.has-region-selection .italy-map-viewport {
+    transform: translate3d(0, -4dvh, 0) !important;
+    transition: none !important;
+    will-change: auto;
+  }
+
+  .static-map-shell .italy-map-svg {
+    animation: none !important;
+    filter: drop-shadow(0 0 1px rgba(231, 255, 237, 0.84)) !important;
+  }
+
+  .static-map-screen::before,
+  .static-map-shell::before,
+  .static-map-shell .italy-region-halo,
+  .static-map-shell .italy-region-shape,
+  .static-map-shell .italy-region-shape:not(.is-disabled):hover,
+  .static-map-shell .italy-region-shape.is-tapping,
+  .static-map-shell .italy-region-shape:not(.is-disabled):active,
+  .static-map-shell .italy-region-shape.is-selected,
+  .static-map-shell .italy-region-label.is-selected {
+    animation: none !important;
+    filter: none !important;
+  }
+
+  .static-map-shell .italy-region-shape {
+    stroke: rgba(139, 255, 187, 0.94);
+    stroke-width: 1.55;
+  }
+
+  .static-map-shell .italy-region-shape:not(.is-disabled):hover,
+  .static-map-shell .italy-region-shape.is-tapping,
+  .static-map-shell .italy-region-shape:not(.is-disabled):active,
+  .static-map-shell .italy-region-shape.is-selected {
+    fill: url("#italyRegionSelectedFill");
+    stroke: rgba(250, 255, 251, 0.98);
+    stroke-width: 2.15;
+  }
+
+  .static-map-shell .italy-region-label {
+    font-size: 6px;
+    letter-spacing: 0;
+    stroke-width: 2.45px;
+    text-shadow: none;
   }
 }
 
