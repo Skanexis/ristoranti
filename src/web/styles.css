@@ -9212,7 +9212,7 @@ body.map-only-page {
   .static-map-shell:not(.has-region-selection) .italy-map-viewport {
     box-sizing: border-box;
     padding-bottom: var(--home-map-bottom-clearance) !important;
-    transform: translate3d(0, -0.6dvh, 0) !important;
+    transform: translate3d(0, 6dvh, 0) !important;
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-svg {
@@ -9228,7 +9228,7 @@ body.map-only-page {
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-viewport {
-    transform: translate3d(0, -1dvh, 0) !important;
+    transform: translate3d(0, 5dvh, 0) !important;
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-svg {
