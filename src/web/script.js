@@ -8,7 +8,9 @@ const state = {
   mapOffsetY: 0,
   screen: "map",
 };
-const VALID_SERVICES = ["meetup", "delivery", "ship"];
+const VALID_SERVICES = ["meetup", "delivery", "ship", "other"];
+const REGION_PRIORITY_SERVICES = ["meetup", "delivery", "ship"];
+const WORKSPACE_SERVICES = ["meetup", "delivery", "ship", "other"];
 const EXPERIENCE_STEPS = ["service", "region", "points"];
 const REGION_SVG_SHAPES = {
   "valle-daosta": {
@@ -643,7 +645,7 @@ function getActiveRegionsForCurrentSelection() {
     return appData.regions.filter((region) => (region.activePoints || []).length > 0).length;
   }
 
-  return appData.regions.filter((region) => getActivePointsByRegion(region.id, state.service).length > 0).length;
+  return appData.regions.filter((region) => getWorkspacePointsByService(region.id, state.service).length > 0).length;
 }
 
 function getActivePointsCountForCurrentSelection() {
@@ -652,7 +654,7 @@ function getActivePointsCountForCurrentSelection() {
   }
 
   if (state.region) {
-    return getActivePointsByRegion(state.region, state.service).length;
+    return getWorkspacePointsByService(state.region, state.service).length;
   }
 
   return getActivePointsByService(state.service).length;
@@ -721,9 +723,12 @@ function fallbackData() {
       meetup: "Meetup",
       delivery: "Delivery",
       ship: "Ship",
+      other: "Altro",
     },
     supportTelegramUrl: "https://t.me/SHLC26",
     regions: [],
+    otherCategories: {},
+    otherCategoryLabels: {},
   };
 }
 
@@ -771,9 +776,9 @@ function selectRegion(regionId) {
   if (!region) return;
   if (IS_MAP_ONLY_HOME && getMapSelectablePoints(region).length === 0) return;
 
-  const previousService = ["meetup", "delivery"].includes(state.service) ? state.service : null;
+  const previousService = WORKSPACE_SERVICES.includes(state.service) ? state.service : null;
   const preservedService =
-    IS_MAP_ONLY_HOME && previousService && getActivePointsByRegion(region.id, previousService).length > 0
+    IS_MAP_ONLY_HOME && previousService && getWorkspacePointsByService(region.id, previousService).length > 0
       ? previousService
       : null;
 
@@ -801,12 +806,12 @@ function detectBestServiceForRegion(regionId) {
   const region = appData.regions.find((item) => item.id === regionId);
   if (!region) return null;
 
-  const candidates = IS_MAP_ONLY_HOME ? ["meetup", "delivery"] : ["meetup", "delivery", "ship"];
+  const candidates = IS_MAP_ONLY_HOME ? REGION_PRIORITY_SERVICES : WORKSPACE_SERVICES;
   let bestService = null;
   let bestCount = 0;
 
   for (const serviceId of candidates) {
-    const count = getActivePointsByRegion(regionId, serviceId).length;
+    const count = getWorkspacePointsByService(regionId, serviceId).length;
     if (count > bestCount) {
       bestCount = count;
       bestService = serviceId;
@@ -839,7 +844,7 @@ function normalizeState() {
 
   if (!state.region) return;
 
-  const activePoints = getActivePointsByRegion(state.region);
+  const activePoints = getWorkspacePointsByService(state.region, state.service);
   if (activePoints.length === 0) {
     state.service = detectBestServiceForRegion(state.region);
     if (!state.service) {
@@ -888,7 +893,7 @@ function renderMapHomeStep() {
   });
 
   const selectedMeta = regionMeta.find((entry) => entry.region.id === state.region) || null;
-  if (selectedMeta && ["meetup", "delivery"].includes(state.service)) {
+  if (selectedMeta && REGION_PRIORITY_SERVICES.includes(state.service)) {
     prefetchPointLogos(
       sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service)),
       isCoarsePointerDevice() ? 3 : LOGO_PREFETCH_LIMIT
@@ -1142,8 +1147,8 @@ function runRegionQuickAction(actionId) {
 function runScreenAction(actionId) {
   if (String(actionId || "").startsWith("service:") && state.region) {
     const service = normalizeServiceId(String(actionId).slice("service:".length));
-    if (!["meetup", "delivery"].includes(service)) return;
-    if (getActivePointsByRegion(state.region, service).length === 0) return;
+    if (!WORKSPACE_SERVICES.includes(service)) return;
+    if (getWorkspacePointsByService(state.region, service).length === 0) return;
 
     state.service = service;
     state.compareRegions = [];
@@ -1659,8 +1664,7 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
   const totalPoints = regionMeta.reduce((sum, entry) => sum + entry.activeCount, 0);
 
   if (selectedMeta) {
-    const meetupCount = getActivePointsByRegion(selectedMeta.region.id, "meetup").length;
-    const deliveryCount = getActivePointsByRegion(selectedMeta.region.id, "delivery").length;
+    const serviceCounts = getWorkspaceServiceCounts(selectedMeta.region.id);
     return `
       <div class="map-ux-layer" aria-live="polite">
         <header class="map-ux-topbar">
@@ -1680,8 +1684,9 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
             <strong>${escapeHtml(selectedMeta.region.name)}</strong>
             <p>Scegli un servizio per vedere solo le card disponibili.</p>
             <div class="map-ux-service-choice" aria-label="Scegli servizio">
-              ${buildMapServiceChoiceButton("meetup", meetupCount)}
-              ${buildMapServiceChoiceButton("delivery", deliveryCount)}
+              ${WORKSPACE_SERVICES.map((serviceId) =>
+                buildMapServiceChoiceButton(serviceId, serviceCounts[serviceId] || 0)
+              ).join("")}
             </div>
           </div>
         </aside>
@@ -1720,11 +1725,13 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
 function buildMapServiceChoiceButton(serviceId, count) {
   const isDisabled = count <= 0;
   const label = getServiceLabel(serviceId);
+  const hint = getServiceChoiceHint(serviceId, count);
   return `
     <button
       type="button"
       class="map-ux-service-btn map-ux-service-btn-${escapeHtmlAttr(serviceId)}"
       data-screen-action="service:${escapeHtmlAttr(serviceId)}"
+      data-service-kind="${escapeHtmlAttr(serviceId)}"
       ${isDisabled ? "disabled" : ""}
       aria-label="${escapeHtmlAttr(label)}: ${escapeHtmlAttr(formatAvailablePointsLabel(count))}"
     >
@@ -1732,16 +1739,26 @@ function buildMapServiceChoiceButton(serviceId, count) {
       <span>
         <b>${escapeHtml(label)}</b>
         <small>${escapeHtml(formatAvailablePointsLabel(count))}</small>
+        <em>${escapeHtml(hint)}</em>
       </span>
     </button>
   `;
 }
 
-function buildWorkspaceServiceTabs(currentService, meetupCount, deliveryCount) {
+function getServiceChoiceHint(serviceId, count) {
+  if (count <= 0) return "Nessuna card attiva";
+  if (serviceId === "ship") return "Spedizione Italia / UE";
+  if (serviceId === "other") return "Categorie extra";
+  if (serviceId === "delivery") return "Consegna operativa";
+  return "Meetup verificati";
+}
+
+function buildWorkspaceServiceTabs(currentService, serviceCounts = {}) {
   return `
     <div class="workspace-service-tabs" aria-label="Cambia servizio">
-      ${buildWorkspaceServiceTab("meetup", meetupCount, currentService)}
-      ${buildWorkspaceServiceTab("delivery", deliveryCount, currentService)}
+      ${WORKSPACE_SERVICES.map((serviceId) =>
+        buildWorkspaceServiceTab(serviceId, serviceCounts[serviceId] || 0, currentService)
+      ).join("")}
     </div>
   `;
 }
@@ -1752,8 +1769,10 @@ function buildWorkspaceServiceTab(serviceId, count, currentService) {
   return `
     <button
       type="button"
-      class="workspace-service-tab ${isActive ? "is-active" : ""}"
+      class="workspace-service-tab workspace-service-tab-${escapeHtmlAttr(serviceId)} ${isActive ? "is-active" : ""}"
       data-screen-action="service:${escapeHtmlAttr(serviceId)}"
+      data-service-kind="${escapeHtmlAttr(serviceId)}"
+      aria-pressed="${isActive ? "true" : "false"}"
       ${isDisabled ? "disabled" : ""}
     >
       ${getServiceIconMarkup(serviceId)}
@@ -1766,12 +1785,11 @@ function buildWorkspaceServiceTab(serviceId, count, currentService) {
 function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const isOpen = Boolean(selectedMeta);
   const region = selectedMeta?.region || null;
-  const serviceSelected = ["meetup", "delivery"].includes(state.service);
-  const meetupCount = region ? getActivePointsByRegion(region.id, "meetup").length : 0;
-  const deliveryCount = region ? getActivePointsByRegion(region.id, "delivery").length : 0;
+  const serviceSelected = WORKSPACE_SERVICES.includes(state.service);
+  const serviceCounts = region ? getWorkspaceServiceCounts(region.id) : {};
   const activePoints =
     selectedMeta && serviceSelected
-      ? sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service))
+      ? sortPointsByStarsPriority(getWorkspacePointsByService(selectedMeta.region.id, state.service))
       : [];
   const totalPoints = activePoints.length;
   const serviceMix = serviceSelected ? buildPointServiceBadges([state.service]) : "";
@@ -1779,7 +1797,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const nearbyRegions = [...regionMeta]
     .filter((entry) => entry.region.id !== region?.id)
     .map((entry) => {
-      const activeCount = serviceSelected ? getActivePointsByRegion(entry.region.id, state.service).length : entry.activeCount;
+      const activeCount = serviceSelected ? getRegionalServiceCount(entry.region.id, state.service) : entry.activeCount;
       return { ...entry, activeCount };
     })
     .filter((entry) => entry.activeCount > 0)
@@ -1792,10 +1810,11 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
         <article class="workspace-service-select">
           <span>Servizio</span>
           <strong>${escapeHtml(region?.name || "Regione")}</strong>
-          <p>Scegli Meetup o Delivery per vedere solo le card disponibili.</p>
+          <p>Scegli una categoria per vedere solo le card disponibili.</p>
           <div class="workspace-service-select-actions">
-            ${buildMapServiceChoiceButton("meetup", meetupCount)}
-            ${buildMapServiceChoiceButton("delivery", deliveryCount)}
+            ${WORKSPACE_SERVICES.map((serviceId) =>
+              buildMapServiceChoiceButton(serviceId, serviceCounts[serviceId] || 0)
+            ).join("")}
           </div>
         </article>
       `
@@ -1804,6 +1823,8 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const pointCards = serviceChooserCard || (activePoints.length
     ? activePoints
         .map((point, index) => {
+          const pointServices = Array.isArray(point.services) ? point.services : [];
+          const primaryService = serviceSelected ? state.service : pointServices[0] || "other";
           const fallbackInitials = getInitials(point.name);
           const priorityLogo = index < priorityLogoLimit;
           const logoHtml = point.logo
@@ -1823,9 +1844,15 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
                 )
                 .join("")
             : "";
+          const shipCountryText = state.service === "ship" ? getPointShipCountryText(point) : "";
+          const categoryText =
+            state.service === "other" ? point.categoryLabel || point.category || getServiceLabel("other") : "";
+          const pointMeta = [shipCountryText, categoryText].filter(Boolean).join(" / ");
 
           return `
-            <article class="workspace-point-card">
+            <article class="workspace-point-card workspace-point-card-${escapeHtmlAttr(primaryService)}" data-service-kind="${escapeHtmlAttr(
+              primaryService
+            )}">
               <div class="workspace-point-media">
                 <div class="workspace-point-logo">${logoHtml}</div>
                 <div class="workspace-point-services">${buildPointServiceBadges(serviceSelected ? [state.service] : point.services)}</div>
@@ -1833,6 +1860,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
               <div class="workspace-point-body">
                 <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Punto")}</span>
                 <h3>${escapeHtml(point.name)}</h3>
+                ${pointMeta ? `<span class="workspace-point-meta">${escapeHtml(pointMeta)}</span>` : ""}
                 <p>${escapeHtml(point.details || point.address || "Dettagli non configurati.")}</p>
                 <div class="workspace-point-links">${socials || `<span class="point-links-empty">Nessun social</span>`}</div>
               </div>
@@ -1885,9 +1913,9 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
           <section class="workspace-points-panel">
             <div class="workspace-section-head">
               <span>${serviceSelected ? `Punti ${escapeHtml(getServiceLabel(state.service))}` : "Scegli servizio"}</span>
-              <strong>${serviceSelected ? totalPoints : meetupCount + deliveryCount}</strong>
+              <strong>${serviceSelected ? totalPoints : sumServiceCounts(serviceCounts)}</strong>
             </div>
-            ${selectedMeta ? buildWorkspaceServiceTabs(state.service, meetupCount, deliveryCount) : ""}
+            ${selectedMeta ? buildWorkspaceServiceTabs(state.service, serviceCounts) : ""}
             <div class="workspace-point-grid">
               ${pointCards}
             </div>
@@ -2209,12 +2237,75 @@ function getMapSelectablePoints(region) {
   return points.filter(
     (point) =>
       Array.isArray(point?.services) &&
-      (point.services.includes("meetup") || point.services.includes("delivery"))
+      REGION_PRIORITY_SERVICES.some((serviceId) => point.services.includes(serviceId))
   );
+}
+
+function getRegionalServiceCount(regionId, serviceId) {
+  if (!serviceId) return 0;
+  return getActivePointsByRegion(regionId, serviceId).length;
+}
+
+function getWorkspacePointsByService(regionId, serviceId = state.service) {
+  if (!serviceId) return [];
+  if (serviceId === "other") {
+    return getOtherWorkspacePoints(regionId);
+  }
+  return getActivePointsByRegion(regionId, serviceId);
+}
+
+function getWorkspaceServiceCounts(regionId) {
+  return WORKSPACE_SERVICES.reduce((counts, serviceId) => {
+    counts[serviceId] = getWorkspacePointsByService(regionId, serviceId).length;
+    return counts;
+  }, {});
+}
+
+function sumServiceCounts(counts) {
+  return Object.values(counts || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+}
+
+function getOtherWorkspacePoints(regionId) {
+  const regionalPoints = getActivePointsByRegion(regionId, "other").map((point) => ({
+    ...point,
+    category: point.category || "Other",
+    categoryLabel: point.categoryLabel || getServiceLabel("other"),
+  }));
+
+  return [...regionalPoints, ...getOtherCategoryPoints()];
+}
+
+function getOtherCategoryPoints() {
+  const categories = appData.otherCategories && typeof appData.otherCategories === "object" ? appData.otherCategories : {};
+  const labels =
+    appData.otherCategoryLabels && typeof appData.otherCategoryLabels === "object" ? appData.otherCategoryLabels : {};
+
+  return Object.keys(categories).flatMap((categoryId) => {
+    const label = labels[categoryId] || categoryId || getServiceLabel("other");
+    const points = Array.isArray(categories[categoryId]) ? categories[categoryId] : [];
+
+    return points.map((point, index) => ({
+      ...point,
+      id: point.id || `${categoryId}-${index + 1}`,
+      services: ["other"],
+      category: categoryId,
+      categoryLabel: label,
+    }));
+  });
 }
 
 function getActivePointsByService(serviceId) {
   if (!serviceId) return [];
+
+  if (serviceId === "other") {
+    const regionalOther = (appData.regions || []).flatMap((region) =>
+      (region.activePoints || [])
+        .filter((point) => Array.isArray(point.services) && point.services.includes("other"))
+        .map((point) => ({ ...point, regionName: region.name, categoryLabel: point.categoryLabel || getServiceLabel("other") }))
+    );
+
+    return [...regionalOther, ...getOtherCategoryPoints()];
+  }
 
   return (appData.regions || []).flatMap((region) =>
     (region.activePoints || [])
@@ -2332,6 +2423,21 @@ function getServiceIconMarkup(serviceId) {
     `;
   }
 
+  if (serviceId === "other") {
+    return `
+      <i class="${iconClass}" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M5 6.5h14"></path>
+          <path d="M5 12h14"></path>
+          <path d="M5 17.5h14"></path>
+          <circle cx="8" cy="6.5" r="1.4"></circle>
+          <circle cx="16" cy="12" r="1.4"></circle>
+          <circle cx="11" cy="17.5" r="1.4"></circle>
+        </svg>
+      </i>
+    `;
+  }
+
   return `
     <i class="${iconClass}" aria-hidden="true">
       <svg viewBox="0 0 24 24" focusable="false">
@@ -2360,6 +2466,7 @@ function getServiceLabel(serviceId) {
     meetup: "Meetup",
     delivery: "Delivery",
     ship: "Ship",
+    other: "Other",
   };
   return forcedLabels[serviceId] || appData.serviceLabels?.[serviceId] || serviceId;
 }

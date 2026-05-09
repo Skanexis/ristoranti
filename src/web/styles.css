@@ -7650,6 +7650,11 @@ body.map-only-page {
   color: #190b05;
 }
 
+.point-service-pill-other i,
+.region-service-chip-other.is-active i {
+  color: #101014;
+}
+
 /* Interaction polish */
 .workspace-point-card,
 .map-ux-dock,
@@ -7979,7 +7984,8 @@ body.map-only-page {
     letter-spacing: 0.02em;
   }
 
-  .workspace-point-services .point-service-pill-ship {
+  .workspace-point-services .point-service-pill-ship,
+  .workspace-point-services .point-service-pill-other {
     flex-basis: 100%;
   }
 
@@ -8709,6 +8715,145 @@ body.map-only-page {
   .map-ux-service-choice,
   .map-ux-service-btn {
     animation: none !important;
+  }
+}
+
+/* Ship / Other final service polish */
+.map-ux-service-choice,
+.workspace-service-select-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.map-ux-service-btn {
+  min-height: 82px;
+  border-radius: 18px;
+}
+
+.map-ux-service-btn em {
+  display: block;
+  margin-top: 5px;
+  color: rgba(239, 255, 245, 0.54);
+  font-size: 0.63rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.12;
+  text-transform: uppercase;
+}
+
+.map-ux-service-btn-ship,
+.workspace-service-tab-ship.is-active,
+.workspace-point-card-ship,
+.point-service-pill-ship {
+  --service-glow: rgba(96, 180, 255, 0.24);
+  --service-border: rgba(142, 202, 255, 0.5);
+  --service-tint: rgba(54, 130, 235, 0.16);
+}
+
+.map-ux-service-btn-other,
+.workspace-service-tab-other.is-active,
+.workspace-point-card-other,
+.point-service-pill-other {
+  --service-glow: rgba(255, 204, 119, 0.22);
+  --service-border: rgba(255, 215, 135, 0.5);
+  --service-tint: rgba(255, 178, 79, 0.15);
+}
+
+.map-ux-service-btn-ship,
+.map-ux-service-btn-other {
+  border-color: var(--service-border);
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.18), transparent 32%),
+    linear-gradient(145deg, var(--service-tint), rgba(255, 255, 255, 0.035)),
+    rgba(3, 12, 10, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    0 16px 38px var(--service-glow);
+}
+
+.map-ux-service-btn-ship i,
+.workspace-service-tab-ship i,
+.point-service-pill-ship i {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.86), transparent 32%),
+    linear-gradient(135deg, #dff2ff, #70b9ff 54%, #2474df);
+  box-shadow: 0 0 22px rgba(96, 180, 255, 0.28);
+}
+
+.map-ux-service-btn-other i,
+.workspace-service-tab-other i,
+.point-service-pill-other i {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.86), transparent 32%),
+    linear-gradient(135deg, #fff2c9, #ffc766 54%, #d56e22);
+  box-shadow: 0 0 22px rgba(255, 194, 96, 0.26);
+}
+
+.workspace-service-tab {
+  border-radius: 10px;
+}
+
+.workspace-service-tab-ship.is-active,
+.workspace-service-tab-other.is-active {
+  border-color: var(--service-border);
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.5), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), var(--service-tint)),
+    rgba(232, 246, 255, 0.94);
+}
+
+.workspace-point-card-ship,
+.workspace-point-card-other {
+  border-color: var(--service-border);
+  background:
+    radial-gradient(circle at 15% 15%, var(--service-glow), transparent 33%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.026)),
+    rgba(6, 15, 14, 0.88);
+}
+
+.workspace-point-card-ship::after,
+.workspace-point-card-other::after {
+  background: radial-gradient(circle, var(--service-glow), transparent 66%);
+}
+
+.workspace-point-meta {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: rgba(244, 255, 247, 0.78);
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 0.68rem;
+  font-weight: 950;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.workspace-point-card-ship .workspace-point-meta {
+  border-color: rgba(142, 202, 255, 0.32);
+  color: #d8efff;
+}
+
+.workspace-point-card-other .workspace-point-meta {
+  border-color: rgba(255, 215, 135, 0.32);
+  color: #fff0cd;
+}
+
+@media (max-width: 900px) {
+  .map-ux-service-choice,
+  .workspace-service-select-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 360px) {
+  .map-ux-service-choice,
+  .workspace-service-select-actions {
+    grid-template-columns: 1fr;
   }
 }
 

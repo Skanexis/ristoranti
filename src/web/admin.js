@@ -2709,10 +2709,34 @@ function renderOtherPage() {
     return;
   }
 
-  els.otherCategoriesContainer.innerHTML = categories
+  const otherStats = getOtherAdminStats(categories);
+
+  els.otherCategoriesContainer.innerHTML = `
+    <section class="other-admin-summary" aria-label="Panoramica Other">
+      <article>
+        <span>Categorie</span>
+        <strong>${otherStats.categories}</strong>
+      </article>
+      <article>
+        <span>Punti Other</span>
+        <strong>${otherStats.points}</strong>
+      </article>
+      <article>
+        <span>Premium</span>
+        <strong>${otherStats.starred}</strong>
+      </article>
+      <article>
+        <span>Con media</span>
+        <strong>${otherStats.media}</strong>
+      </article>
+    </section>
+    <div class="other-admin-board">
+      ${categories
     .map((category) => {
       const categoryLabel = data.otherCategoryLabels?.[category] || category;
       const points = Array.isArray(data.otherCategories[category]) ? data.otherCategories[category] : [];
+      const starredCount = points.filter((point) => Number(point.stars) === 1).length;
+      const mediaCount = points.filter((point) => resolvePointMediaType(point.mediaType, point.mediaUrl) !== "none").length;
 
       const pointsHtml = points.length
         ? points
@@ -2727,7 +2751,7 @@ function renderOtherPage() {
                 <article class="admin-item other-point-item">
                   <div class="admin-item-top">
                     <div class="other-point-identity">
-                      ${logoHtml}
+                      <span class="other-point-logo-frame">${logoHtml || escapeHtml(getInitials(point.name))}</span>
                       <div>
                         <p class="admin-item-title">${escapeHtml(point.name)}</p>
                         <p class="admin-item-id">${escapeHtml(point.id)}</p>
@@ -2752,16 +2776,42 @@ function renderOtherPage() {
 
       return `
         <section class="other-category" data-category="${escapeHtmlAttr(category)}">
-          <h3>${escapeHtml(categoryLabel)} <small>(${escapeHtml(category)})</small></h3>
+          <header class="other-category-head">
+            <div>
+              <span class="other-category-kicker">${escapeHtml(category)}</span>
+              <h3>${escapeHtml(categoryLabel)}</h3>
+            </div>
+            <div class="other-category-metrics" aria-label="Statistiche categoria">
+              <span>${points.length} punti</span>
+              <span>${starredCount} premium</span>
+              <span>${mediaCount} media</span>
+            </div>
+          </header>
           <div class="other-list">${pointsHtml}</div>
 
-          <div class="admin-form-actions" style="margin-top: 0.75rem;">
+          <div class="admin-form-actions other-category-actions">
             <button class="admin-btn other-point-open-full" type="button" data-category="${escapeHtmlAttr(category)}">Aggiungi punto con form completo</button>
           </div>
         </section>
       `;
     })
-    .join("\n");
+    .join("\n")}
+    </div>
+  `;
+}
+
+function getOtherAdminStats(categories) {
+  return (categories || []).reduce(
+    (stats, category) => {
+      const points = Array.isArray(data.otherCategories?.[category]) ? data.otherCategories[category] : [];
+      stats.categories += 1;
+      stats.points += points.length;
+      stats.starred += points.filter((point) => Number(point.stars) === 1).length;
+      stats.media += points.filter((point) => resolvePointMediaType(point.mediaType, point.mediaUrl) !== "none").length;
+      return stats;
+    },
+    { categories: 0, points: 0, starred: 0, media: 0 }
+  );
 }
 
 function openOtherPointEditor(category, pointId) {
