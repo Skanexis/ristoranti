@@ -9206,34 +9206,48 @@ body.map-only-page {
 /* Mobile map clearance: keep the "Tocca una regione" dock below the map */
 @media (max-width: 760px), (hover: none) and (pointer: coarse) {
   .static-map-shell:not(.has-region-selection) {
+    --home-map-top-clearance: clamp(126px, 18dvh, 158px);
     --home-map-bottom-clearance: clamp(72px, 12dvh, 96px);
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-viewport {
     box-sizing: border-box;
+    padding-top: calc(var(--home-map-top-clearance) + env(safe-area-inset-top)) !important;
     padding-bottom: var(--home-map-bottom-clearance) !important;
-    transform: translate3d(0, 6dvh, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-svg {
-    width: min(104vw, 500px);
+    width: min(100vw, 480px);
     height: auto;
-    max-height: calc(100dvh - var(--home-map-bottom-clearance) - 18px);
+    max-height: calc(100dvh - var(--home-map-top-clearance) - var(--home-map-bottom-clearance) - env(safe-area-inset-top) - 10px);
   }
 }
 
 @media (max-width: 380px), (max-height: 700px) {
   .static-map-shell:not(.has-region-selection) {
+    --home-map-top-clearance: clamp(118px, 17dvh, 146px);
     --home-map-bottom-clearance: clamp(66px, 11dvh, 86px);
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-viewport {
-    transform: translate3d(0, 5dvh, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-svg {
-    width: min(100vw, 470px);
-    max-height: calc(100dvh - var(--home-map-bottom-clearance) - 14px);
+    width: min(96vw, 450px);
+    max-height: calc(100dvh - var(--home-map-top-clearance) - var(--home-map-bottom-clearance) - env(safe-area-inset-top) - 8px);
+  }
+}
+
+@media (min-width: 381px) and (max-width: 430px) and (min-height: 800px) and (hover: none) and (pointer: coarse) {
+  .static-map-shell:not(.has-region-selection) {
+    --home-map-top-clearance: 168px;
+    --home-map-bottom-clearance: 86px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-svg {
+    width: min(96vw, 464px);
   }
 }
 
