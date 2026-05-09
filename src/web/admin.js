@@ -497,9 +497,189 @@ function bootAdmin() {
   resetPointForm();
   setupPointFormCollapsibles();
   refreshAdminUI();
+  setupAdminCustomSelects();
   setAdminPage(resolveAdminPageFromHash(), { updateHash: true, focus: false });
   setStatus("Admin center pronto.", "success");
 }
+
+function setupAdminCustomSelects(root = document) {
+  root.querySelectorAll("select:not([data-admin-native-select])").forEach((select) => {
+    enhanceAdminCustomSelect(select);
+  });
+  syncAdminCustomSelects();
+}
+
+function enhanceAdminCustomSelect(select) {
+  if (!(select instanceof HTMLSelectElement) || select.closest(".admin-custom-select")) {
+    return;
+  }
+
+  const wrapper = document.createElement("span");
+  wrapper.className = "admin-custom-select";
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "admin-custom-select-button";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+
+  const value = document.createElement("span");
+  value.className = "admin-custom-select-value";
+
+  const icon = document.createElement("span");
+  icon.className = "admin-custom-select-icon";
+  icon.setAttribute("aria-hidden", "true");
+
+  const menu = document.createElement("div");
+  menu.className = "admin-custom-select-menu";
+  menu.setAttribute("role", "listbox");
+  menu.hidden = true;
+
+  select.parentNode.insertBefore(wrapper, select);
+  wrapper.append(trigger, select, menu);
+  trigger.append(value, icon);
+
+  select.dataset.adminNativeSelect = "true";
+  select.classList.add("admin-native-select");
+  select.tabIndex = -1;
+
+  select.addEventListener("change", () => syncAdminCustomSelect(select));
+  select.addEventListener("input", () => syncAdminCustomSelect(select));
+
+  trigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleAdminCustomSelect(select);
+  });
+
+  trigger.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeAdminCustomSelect(select);
+      return;
+    }
+    if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      openAdminCustomSelect(select);
+    }
+  });
+
+  menu.addEventListener("click", (event) => {
+    const optionButton = event.target.closest(".admin-custom-select-option");
+    if (!optionButton || optionButton.disabled) {
+      return;
+    }
+    select.value = optionButton.dataset.selectValue || "";
+    select.dispatchEvent(new Event("input", { bubbles: true }));
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    closeAdminCustomSelect(select);
+    trigger.focus({ preventScroll: true });
+  });
+}
+
+function toggleAdminCustomSelect(select) {
+  const wrapper = select.closest(".admin-custom-select");
+  if (!wrapper || select.disabled) {
+    return;
+  }
+  if (wrapper.classList.contains("is-open")) {
+    closeAdminCustomSelect(select);
+  } else {
+    openAdminCustomSelect(select);
+  }
+}
+
+function openAdminCustomSelect(select) {
+  const wrapper = select.closest(".admin-custom-select");
+  if (!wrapper || select.disabled) {
+    return;
+  }
+  closeAllAdminCustomSelects(select);
+  syncAdminCustomSelect(select);
+  wrapper.classList.add("is-open");
+  const trigger = wrapper.querySelector(".admin-custom-select-button");
+  const menu = wrapper.querySelector(".admin-custom-select-menu");
+  if (trigger) {
+    trigger.setAttribute("aria-expanded", "true");
+  }
+  if (menu) {
+    menu.hidden = false;
+    const activeOption = menu.querySelector('[aria-selected="true"]');
+    if (activeOption) {
+      activeOption.scrollIntoView({ block: "nearest" });
+    }
+  }
+}
+
+function closeAdminCustomSelect(select) {
+  const wrapper = select?.closest?.(".admin-custom-select");
+  if (!wrapper) {
+    return;
+  }
+  wrapper.classList.remove("is-open");
+  const trigger = wrapper.querySelector(".admin-custom-select-button");
+  const menu = wrapper.querySelector(".admin-custom-select-menu");
+  if (trigger) {
+    trigger.setAttribute("aria-expanded", "false");
+  }
+  if (menu) {
+    menu.hidden = true;
+  }
+}
+
+function closeAllAdminCustomSelects(exceptSelect = null) {
+  document.querySelectorAll(".admin-custom-select").forEach((wrapper) => {
+    const select = wrapper.querySelector("select");
+    if (select !== exceptSelect) {
+      closeAdminCustomSelect(select);
+    }
+  });
+}
+
+function syncAdminCustomSelects() {
+  document.querySelectorAll("select[data-admin-native-select]").forEach((select) => {
+    syncAdminCustomSelect(select);
+  });
+}
+
+function syncAdminCustomSelect(select) {
+  const wrapper = select.closest(".admin-custom-select");
+  if (!wrapper) {
+    return;
+  }
+
+  const trigger = wrapper.querySelector(".admin-custom-select-button");
+  const value = wrapper.querySelector(".admin-custom-select-value");
+  const menu = wrapper.querySelector(".admin-custom-select-menu");
+  const selectedOption = select.selectedOptions?.[0] || select.options?.[select.selectedIndex];
+
+  wrapper.classList.toggle("is-disabled", select.disabled);
+  if (trigger) {
+    trigger.disabled = select.disabled;
+  }
+  if (value) {
+    value.textContent = selectedOption?.textContent || "Seleziona";
+  }
+  if (!menu) {
+    return;
+  }
+
+  menu.innerHTML = "";
+  Array.from(select.options).forEach((option) => {
+    const optionButton = document.createElement("button");
+    optionButton.type = "button";
+    optionButton.className = "admin-custom-select-option";
+    optionButton.dataset.selectValue = option.value;
+    optionButton.disabled = option.disabled;
+    optionButton.setAttribute("role", "option");
+    optionButton.setAttribute("aria-selected", option.selected ? "true" : "false");
+    optionButton.textContent = option.textContent;
+    menu.appendChild(optionButton);
+  });
+}
+
+document.addEventListener("click", () => {
+  closeAllAdminCustomSelects();
+});
 
 async function handleAdminAuthSubmit(event) {
   event.preventDefault();
@@ -1206,6 +1386,7 @@ function refreshAdminUI(preferredRegionId = "") {
   if (isAdminBooted) {
     setAdminPage(activeAdminPage || resolveAdminPageFromHash(), { updateHash: false, focus: false });
   }
+  setupAdminCustomSelects();
 }
 
 function renderServicesForm() {

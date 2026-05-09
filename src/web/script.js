@@ -9,7 +9,7 @@ const state = {
   screen: "map",
 };
 const VALID_SERVICES = ["meetup", "delivery", "ship", "other"];
-const REGION_PRIORITY_SERVICES = ["meetup", "delivery", "ship"];
+const REGION_PRIORITY_SERVICES = ["meetup", "delivery"];
 const WORKSPACE_SERVICES = ["meetup", "delivery", "ship", "other"];
 const HOME_DIRECT_SERVICES = ["ship", "other"];
 const EXPERIENCE_STEPS = ["service", "region", "points"];
@@ -777,7 +777,7 @@ function selectRegion(regionId) {
   if (!region) return;
   if (IS_MAP_ONLY_HOME && getMapSelectablePoints(region).length === 0) return;
 
-  const previousService = WORKSPACE_SERVICES.includes(state.service) ? state.service : null;
+  const previousService = REGION_PRIORITY_SERVICES.includes(state.service) ? state.service : null;
   const preservedService =
     IS_MAP_ONLY_HOME && previousService && getWorkspacePointsByService(region.id, previousService).length > 0
       ? previousService
@@ -844,6 +844,14 @@ function normalizeState() {
   }
 
   if (!state.region) return;
+
+  if (!REGION_PRIORITY_SERVICES.includes(state.service)) {
+    state.service = detectBestServiceForRegion(state.region);
+    if (!state.service) {
+      state.compareRegions = [];
+      return;
+    }
+  }
 
   const activePoints = getWorkspacePointsByService(state.region, state.service);
   if (activePoints.length === 0) {
@@ -1165,6 +1173,7 @@ function runScreenAction(actionId) {
       return;
     }
 
+    if (!REGION_PRIORITY_SERVICES.includes(service)) return;
     if (getWorkspacePointsByService(state.region, service).length === 0) return;
 
     state.service = service;
@@ -1702,7 +1711,7 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
             <strong>${escapeHtml(selectedMeta.region.name)}</strong>
             <p>Scegli un servizio per vedere solo le card disponibili.</p>
             <div class="map-ux-service-choice" aria-label="Scegli servizio">
-              ${WORKSPACE_SERVICES.map((serviceId) =>
+              ${REGION_PRIORITY_SERVICES.map((serviceId) =>
                 buildMapServiceChoiceButton(serviceId, serviceCounts[serviceId] || 0)
               ).join("")}
             </div>
@@ -1807,7 +1816,7 @@ function getServiceChoiceHint(serviceId, count) {
 function buildWorkspaceServiceTabs(currentService, serviceCounts = {}) {
   return `
     <div class="workspace-service-tabs" aria-label="Cambia servizio">
-      ${WORKSPACE_SERVICES.map((serviceId) =>
+      ${REGION_PRIORITY_SERVICES.map((serviceId) =>
         buildWorkspaceServiceTab(serviceId, serviceCounts[serviceId] || 0, currentService)
       ).join("")}
     </div>
@@ -1837,7 +1846,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const isDirectService = !selectedMeta && HOME_DIRECT_SERVICES.includes(state.service);
   const isOpen = Boolean(selectedMeta || isDirectService);
   const region = selectedMeta?.region || null;
-  const serviceSelected = WORKSPACE_SERVICES.includes(state.service);
+  const serviceSelected = isDirectService ? HOME_DIRECT_SERVICES.includes(state.service) : REGION_PRIORITY_SERVICES.includes(state.service);
   const serviceCounts = region ? getWorkspaceServiceCounts(region.id) : {};
   const activePoints =
     serviceSelected && (selectedMeta || isDirectService)
@@ -1866,7 +1875,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
           <strong>${escapeHtml(region?.name || "Regione")}</strong>
           <p>Scegli una categoria per vedere solo le card disponibili.</p>
           <div class="workspace-service-select-actions">
-            ${WORKSPACE_SERVICES.map((serviceId) =>
+            ${REGION_PRIORITY_SERVICES.map((serviceId) =>
               buildMapServiceChoiceButton(serviceId, serviceCounts[serviceId] || 0)
             ).join("")}
           </div>

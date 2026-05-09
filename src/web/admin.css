@@ -2126,6 +2126,19 @@ body {
   background: rgba(6, 10, 18, 0.62);
 }
 
+.admin-other-config .admin-grid {
+  grid-template-columns: minmax(220px, 0.8fr) minmax(260px, 1fr) auto;
+  align-items: end;
+}
+
+.admin-other-config .admin-grid label {
+  align-self: stretch;
+}
+
+.admin-other-config .admin-grid input {
+  min-height: 46px;
+}
+
 .admin-other-config h3 {
   margin: 0;
   color: #f5f8ff;
@@ -2365,8 +2378,10 @@ body {
 
 .admin-form label,
 .admin-inline-field,
-.admin-bulk-service-row label {
+.admin-bulk-service-row label,
+.admin-grid label {
   position: relative;
+  display: grid;
   gap: 7px;
   min-width: 0;
   color: #d8e3f8;
@@ -2396,6 +2411,9 @@ body {
 .admin-inline-field input,
 .admin-inline-field select,
 .admin-bulk-service-row select,
+.admin-grid input,
+.admin-grid select,
+.admin-grid textarea,
 .social-row input,
 .other-category-config-label,
 #dataJson {
@@ -2437,6 +2455,9 @@ body {
 .admin-inline-field input:hover,
 .admin-inline-field select:hover,
 .admin-bulk-service-row select:hover,
+.admin-grid input:hover,
+.admin-grid select:hover,
+.admin-grid textarea:hover,
 .social-row input:hover,
 .other-category-config-label:hover,
 #dataJson:hover {
@@ -2450,6 +2471,9 @@ body {
 .admin-inline-field input:focus-visible,
 .admin-inline-field select:focus-visible,
 .admin-bulk-service-row select:focus-visible,
+.admin-grid input:focus-visible,
+.admin-grid select:focus-visible,
+.admin-grid textarea:focus-visible,
 .social-row input:focus-visible,
 .other-category-config-label:focus-visible,
 #dataJson:focus-visible {
@@ -2464,6 +2488,8 @@ body {
 .admin-form input::placeholder,
 .admin-form textarea::placeholder,
 .admin-inline-field input::placeholder,
+.admin-grid input::placeholder,
+.admin-grid textarea::placeholder,
 .social-row input::placeholder,
 #dataJson::placeholder {
   color: var(--admin-field-muted);
@@ -2476,6 +2502,9 @@ body {
 .admin-inline-field input:disabled,
 .admin-inline-field select:disabled,
 .admin-bulk-service-row select:disabled,
+.admin-grid input:disabled,
+.admin-grid select:disabled,
+.admin-grid textarea:disabled,
 .other-category-config-label:disabled {
   cursor: not-allowed;
   border-color: rgba(132, 153, 190, 0.16);
@@ -2495,7 +2524,8 @@ body {
 
 .admin-form select,
 .admin-inline-field select,
-.admin-bulk-service-row select {
+.admin-bulk-service-row select,
+.admin-grid select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -2512,7 +2542,8 @@ body {
 
 .admin-form select:focus-visible,
 .admin-inline-field select:focus-visible,
-.admin-bulk-service-row select:focus-visible {
+.admin-bulk-service-row select:focus-visible,
+.admin-grid select:focus-visible {
   background-image:
     linear-gradient(to right, rgba(71, 209, 140, 0.42), rgba(71, 209, 140, 0.42)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2399f3bf' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E"),
@@ -2521,7 +2552,8 @@ body {
 
 .admin-form select option,
 .admin-inline-field select option,
-.admin-bulk-service-row select option {
+.admin-bulk-service-row select option,
+.admin-grid select option {
   color: #f3f7ff;
   background: #0a1220;
 }
@@ -3281,10 +3313,11 @@ textarea::-webkit-scrollbar-thumb {
 
 #adminPagePoints .admin-list-points {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  gap: 8px;
+  gap: 12px;
   max-height: calc(100dvh - 352px);
-  min-height: 360px;
+  min-height: 560px;
   padding: 2px 4px 10px 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -3292,15 +3325,16 @@ textarea::-webkit-scrollbar-thumb {
 
 #adminPagePoints .admin-list-points .admin-item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
-    "select title actions"
-    "select meta actions";
-  align-items: center;
-  gap: 8px 12px;
-  min-height: 92px;
-  padding: 12px;
-  border-radius: 10px;
+    "select title"
+    "meta meta"
+    "actions actions";
+  align-items: start;
+  gap: 12px;
+  min-height: 188px;
+  padding: 16px;
+  border-radius: 14px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.008)),
     rgba(7, 12, 21, 0.84);
@@ -3309,36 +3343,33 @@ textarea::-webkit-scrollbar-thumb {
 #adminPagePoints .admin-list-points .admin-item-top {
   grid-area: title;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 12px;
+  align-content: start;
+  gap: 7px;
   min-width: 0;
 }
 
 #adminPagePoints .admin-list-points .admin-item-title {
   min-width: 0;
   margin: 0;
-  overflow: hidden;
   color: #f6f9ff;
   font-family: "Plus Jakarta Sans", sans-serif;
-  font-size: 1rem;
+  font-size: clamp(1rem, 1.35vw, 1.24rem);
   font-weight: 900;
   letter-spacing: 0;
-  line-height: 1.18;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
 }
 
 #adminPagePoints .admin-list-points .admin-item-id {
   margin: 0;
   overflow: hidden;
-  max-width: 180px;
+  max-width: 100%;
   color: #91a0bb;
   font-size: 0.72rem;
   font-weight: 850;
   letter-spacing: 0.04em;
   line-height: 1.1;
-  text-align: right;
+  text-align: left;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -3347,7 +3378,9 @@ textarea::-webkit-scrollbar-thumb {
 #adminPagePoints .admin-list-points .admin-item-tags {
   grid-area: meta;
   min-width: 0;
-  gap: 5px;
+  align-self: start;
+  align-content: start;
+  gap: 7px;
 }
 
 #adminPagePoints .admin-list-points .admin-item-tags:nth-of-type(3) {
@@ -3355,12 +3388,12 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 #adminPagePoints .admin-list-points .mini-chip {
-  min-height: 24px;
-  max-width: 150px;
+  min-height: 28px;
+  max-width: 100%;
   overflow: hidden;
-  padding: 5px 7px;
+  padding: 6px 8px;
   color: #cbd8ee;
-  font-size: 0.64rem;
+  font-size: 0.68rem;
   font-weight: 850;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3370,11 +3403,11 @@ textarea::-webkit-scrollbar-thumb {
   grid-area: select;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  min-height: 38px;
+  width: 46px;
+  height: 46px;
+  min-height: 46px;
   padding: 0;
-  border-radius: 10px;
+  border-radius: 14px;
 }
 
 #adminPagePoints .admin-list-points .point-select-control span {
@@ -3398,14 +3431,16 @@ textarea::-webkit-scrollbar-thumb {
 #adminPagePoints .admin-list-points .admin-item-actions {
   grid-area: actions;
   display: grid;
-  grid-template-columns: repeat(3, auto);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  align-self: center;
-  justify-self: end;
+  align-self: end;
+  justify-self: stretch;
+  margin-top: auto;
 }
 
 #adminPagePoints .admin-list-points .admin-item-actions .admin-btn {
-  min-height: 34px;
+  width: 100%;
+  min-height: 38px;
   padding: 7px 9px;
   font-size: 0.72rem;
   white-space: nowrap;
@@ -3424,11 +3459,15 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 @media (max-width: 1240px) {
+  #adminPagePoints .admin-list-points {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   #adminPagePoints .admin-list-points .admin-item {
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-areas:
       "select title"
-      "select meta"
+      "meta meta"
       "actions actions";
   }
 
@@ -3445,6 +3484,7 @@ textarea::-webkit-scrollbar-thumb {
   }
 
   #adminPagePoints .admin-list-points {
+    grid-template-columns: 1fr;
     max-height: none;
     min-height: 0;
     padding-right: 0;
@@ -3628,5 +3668,197 @@ textarea::-webkit-scrollbar-thumb {
 
   .point-editor-page-head .admin-btn {
     width: 100%;
+  }
+}
+
+/* Styled select dropdowns */
+.admin-panel,
+.admin-panel-fold,
+.admin-panel-fold-body,
+.admin-form-block,
+.admin-toolbar,
+.admin-bulk-bar,
+.admin-other-config,
+.admin-page-point-editor .point-editor-panel {
+  overflow: visible;
+}
+
+.admin-custom-select {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  isolation: isolate;
+}
+
+.admin-native-select {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.admin-custom-select-button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(113, 142, 190, 0.42);
+  border-radius: 10px;
+  padding: 0 13px;
+  color: #edf4ff;
+  background:
+    linear-gradient(180deg, rgba(18, 27, 43, 0.98), rgba(7, 12, 22, 0.98)),
+    radial-gradient(circle at 20% 0%, rgba(83, 126, 203, 0.18), transparent 34%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.16);
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.admin-custom-select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-custom-select-icon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(139, 166, 213, 0.12);
+}
+
+.admin-custom-select-icon::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 4px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #c9d9f7;
+  border-bottom: 2px solid #c9d9f7;
+  transform: rotate(45deg);
+  transition: transform 0.18s ease, top 0.18s ease;
+}
+
+.admin-custom-select.is-open {
+  z-index: 90;
+}
+
+.admin-custom-select.is-open .admin-custom-select-button,
+.admin-custom-select-button:focus-visible {
+  outline: none;
+  border-color: rgba(112, 151, 255, 0.92);
+  box-shadow:
+    0 0 0 3px rgba(80, 123, 228, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 34px rgba(0, 0, 0, 0.2);
+}
+
+.admin-custom-select.is-open .admin-custom-select-icon::before {
+  top: 7px;
+  transform: rotate(225deg);
+}
+
+.admin-custom-select-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  max-height: min(330px, 44dvh);
+  overflow: auto;
+  padding: 7px;
+  border: 1px solid rgba(113, 142, 190, 0.54);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(11, 17, 29, 0.99), rgba(4, 8, 15, 0.99)),
+    radial-gradient(circle at 18% 0%, rgba(67, 104, 184, 0.18), transparent 42%);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  scrollbar-color: rgba(113, 151, 222, 0.72) rgba(6, 10, 18, 0.78);
+  scrollbar-width: thin;
+}
+
+.admin-custom-select-menu[hidden] {
+  display: none !important;
+}
+
+.admin-custom-select-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 39px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 11px;
+  color: #eaf2ff;
+  background: transparent;
+  font: inherit;
+  font-weight: 750;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-custom-select-option:hover,
+.admin-custom-select-option:focus-visible {
+  outline: none;
+  background: rgba(105, 141, 220, 0.18);
+}
+
+.admin-custom-select-option[aria-selected="true"] {
+  color: #06120c;
+  background: linear-gradient(135deg, #a9cfff, #7fb5ff);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.admin-custom-select-option:disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
+}
+
+.admin-custom-select.is-disabled .admin-custom-select-button {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.admin-inline-field .admin-custom-select,
+.admin-bulk-service-row .admin-custom-select,
+.admin-grid .admin-custom-select {
+  min-width: 0;
+}
+
+#adminPagePoints .admin-bulk-service-row .admin-custom-select-button {
+  min-height: 64px;
+  border-radius: 11px;
+}
+
+@media (max-width: 700px) {
+  .admin-custom-select-button {
+    min-height: 44px;
+    padding: 0 12px;
+  }
+
+  .admin-custom-select-menu {
+    max-height: min(300px, 48dvh);
+    border-radius: 11px;
   }
 }

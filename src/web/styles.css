@@ -9028,3 +9028,192 @@ body.map-only-page {
   }
 }
 
+/* Compact home Ship / Other shortcuts and regional two-service choice */
+.map-ux-service-choice,
+.workspace-service-select-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-dock {
+  width: min(438px, calc(100vw - 36px));
+  min-height: 72px;
+  gap: 10px;
+  padding: 10px 12px 10px 10px;
+  border-color: rgba(161, 255, 199, 0.22);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(125, 255, 178, 0.11), transparent 30%),
+    linear-gradient(145deg, rgba(244, 255, 248, 0.075), rgba(244, 255, 248, 0.02)),
+    rgba(7, 15, 12, 0.62);
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-pulse {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-pulse::before,
+.static-map-shell:not(.has-region-selection) .map-ux-pulse::after {
+  inset: 7px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-dock-copy strong {
+  font-size: clamp(1.46rem, 4.2vw, 2.05rem);
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-dock-copy p {
+  margin-top: 4px;
+  font-size: 0.74rem;
+}
+
+.map-ux-home-actions {
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.map-ux-home-service {
+  grid-template-columns: 30px minmax(0, 1fr);
+  min-height: 44px;
+  gap: 7px;
+  border-color: rgba(161, 255, 199, 0.22);
+  border-radius: 13px;
+  padding: 5px 8px 5px 5px;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(134, 255, 184, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(244, 255, 248, 0.078), rgba(244, 255, 248, 0.022)),
+    rgba(7, 15, 12, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 10px 26px rgba(0, 0, 0, 0.22);
+}
+
+.map-ux-home-service:hover:enabled {
+  border-color: rgba(194, 255, 219, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 34px rgba(35, 255, 130, 0.12);
+}
+
+.map-ux-home-service i,
+.map-ux-home-service-ship i,
+.map-ux-home-service-other i {
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+  color: #06110b;
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.74), transparent 30%),
+    linear-gradient(135deg, #d9ffe4, #78eaa4 54%, #1e9a61);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 18px rgba(79, 255, 155, 0.18);
+}
+
+.map-ux-home-service .service-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.map-ux-home-service b {
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.map-ux-home-service small {
+  margin-top: 3px;
+  color: rgba(229, 242, 234, 0.62);
+  font-size: 0.54rem;
+  letter-spacing: 0.02em;
+}
+
+.map-ux-home-service-ship,
+.map-ux-home-service-other {
+  border-color: rgba(161, 255, 199, 0.22);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(134, 255, 184, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(244, 255, 248, 0.078), rgba(244, 255, 248, 0.022)),
+    rgba(7, 15, 12, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 10px 26px rgba(0, 0, 0, 0.22);
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell:not(.has-region-selection) .map-ux-dock {
+    width: min(350px, calc(100vw - 18px));
+    min-height: 0;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock-copy p {
+    display: none;
+  }
+
+  .map-ux-home-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 7px;
+  }
+
+  .map-ux-home-service {
+    min-height: 40px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 6px;
+    border-radius: 12px;
+    padding: 5px;
+  }
+
+  .map-ux-home-service i,
+  .map-ux-home-service-ship i,
+  .map-ux-home-service-other i {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+  }
+
+  .map-ux-home-service b {
+    font-size: 0.66rem;
+  }
+
+  .map-ux-home-service small {
+    font-size: 0.5rem;
+  }
+}
+
+/* Mobile map clearance: keep the "Tocca una regione" dock below the map */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell:not(.has-region-selection) {
+    --home-map-bottom-clearance: clamp(118px, 22dvh, 154px);
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-viewport {
+    box-sizing: border-box;
+    padding-bottom: var(--home-map-bottom-clearance) !important;
+    transform: translate3d(0, -2.5dvh, 0) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-svg {
+    width: min(104vw, 500px);
+    height: auto;
+    max-height: calc(100dvh - var(--home-map-bottom-clearance) - 18px);
+  }
+}
+
+@media (max-width: 380px), (max-height: 700px) {
+  .static-map-shell:not(.has-region-selection) {
+    --home-map-bottom-clearance: clamp(108px, 20dvh, 138px);
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-viewport {
+    transform: translate3d(0, -3.5dvh, 0) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-svg {
+    width: min(100vw, 470px);
+    max-height: calc(100dvh - var(--home-map-bottom-clearance) - 14px);
+  }
+}
+
