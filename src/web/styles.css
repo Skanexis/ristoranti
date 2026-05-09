@@ -8857,3 +8857,174 @@ body.map-only-page {
   }
 }
 
+/* Home direct Ship / Other buttons */
+.map-ux-home-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.map-ux-home-service {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  min-height: 52px;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 7px 9px 7px 7px;
+  color: #f6fff8;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
+    rgba(3, 10, 8, 0.72);
+  cursor: pointer;
+  overflow: hidden;
+  text-align: left;
+  transition:
+    border-color 170ms ease,
+    transform 170ms var(--ri-ease-out),
+    box-shadow 170ms ease,
+    filter 170ms ease;
+}
+
+.map-ux-home-service:hover:enabled {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.map-ux-home-service:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.map-ux-home-service i {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 13px;
+  color: #06110b;
+}
+
+.map-ux-home-service .service-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.map-ux-home-service span,
+.map-ux-home-service b,
+.map-ux-home-service small {
+  display: block;
+  min-width: 0;
+}
+
+.map-ux-home-service b {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 1000;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.map-ux-home-service small {
+  overflow: hidden;
+  margin-top: 4px;
+  color: rgba(239, 255, 245, 0.64);
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.map-ux-home-service-ship {
+  border-color: rgba(142, 202, 255, 0.42);
+  background:
+    radial-gradient(circle at 16% 18%, rgba(142, 202, 255, 0.18), transparent 34%),
+    linear-gradient(145deg, rgba(54, 130, 235, 0.16), rgba(255, 255, 255, 0.024)),
+    rgba(3, 10, 12, 0.78);
+  box-shadow: 0 12px 28px rgba(96, 180, 255, 0.1);
+}
+
+.map-ux-home-service-other {
+  border-color: rgba(255, 215, 135, 0.42);
+  background:
+    radial-gradient(circle at 16% 18%, rgba(255, 215, 135, 0.18), transparent 34%),
+    linear-gradient(145deg, rgba(255, 178, 79, 0.15), rgba(255, 255, 255, 0.024)),
+    rgba(12, 8, 3, 0.78);
+  box-shadow: 0 12px 28px rgba(255, 194, 96, 0.1);
+}
+
+.map-ux-home-service-ship i {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.86), transparent 32%),
+    linear-gradient(135deg, #dff2ff, #70b9ff 54%, #2474df);
+  box-shadow: 0 0 18px rgba(96, 180, 255, 0.28);
+}
+
+.map-ux-home-service-other i {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.86), transparent 32%),
+    linear-gradient(135deg, #fff2c9, #ffc766 54%, #d56e22);
+  box-shadow: 0 0 18px rgba(255, 194, 96, 0.26);
+}
+
+.workspace-service-shortcut {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell:not(.has-region-selection) .map-ux-dock {
+    width: min(430px, calc(100vw - 16px));
+    min-height: 118px;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: start;
+    padding: 10px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock-copy p {
+    display: block;
+    font-size: 0.66rem;
+    line-height: 1.18;
+  }
+
+  .map-ux-home-actions {
+    gap: 7px;
+    margin-top: 9px;
+  }
+
+  .map-ux-home-service {
+    min-height: 46px;
+    grid-template-columns: 30px minmax(0, 1fr);
+    border-radius: 14px;
+    padding: 6px 7px 6px 6px;
+  }
+
+  .map-ux-home-service i {
+    width: 30px;
+    height: 30px;
+    border-radius: 12px;
+  }
+
+  .map-ux-home-service b {
+    font-size: 0.72rem;
+  }
+
+  .map-ux-home-service small {
+    font-size: 0.56rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .map-ux-home-actions {
+    grid-template-columns: 1fr;
+  }
+}
+

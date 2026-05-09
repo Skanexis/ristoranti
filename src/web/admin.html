@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css?v=20260509-ship-other-2" />
-    <link rel="stylesheet" href="./admin.css?v=20260509-admin-refresh-2" />
+    <link rel="stylesheet" href="./admin.css?v=20260509-admin-refresh-4" />
   </head>
   <body>
     <section id="adminAuthGate" class="admin-auth-gate" aria-live="polite">
@@ -243,7 +243,9 @@
                   <div class="admin-card-head">
                     <h2>Punti attivi</h2>
                     <div class="admin-form-actions">
-                      <button id="pointCreateNew" type="button" class="admin-btn">Nuovo punto</button>
+                      <button id="pointCreateNew" type="button" class="admin-btn admin-icon-create-btn" aria-label="Crea nuovo punto" title="Crea nuovo punto">
+                        <span aria-hidden="true">+</span>
+                      </button>
                     </div>
                   </div>
 
@@ -317,7 +319,26 @@
                       <div id="pointsList" class="admin-list admin-list-points"></div>
                     </div>
 
-                    <div class="points-editor-wrap">
+                  </div>
+                </div>
+              </details>
+            </article>
+          </section>
+
+          <section id="adminPagePointEditor" class="admin-page admin-page-point-editor" data-admin-page="point-editor" hidden>
+            <article class="panel panel-points admin-panel point-editor-panel" id="pointEditorPanel">
+              <details class="admin-panel-fold" open>
+                <summary class="admin-panel-fold-summary">
+                  <span class="admin-panel-fold-title">Editor punto</span>
+                  <span class="admin-panel-fold-hint">Crea o modifica un punto con form completo, media, ship e social.</span>
+                </summary>
+                <div class="admin-panel-fold-body">
+                  <div class="point-editor-page-head">
+                    <button type="button" id="pointEditorBackBtn" class="admin-btn admin-btn-secondary">Torna a elenco</button>
+                    <p class="admin-hint">Il salvataggio aggiorna subito la lista punti o la categoria Other.</p>
+                  </div>
+
+                  <div class="points-editor-wrap">
                       <form id="pointForm" class="admin-form">
                         <input type="hidden" id="pointEditingId" />
                         <p id="pointFormTitle" class="form-mode">Nuovo punto</p>
@@ -442,7 +463,6 @@
                         <h3>Anteprima live</h3>
                         <div id="pointPreview" class="point-preview"></div>
                       </div>
-                    </div>
                   </div>
                 </div>
               </details>

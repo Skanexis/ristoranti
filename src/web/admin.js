@@ -307,7 +307,11 @@ const ADMIN_PAGE_META = {
   },
   points: {
     title: "Punti",
-    subtitle: "Workflow completo per punti, media, ship e social.",
+    subtitle: "Elenco operativo, filtri e azioni massive sui punti.",
+  },
+  pointEditor: {
+    title: "Editor punto",
+    subtitle: "Creazione e modifica punto con media, ship e social.",
   },
   data: {
     title: "Strumenti dati",
@@ -324,11 +328,14 @@ const ADMIN_PAGE_ALIAS = {
   services: "services",
   regions: "regions",
   points: "points",
+  "point-editor": "pointEditor",
+  pointeditor: "pointEditor",
   other: "other",
   data: "data",
   servicespanel: "services",
   regionspanel: "regions",
   pointspanel: "points",
+  pointeditorpanel: "pointEditor",
   otherpanel: "other",
   toolspanel: "data",
   tools: "data",
@@ -381,6 +388,9 @@ const els = {
   regionSubmitBtn: document.getElementById("regionSubmitBtn"),
 
   pointsPanel: document.getElementById("pointsPanel"),
+  pointEditorPanel: document.getElementById("pointEditorPanel"),
+  pointEditorPanelFold: document.querySelector("#pointEditorPanel .admin-panel-fold"),
+  pointEditorBackBtn: document.getElementById("pointEditorBackBtn"),
   otherPanelFold: document.querySelector("#otherPanel .admin-panel-fold"),
   pointRegionSelect: document.getElementById("pointRegionSelect"),
   pointSearch: document.getElementById("pointSearch"),
@@ -395,7 +405,7 @@ const els = {
   pointCreateNew: document.getElementById("pointCreateNew"),
   pointsContextHint: document.getElementById("pointsContextHint"),
   pointForm: document.getElementById("pointForm"),
-  pointsEditorWrap: document.querySelector("#pointsPanel .points-editor-wrap"),
+  pointsEditorWrap: document.querySelector("#pointEditorPanel .points-editor-wrap"),
   pointEditingId: document.getElementById("pointEditingId"),
   pointId: document.getElementById("pointId"),
   pointName: document.getElementById("pointName"),
@@ -579,6 +589,7 @@ function collapseAdminPanels() {
     els.servicesPanelFold,
     els.regionsPanelFold,
     els.pointsPanelFold,
+    els.pointEditorPanelFold,
     els.otherPanelFold,
     els.toolsPanelFold,
   ].forEach((panel) => {
@@ -640,11 +651,12 @@ function focusAdminPage(pageId, preferredTarget = null) {
   }
 
   if (pageId === "points") {
-    if (editingPointId) {
-      safeFocus(els.pointName);
-      return;
-    }
     safeFocus(els.pointCreateNew || els.pointName);
+    return;
+  }
+
+  if (pageId === "pointEditor") {
+    safeFocus(els.pointName || els.pointForm);
     return;
   }
 
@@ -689,6 +701,7 @@ function setAdminPage(pageId, options = {}) {
   if (resolved === "services") openAdminPanel(els.servicesPanelFold);
   if (resolved === "regions") openAdminPanel(els.regionsPanelFold);
   if (resolved === "points") openAdminPanel(els.pointsPanelFold);
+  if (resolved === "pointEditor") openAdminPanel(els.pointEditorPanelFold);
   if (resolved === "other") openAdminPanel(els.otherPanelFold);
   if (resolved === "data") openAdminPanel(els.toolsPanelFold);
 
@@ -726,8 +739,8 @@ function initAdminPageRouting() {
 }
 
 function focusPointEditorForm(field = els.pointName) {
-  setAdminPage("points", { updateHash: true, focus: false });
-  openAdminPanel(els.pointsPanelFold);
+  setAdminPage("pointEditor", { updateHash: true, focus: false });
+  openAdminPanel(els.pointEditorPanelFold);
   if (els.pointBlockIdentity) {
     els.pointBlockIdentity.open = true;
   }
@@ -983,6 +996,23 @@ function bindAdminEvents() {
       clearOtherPointMode();
       resetPointForm();
       focusPointEditorForm(els.pointName);
+    });
+  }
+
+  if (els.pointEditorBackBtn) {
+    els.pointEditorBackBtn.addEventListener("click", () => {
+      if (isPointFormDirty()) {
+        const ok = window.confirm("Uscire dall'editor senza salvare?");
+        if (!ok) return;
+      }
+      if (otherPointMode.category) {
+        clearOtherPointMode();
+        resetPointForm();
+        setAdminPage("other", { updateHash: true, focus: true });
+        return;
+      }
+      resetPointForm();
+      setAdminPage("points", { updateHash: true, focus: true });
     });
   }
 
@@ -3565,6 +3595,7 @@ function handlePointSubmit(event) {
 
     persistData(`Punto aggiornato: ${name}`, "success", region.id);
     resetPointForm();
+    setAdminPage("points", { updateHash: true, focus: false });
     return;
   }
 
@@ -3589,6 +3620,7 @@ function handlePointSubmit(event) {
   });
   persistData(`Punto creato: ${name}`, "success", region.id);
   resetPointForm();
+  setAdminPage("points", { updateHash: true, focus: false });
 }
 
 function fillPointForm(point) {
@@ -3759,7 +3791,10 @@ function handlePointCancelEdit() {
     const ok = window.confirm("Annullare le modifiche non salvate?");
     if (!ok) return;
   }
+  const returnPage = otherPointMode.category ? "other" : "points";
   resetPointForm();
+  clearOtherPointMode();
+  setAdminPage(returnPage, { updateHash: true, focus: true });
 }
 
 function clearPointFormErrors() {
@@ -3773,7 +3808,7 @@ function clearPointFormErrors() {
 
 function revealPointFieldError(target, message) {
   setStatus(message, "error");
-  setAdminPage("points", { updateHash: true, focus: false });
+  setAdminPage("pointEditor", { updateHash: true, focus: false });
   if (!target || !(target instanceof HTMLElement)) return;
 
   const collapsible = target.closest(".admin-collapsible");

@@ -11,6 +11,7 @@ const state = {
 const VALID_SERVICES = ["meetup", "delivery", "ship", "other"];
 const REGION_PRIORITY_SERVICES = ["meetup", "delivery", "ship"];
 const WORKSPACE_SERVICES = ["meetup", "delivery", "ship", "other"];
+const HOME_DIRECT_SERVICES = ["ship", "other"];
 const EXPERIENCE_STEPS = ["service", "region", "points"];
 const REGION_SVG_SHAPES = {
   "valle-daosta": {
@@ -1145,9 +1146,25 @@ function runRegionQuickAction(actionId) {
 }
 
 function runScreenAction(actionId) {
-  if (String(actionId || "").startsWith("service:") && state.region) {
+  if (String(actionId || "").startsWith("service:")) {
     const service = normalizeServiceId(String(actionId).slice("service:".length));
     if (!WORKSPACE_SERVICES.includes(service)) return;
+
+    if (!state.region) {
+      if (!HOME_DIRECT_SERVICES.includes(service)) return;
+      if (getActivePointsByService(service).length === 0) return;
+
+      state.service = service;
+      state.region = null;
+      state.compareRegions = [];
+      state.screen = "region";
+      normalizeState();
+      renderMapHomeStep();
+      renderPointsStep();
+      triggerSelectionHaptic();
+      return;
+    }
+
     if (getWorkspacePointsByService(state.region, service).length === 0) return;
 
     state.service = service;
@@ -1662,6 +1679,7 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
   const totalRegions = Array.isArray(regionMeta) ? regionMeta.length : 0;
   const activeRegions = regionMeta.filter((entry) => entry.activeCount > 0).length;
   const totalPoints = regionMeta.reduce((sum, entry) => sum + entry.activeCount, 0);
+  const directServiceCounts = getHomeDirectServiceCounts();
 
   if (selectedMeta) {
     const serviceCounts = getWorkspaceServiceCounts(selectedMeta.region.id);
@@ -1716,9 +1734,42 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
           <span class="map-ux-kicker">${totalRegions} regioni italiane</span>
           <strong>Tocca una regione</strong>
           <p>La mappa evidenzia la selezione e mostra i punti disponibili.</p>
+          <div class="map-ux-home-actions" aria-label="Accesso rapido servizi">
+            ${HOME_DIRECT_SERVICES.map((serviceId) =>
+              buildHomeDirectServiceButton(serviceId, directServiceCounts[serviceId] || 0)
+            ).join("")}
+          </div>
         </div>
       </aside>
     </div>
+  `;
+}
+
+function getHomeDirectServiceCounts() {
+  return HOME_DIRECT_SERVICES.reduce((counts, serviceId) => {
+    counts[serviceId] = getActivePointsByService(serviceId).length;
+    return counts;
+  }, {});
+}
+
+function buildHomeDirectServiceButton(serviceId, count) {
+  const isDisabled = count <= 0;
+  const label = getServiceLabel(serviceId);
+  const hint = serviceId === "ship" ? "Italia / UE" : "Categorie";
+  return `
+    <button
+      type="button"
+      class="map-ux-home-service map-ux-home-service-${escapeHtmlAttr(serviceId)}"
+      data-screen-action="service:${escapeHtmlAttr(serviceId)}"
+      ${isDisabled ? "disabled" : ""}
+      aria-label="${escapeHtmlAttr(label)}: ${escapeHtmlAttr(formatAvailablePointsLabel(count))}"
+    >
+      ${getServiceIconMarkup(serviceId)}
+      <span>
+        <b>${escapeHtml(label)}</b>
+        <small>${escapeHtml(hint)} / ${escapeHtml(String(count))}</small>
+      </span>
+    </button>
   `;
 }
 
@@ -1783,13 +1834,16 @@ function buildWorkspaceServiceTab(serviceId, count, currentService) {
 }
 
 function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
-  const isOpen = Boolean(selectedMeta);
+  const isDirectService = !selectedMeta && HOME_DIRECT_SERVICES.includes(state.service);
+  const isOpen = Boolean(selectedMeta || isDirectService);
   const region = selectedMeta?.region || null;
   const serviceSelected = WORKSPACE_SERVICES.includes(state.service);
   const serviceCounts = region ? getWorkspaceServiceCounts(region.id) : {};
   const activePoints =
-    selectedMeta && serviceSelected
-      ? sortPointsByStarsPriority(getWorkspacePointsByService(selectedMeta.region.id, state.service))
+    serviceSelected && (selectedMeta || isDirectService)
+      ? sortPointsByStarsPriority(
+          selectedMeta ? getWorkspacePointsByService(selectedMeta.region.id, state.service) : getActivePointsByService(state.service)
+        )
       : [];
   const totalPoints = activePoints.length;
   const serviceMix = serviceSelected ? buildPointServiceBadges([state.service]) : "";
@@ -1871,7 +1925,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
     : `
       <article class="workspace-empty">
         <span>Nessun punto attivo</span>
-        <strong>${region ? escapeHtml(region.name) : "Regione"}</strong>
+        <strong>${region ? escapeHtml(region.name) : escapeHtml(getServiceLabel(state.service || "other"))}</strong>
       </article>
     `);
 
@@ -1892,8 +1946,8 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
         <header class="workspace-header">
           <button type="button" class="workspace-back" data-screen-action="map" aria-label="Torna alla mappa">←</button>
           <div class="workspace-title-block">
-            <span>${isOpen ? "Area regione" : "Nessuna regione"}</span>
-            <h2>${escapeHtml(region?.name || "Seleziona una regione")}</h2>
+            <span>${isDirectService ? "Servizio rapido" : isOpen ? "Area regione" : "Nessuna regione"}</span>
+            <h2>${escapeHtml(isDirectService ? getServiceLabel(state.service) : region?.name || "Seleziona una regione")}</h2>
           </div>
           <button type="button" class="workspace-clear" data-screen-action="clear-region">Reimposta</button>
         </header>
@@ -1903,10 +1957,14 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
             <div class="workspace-hero-meta">
               <span class="map-panel-status">${totalPoints} punti</span>
               <span class="map-panel-status">${escapeHtml(state.service ? getServiceLabel(state.service) : "Servizio")}</span>
-              <span class="map-panel-status">${regionMeta.length} regioni</span>
+              <span class="map-panel-status">${isDirectService ? "Italia" : `${regionMeta.length} regioni`}</span>
             </div>
-            <h3>${escapeHtml(region?.name || "Italia")}</h3>
-            <p>${escapeHtml(region?.hubs || "Area regionale con punti, servizi e scorciatoie operative.")}</p>
+            <h3>${escapeHtml(isDirectService ? getServiceLabel(state.service) : region?.name || "Italia")}</h3>
+            <p>${escapeHtml(
+              isDirectService
+                ? "Accesso rapido dalla home con tutti i punti disponibili per questo servizio."
+                : region?.hubs || "Area regionale con punti, servizi e scorciatoie operative."
+            )}</p>
             <div class="region-service-mix workspace-service-mix">${serviceMix}</div>
           </section>
 
@@ -1923,11 +1981,24 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
 
           <aside class="workspace-side-panel">
             <div class="workspace-section-head">
-              <span>Altre regioni</span>
-              <strong>${nearbyRegions.length}</strong>
+              <span>${isDirectService ? "Servizi rapidi" : "Altre regioni"}</span>
+              <strong>${isDirectService ? HOME_DIRECT_SERVICES.length : nearbyRegions.length}</strong>
             </div>
             <div class="workspace-region-list">
-              ${nearbyButtons}
+              ${
+                isDirectService
+                  ? HOME_DIRECT_SERVICES.map(
+                      (serviceId) => `
+                        <button type="button" class="workspace-region-shortcut workspace-service-shortcut" data-screen-action="service:${escapeHtmlAttr(
+                          serviceId
+                        )}">
+                          <span>${escapeHtml(getServiceLabel(serviceId))}</span>
+                          <b>${getActivePointsByService(serviceId).length}</b>
+                        </button>
+                      `
+                    ).join("")
+                  : nearbyButtons
+              }
             </div>
           </aside>
         </main>

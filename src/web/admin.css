@@ -3215,3 +3215,418 @@ textarea::-webkit-scrollbar-thumb {
     grid-column: 1 / -1;
   }
 }
+
+/* Punti page list rebuild */
+#adminPagePoints .points-list-wrap {
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+#adminPagePoints .admin-bulk-bar {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+#adminPagePoints #bulkSelectionCount {
+  min-height: 0;
+  color: #b7c6df;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+#adminPagePoints .admin-bulk-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#adminPagePoints .admin-bulk-actions .admin-btn,
+#adminPagePoints .admin-bulk-service-row .admin-btn {
+  width: 100%;
+  min-height: 40px;
+}
+
+#adminPagePoints .admin-bulk-service-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: end;
+}
+
+#adminPagePoints .admin-bulk-service-row label {
+  min-width: 0;
+  color: #dce7f8;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#adminPagePoints .admin-bulk-service-row select {
+  min-width: 0;
+  min-height: 46px;
+  padding-left: 12px;
+  padding-right: 42px;
+  color: #f5f8ff !important;
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+#adminPagePoints .admin-bulk-service-row .admin-btn {
+  grid-column: 1 / -1;
+}
+
+#adminPagePoints .admin-list-points {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  max-height: calc(100dvh - 352px);
+  min-height: 360px;
+  padding: 2px 4px 10px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#adminPagePoints .admin-list-points .admin-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "select title actions"
+    "select meta actions";
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 92px;
+  padding: 12px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.008)),
+    rgba(7, 12, 21, 0.84);
+}
+
+#adminPagePoints .admin-list-points .admin-item-top {
+  grid-area: title;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+#adminPagePoints .admin-list-points .admin-item-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #f6f9ff;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#adminPagePoints .admin-list-points .admin-item-id {
+  margin: 0;
+  overflow: hidden;
+  max-width: 180px;
+  color: #91a0bb;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-align: right;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#adminPagePoints .admin-list-points .admin-item-tags {
+  grid-area: meta;
+  min-width: 0;
+  gap: 5px;
+}
+
+#adminPagePoints .admin-list-points .admin-item-tags:nth-of-type(3) {
+  display: none;
+}
+
+#adminPagePoints .admin-list-points .mini-chip {
+  min-height: 24px;
+  max-width: 150px;
+  overflow: hidden;
+  padding: 5px 7px;
+  color: #cbd8ee;
+  font-size: 0.64rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#adminPagePoints .admin-list-points .point-select-control {
+  grid-area: select;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-radius: 10px;
+}
+
+#adminPagePoints .admin-list-points .point-select-control span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+#adminPagePoints .admin-list-points .point-select-toggle {
+  width: 20px;
+  height: 20px;
+}
+
+#adminPagePoints .admin-list-points .admin-item-drag-hint {
+  display: none;
+}
+
+#adminPagePoints .admin-list-points .admin-item-actions {
+  grid-area: actions;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 6px;
+  align-self: center;
+  justify-self: end;
+}
+
+#adminPagePoints .admin-list-points .admin-item-actions .admin-btn {
+  min-height: 34px;
+  padding: 7px 9px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+#adminPagePoints .admin-list-points .admin-item.is-selected {
+  background:
+    linear-gradient(90deg, rgba(255, 199, 107, 0.13), transparent 42%),
+    rgba(7, 12, 21, 0.9);
+}
+
+#adminPagePoints .admin-list-points .admin-item.is-editing {
+  background:
+    linear-gradient(90deg, rgba(71, 209, 140, 0.15), transparent 42%),
+    rgba(7, 12, 21, 0.9);
+}
+
+@media (max-width: 1240px) {
+  #adminPagePoints .admin-list-points .admin-item {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "select title"
+      "select meta"
+      "actions actions";
+  }
+
+  #adminPagePoints .admin-list-points .admin-item-actions {
+    justify-self: stretch;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  #adminPagePoints .admin-bulk-actions,
+  #adminPagePoints .admin-bulk-service-row {
+    grid-template-columns: 1fr;
+  }
+
+  #adminPagePoints .admin-list-points {
+    max-height: none;
+    min-height: 0;
+    padding-right: 0;
+  }
+
+  #adminPagePoints .admin-list-points .admin-item {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "title"
+      "meta"
+      "select"
+      "actions";
+    min-height: 0;
+  }
+
+  #adminPagePoints .admin-list-points .admin-item-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #adminPagePoints .admin-list-points .admin-item-id {
+    max-width: none;
+    text-align: left;
+  }
+
+  #adminPagePoints .admin-list-points .point-select-control {
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-content: start;
+    padding: 8px 10px;
+  }
+
+  #adminPagePoints .admin-list-points .point-select-control span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  #adminPagePoints .admin-list-points .admin-item-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Separate point list and editor workflow */
+#adminPagePoints .admin-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.admin-icon-create-btn {
+  width: 46px;
+  min-width: 46px;
+  height: 46px;
+  min-height: 46px;
+  border-radius: 14px;
+  padding: 0;
+  color: #03120b;
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.88), transparent 32%),
+    linear-gradient(135deg, #84f4b2, #3bd17f 56%, #1d9c60);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 14px 30px rgba(71, 209, 140, 0.2);
+}
+
+.admin-icon-create-btn span {
+  display: block;
+  margin-top: -2px;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+#adminPagePoints .panel-points-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+#adminPagePoints .points-list-wrap {
+  width: 100%;
+  max-width: none;
+}
+
+#adminPagePoints .admin-list-points {
+  max-height: calc(100dvh - 322px);
+  min-height: 480px;
+}
+
+#adminPagePoints .admin-list-points .admin-item {
+  grid-template-columns: 42px minmax(260px, 1fr) minmax(230px, auto);
+  min-height: 78px;
+}
+
+#adminPagePoints .admin-list-points .admin-item-title {
+  font-size: 1.06rem;
+}
+
+#adminPagePoints .admin-list-points .admin-item-id {
+  max-width: 240px;
+}
+
+.admin-page-point-editor .point-editor-panel {
+  overflow: visible;
+}
+
+.point-editor-page-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--admin-line);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(6, 10, 18, 0.54);
+}
+
+.point-editor-page-head .admin-btn {
+  min-width: 150px;
+}
+
+.admin-page-point-editor .points-editor-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.55fr);
+  gap: 14px;
+  align-items: start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.admin-page-point-editor #pointForm {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-page-point-editor .point-preview-wrap {
+  position: sticky;
+  top: 104px;
+}
+
+@media (max-width: 1240px) {
+  #adminPagePoints .admin-list-points .admin-item {
+    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-areas:
+      "select title"
+      "select meta"
+      "actions actions";
+  }
+
+  .admin-page-point-editor .points-editor-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page-point-editor .point-preview-wrap {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  #adminPagePoints .admin-card-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .admin-icon-create-btn {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    min-height: 42px;
+    border-radius: 12px;
+  }
+
+  #adminPagePoints .admin-list-points {
+    min-height: 0;
+    max-height: none;
+  }
+
+  .point-editor-page-head {
+    grid-template-columns: 1fr;
+  }
+
+  .point-editor-page-head .admin-btn {
+    width: 100%;
+  }
+}
