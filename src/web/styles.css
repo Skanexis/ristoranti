@@ -6745,6 +6745,12 @@ body.map-only-page {
   color: var(--ri-mint-2);
 }
 
+.map-ux-home-tools {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
 .map-ux-clear {
   min-height: 42px;
   padding: 0 15px;
@@ -9072,6 +9078,11 @@ body.map-only-page {
   margin-top: 8px;
 }
 
+.map-ux-home-tools .map-ux-home-actions {
+  width: min(324px, 43vw);
+  margin-top: 0;
+}
+
 .map-ux-home-service {
   grid-template-columns: 30px minmax(0, 1fr);
   min-height: 44px;
@@ -9158,6 +9169,15 @@ body.map-only-page {
     margin-top: 7px;
   }
 
+  .map-ux-home-tools {
+    gap: 6px;
+  }
+
+  .map-ux-home-tools .map-ux-home-actions {
+    width: min(198px, 50vw);
+    margin-top: 0;
+  }
+
   .map-ux-home-service {
     min-height: 40px;
     grid-template-columns: 28px minmax(0, 1fr);
@@ -9186,13 +9206,13 @@ body.map-only-page {
 /* Mobile map clearance: keep the "Tocca una regione" dock below the map */
 @media (max-width: 760px), (hover: none) and (pointer: coarse) {
   .static-map-shell:not(.has-region-selection) {
-    --home-map-bottom-clearance: clamp(118px, 22dvh, 154px);
+    --home-map-bottom-clearance: clamp(72px, 12dvh, 96px);
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-viewport {
     box-sizing: border-box;
     padding-bottom: var(--home-map-bottom-clearance) !important;
-    transform: translate3d(0, -2.5dvh, 0) !important;
+    transform: translate3d(0, -0.6dvh, 0) !important;
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-svg {
@@ -9204,11 +9224,11 @@ body.map-only-page {
 
 @media (max-width: 380px), (max-height: 700px) {
   .static-map-shell:not(.has-region-selection) {
-    --home-map-bottom-clearance: clamp(108px, 20dvh, 138px);
+    --home-map-bottom-clearance: clamp(66px, 11dvh, 86px);
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-viewport {
-    transform: translate3d(0, -3.5dvh, 0) !important;
+    transform: translate3d(0, -1dvh, 0) !important;
   }
 
   .static-map-shell:not(.has-region-selection) .italy-map-svg {

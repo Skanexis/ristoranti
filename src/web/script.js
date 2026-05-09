@@ -840,6 +840,11 @@ function normalizeState() {
   const regionExists = Boolean(getRegionById(state.region));
   if (!regionExists) {
     state.region = null;
+    if (HOME_DIRECT_SERVICES.includes(state.service) && getActivePointsByService(state.service).length > 0) {
+      state.compareRegions = [];
+      state.screen = "region";
+      return;
+    }
     state.screen = "map";
   }
 
@@ -1731,9 +1736,16 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
             <small>Seleziona una regione</small>
           </span>
         </div>
-        <div class="map-ux-mini-stats" aria-label="Statistiche mappa">
-          <span><b>${activeRegions}</b> attive</span>
-          <span><b>${totalPoints}</b> punti</span>
+        <div class="map-ux-home-tools">
+          <div class="map-ux-mini-stats" aria-label="Statistiche mappa">
+            <span><b>${activeRegions}</b> attive</span>
+            <span><b>${totalPoints}</b> punti</span>
+          </div>
+          <div class="map-ux-home-actions" aria-label="Accesso rapido servizi">
+            ${HOME_DIRECT_SERVICES.map((serviceId) =>
+              buildHomeDirectServiceButton(serviceId, directServiceCounts[serviceId] || 0)
+            ).join("")}
+          </div>
         </div>
       </header>
 
@@ -1743,11 +1755,6 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
           <span class="map-ux-kicker">${totalRegions} regioni italiane</span>
           <strong>Tocca una regione</strong>
           <p>La mappa evidenzia la selezione e mostra i punti disponibili.</p>
-          <div class="map-ux-home-actions" aria-label="Accesso rapido servizi">
-            ${HOME_DIRECT_SERVICES.map((serviceId) =>
-              buildHomeDirectServiceButton(serviceId, directServiceCounts[serviceId] || 0)
-            ).join("")}
-          </div>
         </div>
       </aside>
     </div>
