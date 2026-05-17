@@ -9334,3 +9334,28 @@ body.map-only-page {
   }
 }
 
+/* Direct Ship screen */
+.workspace-title-block h2.workspace-title-ship {
+  max-width: 9ch;
+  letter-spacing: 0.08em;
+  font-size: clamp(1.62rem, 4.1vw, 2.65rem);
+  line-height: 1;
+}
+
+.workspace-ship-country-filter.is-active {
+  border-color: rgba(181, 255, 210, 0.72);
+  color: #06110b;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.7), transparent 30%),
+    linear-gradient(135deg, #c9ffdc, #45ff99 48%, #13b869);
+}
+
+.workspace-ship-country-filter.is-active span,
+.workspace-ship-country-filter.is-active b {
+  color: #06110b;
+}
+
+.workspace-ship-country-filter.is-active b {
+  background: rgba(3, 17, 10, 0.14);
+}
+

@@ -3,6 +3,7 @@ const state = {
   service: null,
   region: null,
   compareRegions: [],
+  shipCountryFilter: null,
   mapScale: 1,
   mapOffsetX: 0,
   mapOffsetY: 0,
@@ -756,6 +757,7 @@ function selectService(serviceId) {
   state.service = service;
   state.region = null;
   state.compareRegions = [];
+  state.shipCountryFilter = null;
 
   normalizeState();
   if (els.serviceOptions) {
@@ -786,6 +788,7 @@ function selectRegion(regionId) {
   state.region = region.id;
   state.service = IS_MAP_ONLY_HOME ? preservedService : detectBestServiceForRegion(region.id);
   state.compareRegions = [];
+  state.shipCountryFilter = null;
   state.screen = IS_MAP_ONLY_HOME && preservedService ? "region" : IS_MAP_ONLY_HOME ? "map" : "region";
 
   normalizeState();
@@ -825,9 +828,13 @@ function detectBestServiceForRegion(regionId) {
 function normalizeState() {
   state.service = normalizeServiceId(state.service);
   state.screen = state.screen === "region" ? "region" : "map";
+  if (state.service !== "ship" || state.region) {
+    state.shipCountryFilter = null;
+  }
 
   if (!state.service) {
     state.compareRegions = [];
+    state.shipCountryFilter = null;
     if (state.region && !getRegionById(state.region)) {
       state.region = null;
     }
@@ -842,6 +849,12 @@ function normalizeState() {
     state.region = null;
     if (HOME_DIRECT_SERVICES.includes(state.service) && getActivePointsByService(state.service).length > 0) {
       state.compareRegions = [];
+      if (state.service === "ship") {
+        const filterIds = getShipCountryFilterOptions(getActivePointsByService("ship")).map((option) => option.id);
+        if (state.shipCountryFilter && !filterIds.includes(state.shipCountryFilter)) {
+          state.shipCountryFilter = null;
+        }
+      }
       state.screen = "region";
       return;
     }
@@ -1159,6 +1172,26 @@ function runRegionQuickAction(actionId) {
 }
 
 function runScreenAction(actionId) {
+  if (String(actionId || "").startsWith("ship-country:")) {
+    if (state.service !== "ship" || state.region) return;
+    const encodedFilter = String(actionId).slice("ship-country:".length);
+    let filterId = "";
+    try {
+      filterId = decodeURIComponent(encodedFilter);
+    } catch {
+      filterId = encodedFilter;
+    }
+
+    const validFilters = getShipCountryFilterOptions(getActivePointsByService("ship")).map((option) => option.id);
+    state.shipCountryFilter = filterId && validFilters.includes(filterId) ? filterId : null;
+    state.screen = "region";
+    normalizeState();
+    renderMapHomeStep();
+    renderPointsStep();
+    triggerSelectionHaptic();
+    return;
+  }
+
   if (String(actionId || "").startsWith("service:")) {
     const service = normalizeServiceId(String(actionId).slice("service:".length));
     if (!WORKSPACE_SERVICES.includes(service)) return;
@@ -1170,6 +1203,7 @@ function runScreenAction(actionId) {
       state.service = service;
       state.region = null;
       state.compareRegions = [];
+      state.shipCountryFilter = null;
       state.screen = "region";
       normalizeState();
       renderMapHomeStep();
@@ -1183,6 +1217,7 @@ function runScreenAction(actionId) {
 
     state.service = service;
     state.compareRegions = [];
+    state.shipCountryFilter = null;
     state.screen = "region";
     normalizeState();
     renderMapHomeStep();
@@ -1195,6 +1230,7 @@ function runScreenAction(actionId) {
     if (state.region && !isItalyMapRegionId(state.region)) {
       state.region = null;
       state.compareRegions = [];
+      state.shipCountryFilter = null;
       normalizeState();
       renderMapHomeStep();
       renderPointsStep();
@@ -1224,6 +1260,7 @@ function runScreenAction(actionId) {
     state.region = null;
     state.service = null;
     state.compareRegions = [];
+    state.shipCountryFilter = null;
     state.screen = "map";
     renderMapHomeStep();
     renderPointsStep();
@@ -1868,10 +1905,21 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const serviceCounts = region ? getWorkspaceServiceCounts(region.id) : {};
   const serviceAreaMeta = state.service && state.service !== "other" ? getServiceAreaMeta(state.service, region?.id) : [];
   const directServiceAreas = isDirectService ? serviceAreaMeta : [];
+  const isDirectShip = isDirectService && state.service === "ship";
+  const directShipAllPoints = isDirectShip ? getActivePointsByService("ship") : [];
+  const shipCountryOptions = isDirectShip ? getShipCountryFilterOptions(directShipAllPoints) : [];
+  const activeShipCountryFilter = isDirectShip && shipCountryOptions.some((option) => option.id === state.shipCountryFilter)
+    ? state.shipCountryFilter
+    : null;
+  const selectedShipCountryLabel = shipCountryOptions.find((option) => option.id === activeShipCountryFilter)?.label || "";
   const activePoints =
     serviceSelected && (selectedMeta || isDirectService)
       ? sortPointsByStarsPriority(
-          selectedMeta ? getWorkspacePointsByService(selectedMeta.region.id, state.service) : getActivePointsByService(state.service)
+          selectedMeta
+            ? getWorkspacePointsByService(selectedMeta.region.id, state.service)
+            : isDirectShip
+              ? directShipAllPoints.filter((point) => !activeShipCountryFilter || getShipCountryFilterId(point) === activeShipCountryFilter)
+              : getActivePointsByService(state.service)
         )
       : [];
   const totalPoints = activePoints.length;
@@ -1990,6 +2038,27 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
       `
     )
     .join("");
+  const shipCountryFilterButtons = isDirectShip
+    ? [
+        {
+          id: "",
+          label: "Tutti",
+          count: directShipAllPoints.length,
+        },
+        ...shipCountryOptions,
+      ]
+        .map((option) => {
+          const isActive = option.id === activeShipCountryFilter || (!option.id && !activeShipCountryFilter);
+          const actionValue = option.id ? `ship-country:${encodeURIComponent(option.id)}` : "ship-country:";
+          return `
+            <button type="button" class="workspace-region-shortcut workspace-ship-country-filter ${isActive ? "is-active" : ""}" data-screen-action="${escapeHtmlAttr(actionValue)}">
+              <span>${escapeHtml(option.label)}</span>
+              <b>${option.count}</b>
+            </button>
+          `;
+        })
+        .join("")
+    : "";
 
   return `
     <section class="app-screen app-screen-region ${isOpen ? "is-ready" : ""}" aria-label="Dettaglio regione">
@@ -1998,7 +2067,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
           <button type="button" class="workspace-back" data-screen-action="map" aria-label="Torna alla mappa">←</button>
           <div class="workspace-title-block">
             <span>${isDirectService ? "Servizio rapido" : isOpen ? workspaceAreaLabel : "Nessuna regione"}</span>
-            <h2>${escapeHtml(isDirectService ? getServiceLabel(state.service) : region?.name || "Seleziona una regione")}</h2>
+            <h2 class="workspace-title workspace-title-${escapeHtmlAttr(state.service || "none")}">${escapeHtml(isDirectService ? getServiceLabel(state.service) : region?.name || "Seleziona una regione")}</h2>
           </div>
           <button type="button" class="workspace-clear" data-screen-action="clear-region">Reimposta</button>
         </header>
@@ -2008,7 +2077,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
             <div class="workspace-hero-meta">
               <span class="map-panel-status">${totalPoints} punti</span>
               <span class="map-panel-status">${escapeHtml(state.service ? getServiceLabel(state.service) : "Servizio")}</span>
-              <span class="map-panel-status">${isDirectService ? escapeHtml(getDirectServiceScopeLabel(state.service)) : `${regionMeta.length} regioni`}</span>
+              <span class="map-panel-status">${isDirectShip && selectedShipCountryLabel ? escapeHtml(selectedShipCountryLabel) : isDirectService ? escapeHtml(getDirectServiceScopeLabel(state.service)) : `${regionMeta.length} regioni`}</span>
             </div>
             <h3>${escapeHtml(isDirectService ? getServiceLabel(state.service) : region?.name || "Italia")}</h3>
             <p>${escapeHtml(
@@ -2032,12 +2101,14 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
 
           <aside class="workspace-side-panel">
             <div class="workspace-section-head">
-              <span>${isDirectService && state.service !== "other" ? "Aree disponibili" : isDirectService ? "Servizi rapidi" : "Altre aree"}</span>
-              <strong>${isDirectService && state.service !== "other" ? directServiceAreas.length : isDirectService ? HOME_DIRECT_SERVICES.length : nearbyAreas.length}</strong>
+              <span>${isDirectShip ? "Paese spedizione" : isDirectService && state.service !== "other" ? "Aree disponibili" : isDirectService ? "Servizi rapidi" : "Altre aree"}</span>
+              <strong>${isDirectShip ? shipCountryOptions.length : isDirectService && state.service !== "other" ? directServiceAreas.length : isDirectService ? HOME_DIRECT_SERVICES.length : nearbyAreas.length}</strong>
             </div>
             <div class="workspace-region-list">
               ${
-                isDirectService && state.service !== "other"
+                isDirectShip
+                  ? shipCountryFilterButtons || `<span class="workspace-empty-note">Nessun paese configurato</span>`
+                  : isDirectService && state.service !== "other"
                   ? directServiceAreaButtons || `<span class="workspace-empty-note">Nessuna area disponibile</span>`
                   : isDirectService
                   ? HOME_DIRECT_SERVICES.map(
@@ -2598,6 +2669,60 @@ function getPointShipCountryText(point) {
   if (originZone === "eu") return "Paese di spedizione: UE";
   if (originZone === "italy") return "Paese di spedizione: Italia";
   return "Paese di spedizione: non specificato";
+}
+
+function getShipCountryFilterOptions(points) {
+  const map = new Map();
+
+  for (const point of Array.isArray(points) ? points : []) {
+    const id = getShipCountryFilterId(point);
+    const label = getShipCountryFilterLabel(point);
+    if (!id || !label) continue;
+
+    const current = map.get(id) || { id, label, count: 0 };
+    current.count += 1;
+    map.set(id, current);
+  }
+
+  return [...map.values()].sort((a, b) => {
+    if (a.id === "italy") return -1;
+    if (b.id === "italy") return 1;
+    return b.count - a.count || a.label.localeCompare(b.label, "it");
+  });
+}
+
+function getShipCountryFilterId(point) {
+  const country = String(point?.shipCountry || "").trim();
+  const normalizedCountry = normalizeTextKey(country);
+  if (normalizedCountry === "italia" || normalizedCountry === "italy") return "italy";
+  if (normalizedCountry) return `country:${normalizedCountry}`;
+
+  const originZone = normalizeShipZoneId(point?.shipOrigin);
+  if (originZone === "italy") return "italy";
+  if (originZone === "eu") return "eu";
+  return "unknown";
+}
+
+function getShipCountryFilterLabel(point) {
+  const country = String(point?.shipCountry || "").trim();
+  const normalizedCountry = normalizeTextKey(country);
+  if (normalizedCountry === "italia" || normalizedCountry === "italy") return "Italia";
+  if (country) return country;
+
+  const originZone = normalizeShipZoneId(point?.shipOrigin);
+  if (originZone === "italy") return "Italia";
+  if (originZone === "eu") return "UE";
+  return "Non specificato";
+}
+
+function normalizeTextKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function buildPointServiceBadges(services) {
