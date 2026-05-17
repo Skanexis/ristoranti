@@ -1977,7 +1977,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
                 )
                 .join("")
             : "";
-          const shipCountryText = state.service === "ship" ? getPointShipCountryText(point) : "";
+          const shipCountryText = state.service === "ship" ? (isDirectShip ? getShipCountryFilterLabel(point) : getPointShipCountryText(point)) : "";
           const categoryText =
             state.service === "other" ? point.categoryLabel || point.category || getServiceLabel("other") : "";
           const pointMeta = [shipCountryText, categoryText].filter(Boolean).join(" / ");
@@ -2061,7 +2061,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
     : "";
 
   return `
-    <section class="app-screen app-screen-region ${isOpen ? "is-ready" : ""}" aria-label="Dettaglio regione">
+    <section class="app-screen app-screen-region ${isOpen ? "is-ready" : ""} ${isDirectService ? "is-direct-service" : ""} ${isDirectShip ? "is-direct-ship" : ""}" aria-label="Dettaglio regione">
       <div class="workspace-shell">
         <header class="workspace-header">
           <button type="button" class="workspace-back" data-screen-action="map" aria-label="Torna alla mappa">←</button>
