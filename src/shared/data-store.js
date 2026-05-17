@@ -903,6 +903,10 @@
                       ["meetup", "delivery", "ship", "other"].includes(service)
                     )
                   : [];
+                const deliveryItalia = Boolean(point?.deliveryItalia);
+                if (deliveryItalia && !services.includes("delivery")) {
+                  services.push("delivery");
+                }
                 const mediaUrl = sanitizeString(point?.mediaUrl);
                 const mediaType = resolveMediaType(point?.mediaType, mediaUrl);
 
@@ -918,6 +922,7 @@
                   mediaUrl,
                   stars: clampStars(point?.stars),
                   services: services.length > 0 ? services : ["meetup"],
+                  deliveryItalia,
                   socials,
                 };
               })

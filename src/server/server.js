@@ -689,6 +689,10 @@ function validateAdminData(payload) {
         }
       }
 
+      if (point.deliveryItalia === true && !point.services.includes("delivery")) {
+        throw new Error(`Dati admin non validi: Delivery Italia richiede il servizio delivery nel punto '${point.id}'.`);
+      }
+
       if (point.services.includes("ship")) {
         const origin = String(point.shipOrigin || "").trim();
         if (origin && !["italy", "eu"].includes(origin.toLowerCase())) {

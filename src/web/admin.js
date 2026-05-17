@@ -409,6 +409,7 @@ const els = {
   pointEditingId: document.getElementById("pointEditingId"),
   pointId: document.getElementById("pointId"),
   pointName: document.getElementById("pointName"),
+  pointDeliveryItalia: document.getElementById("pointDeliveryItalia"),
   pointShipOrigin: document.getElementById("pointShipOrigin"),
   pointShipCountry: document.getElementById("pointShipCountry"),
   pointDetails: document.getElementById("pointDetails"),
@@ -1288,10 +1289,18 @@ function bindAdminEvents() {
     renderPointPreview();
     updatePointFormDirtyState();
   });
+  if (els.pointDeliveryItalia) {
+    els.pointDeliveryItalia.addEventListener("change", () => {
+      syncDeliveryItaliaServiceState();
+      renderPointPreview();
+      updatePointFormDirtyState();
+    });
+  }
   els.pointForm
     .querySelectorAll("input[name='services']")
     .forEach((checkbox) =>
       checkbox.addEventListener("change", () => {
+        syncDeliveryItaliaServiceState();
         syncShipCountryFieldState();
         validatePointShipCountryInline();
         renderPointPreview();
@@ -3231,6 +3240,7 @@ function renderPointsList() {
       const isEditing = point.id === editingPointId;
       const isSelected = selectedPointIds.has(point.id);
       const hasShip = Array.isArray(point.services) && point.services.includes("ship");
+      const hasDeliveryItalia = Boolean(point.deliveryItalia);
       const shipOrigin = resolvePointShipOrigin(point, region);
       const shipOriginLabel = getShipOriginLabel(shipOrigin);
       const shipCountry = String(point.shipCountry || "").trim();
@@ -3249,6 +3259,7 @@ function renderPointsList() {
             <span class="mini-chip">Social ${socialsCount}</span>
             <span class="mini-chip">Retro ${hasDetails ? "OK" : "NO"}</span>
             <span class="mini-chip">Media ${mediaLabel}</span>
+            ${hasDeliveryItalia ? `<span class="mini-chip">Delivery Italia</span>` : ""}
             ${hasShip ? `<span class="mini-chip">Ship ${escapeHtml(shipOriginLabel)}</span>` : ""}
             ${showShipCountry ? `<span class="mini-chip">Paese Ship ${escapeHtml(shipCountry || "Non impostato")}</span>` : ""}
           </div>
@@ -3620,6 +3631,7 @@ function handlePointSubmit(event) {
   const mediaUrl = els.pointMediaUrl.value.trim();
   const resolvedMediaType = resolvePointMediaType(mediaType, mediaUrl);
   const stars = clampStars(els.pointStars.value);
+  const deliveryItalia = Boolean(els.pointDeliveryItalia?.checked) && !isOtherMode;
 
   if (!id) {
     revealPointFieldError(els.pointId, "Compila ID e nome del punto.");
@@ -3648,6 +3660,9 @@ function handlePointSubmit(event) {
 
   const selectedServices = getPointFormSelectedServices();
   const services = selectedServices.length > 0 ? selectedServices : ["meetup"];
+  if (deliveryItalia && !services.includes("delivery")) {
+    services.push("delivery");
+  }
   const isShipEnabled = services.includes("ship");
   const pointShipOrigin = isShipEnabled ? selectedShipOrigin : "italy";
   const needsShipCountry = isShipEnabled && pointShipOrigin === "eu";
@@ -3699,6 +3714,7 @@ function handlePointSubmit(event) {
         mediaUrl,
         stars,
         services,
+        deliveryItalia: false,
         socials: socials.items,
       };
 
@@ -3728,6 +3744,7 @@ function handlePointSubmit(event) {
       mediaUrl,
       stars,
       services,
+      deliveryItalia: false,
       socials: socials.items,
     });
 
@@ -3767,6 +3784,7 @@ function handlePointSubmit(event) {
     point.mediaUrl = mediaUrl;
     point.stars = stars;
     point.services = services;
+    point.deliveryItalia = deliveryItalia;
     point.socials = socials.items;
     editingPointId = id;
     if (selectedPointIds.has(previousPointId)) {
@@ -3797,6 +3815,7 @@ function handlePointSubmit(event) {
     mediaUrl,
     stars,
     services,
+    deliveryItalia,
     socials: socials.items,
   });
   persistData(`Punto creato: ${name}`, "success", region.id);
@@ -3822,6 +3841,10 @@ function fillPointForm(point) {
   els.pointMediaType.value = resolvePointMediaType(point.mediaType, point.mediaUrl);
   els.pointMediaUrl.value = point.mediaUrl || "";
   els.pointStars.value = String(clampStars(point.stars));
+  if (els.pointDeliveryItalia) {
+    els.pointDeliveryItalia.checked = !otherPointMode.category && Boolean(point.deliveryItalia);
+    els.pointDeliveryItalia.disabled = Boolean(otherPointMode.category);
+  }
   setPointLogoStatus("");
   setPointMediaStatus("");
 
@@ -3838,6 +3861,7 @@ function fillPointForm(point) {
   }
 
   syncShipCountryFieldState();
+  syncDeliveryItaliaServiceState();
   clearPointFormErrors();
   updatePointFormUi();
   renderPointsList();
@@ -3864,6 +3888,10 @@ function resetPointForm() {
   setPointLogoStatus("");
   setPointMediaStatus("");
   els.pointStars.value = "0";
+  if (els.pointDeliveryItalia) {
+    els.pointDeliveryItalia.checked = false;
+    els.pointDeliveryItalia.disabled = isOtherMode;
+  }
   els.pointForm.querySelectorAll("input[name='services']").forEach((checkbox) => {
     checkbox.checked = !isOtherMode && checkbox.value === "meetup";
     checkbox.disabled = isOtherMode;
@@ -3880,6 +3908,7 @@ function resetPointForm() {
   els.socialRows.innerHTML = "";
   addSocialRow();
   syncShipCountryFieldState();
+  syncDeliveryItaliaServiceState();
   clearPointFormErrors();
   updatePointFormUi();
   renderPointsList();
@@ -3941,6 +3970,7 @@ function serializePointFormState() {
     mediaType: els.pointMediaType.value,
     mediaUrl: els.pointMediaUrl.value.trim(),
     stars: els.pointStars.value,
+    deliveryItalia: Boolean(els.pointDeliveryItalia?.checked),
     otherCategory: otherPointMode.category || "",
     servicesSnapshot,
     socialsSnapshot,
@@ -4320,6 +4350,7 @@ function renderPointPreview() {
   const resolvedMediaType = resolvePointMediaType(mediaType, mediaUrl);
   const stars = clampStars(els.pointStars.value);
   const services = getPointFormSelectedServices();
+  const deliveryItalia = Boolean(els.pointDeliveryItalia?.checked) && !isOtherMode;
   const pointShipOrigin = getPointShipOriginValue();
   const hasShipService = services.includes("ship");
   const shipOriginLabel = getShipOriginLabel(pointShipOrigin);
@@ -4350,6 +4381,7 @@ function renderPointPreview() {
   const servicesHtml = services
     .map((service) => `<span class="mini-chip">${escapeHtml(getServiceLabel(service))}</span>`)
     .join("");
+  const deliveryItaliaHtml = deliveryItalia ? `<span class="mini-chip">Delivery Italia</span>` : "";
   const socialsHtml = socials
     .map((label) => `<span class="mini-chip">${escapeHtml(label)}</span>`)
     .join("");
@@ -4371,7 +4403,7 @@ function renderPointPreview() {
       ${mediaHtml ? `<div class="preview-media">${mediaHtml}</div>` : ""}
       <p class="preview-meta">${escapeHtml(details || "Dettagli retro card non impostati.")}</p>
       ${starsHtml ? `<p class="preview-stars">${starsHtml}</p>` : ""}
-      <div class="preview-chips">${servicesHtml || `<span class="mini-chip">Nessun servizio</span>`}</div>
+      <div class="preview-chips">${servicesHtml || `<span class="mini-chip">Nessun servizio</span>`}${deliveryItaliaHtml}</div>
       <div class="preview-chips">${socialsHtml || `<span class="mini-chip">Nessun social</span>`}</div>
     </article>
   `;
@@ -4830,6 +4862,18 @@ function getPointFormSelectedServices() {
 
 function hasShipServiceSelected() {
   return getPointFormSelectedServices().includes("ship");
+}
+
+function syncDeliveryItaliaServiceState() {
+  if (!els.pointDeliveryItalia || !els.pointForm) return;
+
+  const isEnabled = Boolean(els.pointDeliveryItalia.checked) && !otherPointMode.category;
+  const deliveryCheckbox = els.pointForm.querySelector("input[name='services'][value='delivery']");
+  if (!deliveryCheckbox) return;
+
+  if (isEnabled) {
+    deliveryCheckbox.checked = true;
+  }
 }
 
 function syncShipCountryFieldState() {

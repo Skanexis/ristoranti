@@ -9251,3 +9251,86 @@ body.map-only-page {
   }
 }
 
+/* Europe service access: Ship and Meetup can live outside the Italy SVG map. */
+.map-ux-service-choice,
+.workspace-service-select-actions {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.workspace-service-tabs {
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+}
+
+.map-ux-home-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.map-ux-home-tools .map-ux-home-actions {
+  width: min(486px, 54vw);
+}
+
+.map-ux-home-service-meetup {
+  border-color: rgba(161, 255, 199, 0.22);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(134, 255, 184, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(244, 255, 248, 0.078), rgba(244, 255, 248, 0.022)),
+    rgba(7, 15, 12, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 10px 26px rgba(0, 0, 0, 0.22);
+}
+
+.map-ux-home-service-meetup i {
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+  color: #06110b;
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.74), transparent 30%),
+    linear-gradient(135deg, #d9ffe4, #78eaa4 54%, #1e9a61);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 18px rgba(79, 255, 155, 0.18);
+}
+
+.workspace-empty-note {
+  display: block;
+  padding: 10px;
+  color: rgba(239, 255, 245, 0.62);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .map-ux-home-tools .map-ux-home-actions {
+    width: min(252px, 58vw);
+  }
+
+  .map-ux-home-service {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .map-ux-home-service i,
+  .map-ux-home-service-ship i,
+  .map-ux-home-service-meetup i,
+  .map-ux-home-service-other i {
+    width: 24px;
+    height: 24px;
+    border-radius: 9px;
+  }
+
+  .map-ux-home-service .service-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .map-ux-home-service b {
+    font-size: 0.56rem;
+  }
+
+  .map-ux-home-service small {
+    display: none;
+  }
+}
+

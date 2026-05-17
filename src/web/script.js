@@ -11,7 +11,7 @@ const state = {
 const VALID_SERVICES = ["meetup", "delivery", "ship", "other"];
 const REGION_PRIORITY_SERVICES = ["meetup", "delivery"];
 const WORKSPACE_SERVICES = ["meetup", "delivery", "ship", "other"];
-const HOME_DIRECT_SERVICES = ["ship", "other"];
+const HOME_DIRECT_SERVICES = ["ship", "meetup", "other"];
 const EXPERIENCE_STEPS = ["service", "region", "points"];
 const REGION_SVG_SHAPES = {
   "valle-daosta": {
@@ -888,7 +888,6 @@ function renderMapHomeStep() {
 
   const regionMeta = getAllMapRegions().map((region) => {
     const dataRegion = (appData.regions || []).find((item) => item.id === region.id);
-    const activePoints = getMapSelectablePoints(dataRegion);
     const normalizedRegion = {
       ...region,
       ...dataRegion,
@@ -896,6 +895,7 @@ function renderMapHomeStep() {
       name: dataRegion?.name || region.name,
       activePoints: Array.isArray(dataRegion?.activePoints) ? dataRegion.activePoints : [],
     };
+    const activePoints = getMapSelectablePoints(normalizedRegion);
 
     return {
       region: normalizedRegion,
@@ -906,7 +906,7 @@ function renderMapHomeStep() {
     };
   });
 
-  const selectedMeta = regionMeta.find((entry) => entry.region.id === state.region) || null;
+  const selectedMeta = getSelectedRegionMeta(regionMeta);
   if (selectedMeta && REGION_PRIORITY_SERVICES.includes(state.service)) {
     prefetchPointLogos(
       sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service)),
@@ -1192,6 +1192,16 @@ function runScreenAction(actionId) {
   }
 
   if (actionId === "map") {
+    if (state.region && !isItalyMapRegionId(state.region)) {
+      state.region = null;
+      state.compareRegions = [];
+      normalizeState();
+      renderMapHomeStep();
+      renderPointsStep();
+      triggerSelectionHaptic();
+      return;
+    }
+
     state.screen = "map";
     if (!setMapHomeScreenMode("map")) {
       renderMapHomeStep();
@@ -1697,6 +1707,7 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
 
   if (selectedMeta) {
     const serviceCounts = getWorkspaceServiceCounts(selectedMeta.region.id);
+    const areaLabel = selectedMeta.isExternalArea ? "Area fuori mappa" : "Regione selezionata";
     return `
       <div class="map-ux-layer" aria-live="polite">
         <header class="map-ux-topbar">
@@ -1712,7 +1723,7 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
 
         <aside class="map-ux-dock is-selected map-ux-service-dock">
           <div class="map-ux-dock-copy">
-            <span class="map-ux-kicker">Regione selezionata</span>
+            <span class="map-ux-kicker">${areaLabel}</span>
             <strong>${escapeHtml(selectedMeta.region.name)}</strong>
             <p>Scegli un servizio per vedere solo le card disponibili.</p>
             <div class="map-ux-service-choice" aria-label="Scegli servizio">
@@ -1771,7 +1782,7 @@ function getHomeDirectServiceCounts() {
 function buildHomeDirectServiceButton(serviceId, count) {
   const isDisabled = count <= 0;
   const label = getServiceLabel(serviceId);
-  const hint = serviceId === "ship" ? "Italia / UE" : "Categorie";
+  const hint = serviceId === "ship" ? "Italia / UE" : serviceId === "meetup" ? "Fuori mappa" : "Categorie";
   return `
     <button
       type="button"
@@ -1855,6 +1866,8 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const region = selectedMeta?.region || null;
   const serviceSelected = isDirectService ? HOME_DIRECT_SERVICES.includes(state.service) : REGION_PRIORITY_SERVICES.includes(state.service);
   const serviceCounts = region ? getWorkspaceServiceCounts(region.id) : {};
+  const serviceAreaMeta = state.service && state.service !== "other" ? getServiceAreaMeta(state.service, region?.id) : [];
+  const directServiceAreas = isDirectService ? serviceAreaMeta : [];
   const activePoints =
     serviceSelected && (selectedMeta || isDirectService)
       ? sortPointsByStarsPriority(
@@ -1864,6 +1877,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
   const totalPoints = activePoints.length;
   const serviceMix = serviceSelected ? buildPointServiceBadges([state.service]) : "";
   const priorityLogoLimit = isCoarsePointerDevice() ? 3 : 5;
+  const workspaceAreaLabel = selectedMeta?.isExternalArea ? "Area fuori mappa" : "Area regione";
   const nearbyRegions = [...regionMeta]
     .filter((entry) => entry.region.id !== region?.id)
     .map((entry) => {
@@ -1873,6 +1887,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
     .filter((entry) => entry.activeCount > 0)
     .sort((a, b) => b.activeCount - a.activeCount || a.region.name.localeCompare(b.region.name, "it"))
     .slice(0, 6);
+  const nearbyAreas = (serviceSelected && !isDirectService && state.service !== "other" ? serviceAreaMeta : nearbyRegions).slice(0, 6);
 
   const serviceChooserCard =
     selectedMeta && !serviceSelected
@@ -1955,6 +1970,26 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
       `
     )
     .join("");
+  const areaButtons = nearbyAreas
+    .map(
+      (entry) => `
+        <button type="button" class="workspace-region-shortcut" data-region="${escapeHtmlAttr(entry.region.id)}">
+          <span>${escapeHtml(entry.region.name)}</span>
+          <b>${entry.activeCount}</b>
+        </button>
+      `
+    )
+    .join("");
+  const directServiceAreaButtons = directServiceAreas
+    .map(
+      (entry) => `
+        <button type="button" class="workspace-region-shortcut" data-region="${escapeHtmlAttr(entry.region.id)}">
+          <span>${escapeHtml(entry.region.name)}</span>
+          <b>${entry.activeCount}</b>
+        </button>
+      `
+    )
+    .join("");
 
   return `
     <section class="app-screen app-screen-region ${isOpen ? "is-ready" : ""}" aria-label="Dettaglio regione">
@@ -1962,7 +1997,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
         <header class="workspace-header">
           <button type="button" class="workspace-back" data-screen-action="map" aria-label="Torna alla mappa">←</button>
           <div class="workspace-title-block">
-            <span>${isDirectService ? "Servizio rapido" : isOpen ? "Area regione" : "Nessuna regione"}</span>
+            <span>${isDirectService ? "Servizio rapido" : isOpen ? workspaceAreaLabel : "Nessuna regione"}</span>
             <h2>${escapeHtml(isDirectService ? getServiceLabel(state.service) : region?.name || "Seleziona una regione")}</h2>
           </div>
           <button type="button" class="workspace-clear" data-screen-action="clear-region">Reimposta</button>
@@ -1973,12 +2008,12 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
             <div class="workspace-hero-meta">
               <span class="map-panel-status">${totalPoints} punti</span>
               <span class="map-panel-status">${escapeHtml(state.service ? getServiceLabel(state.service) : "Servizio")}</span>
-              <span class="map-panel-status">${isDirectService ? "Italia" : `${regionMeta.length} regioni`}</span>
+              <span class="map-panel-status">${isDirectService ? escapeHtml(getDirectServiceScopeLabel(state.service)) : `${regionMeta.length} regioni`}</span>
             </div>
             <h3>${escapeHtml(isDirectService ? getServiceLabel(state.service) : region?.name || "Italia")}</h3>
             <p>${escapeHtml(
               isDirectService
-                ? "Accesso rapido dalla home con tutti i punti disponibili per questo servizio."
+                ? "Accesso rapido dalla home con tutti i punti configurati per questo servizio, inclusi quelli fuori dalla mappa italiana."
                 : region?.hubs || "Area regionale con punti, servizi e scorciatoie operative."
             )}</p>
             <div class="region-service-mix workspace-service-mix">${serviceMix}</div>
@@ -1997,12 +2032,14 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
 
           <aside class="workspace-side-panel">
             <div class="workspace-section-head">
-              <span>${isDirectService ? "Servizi rapidi" : "Altre regioni"}</span>
-              <strong>${isDirectService ? HOME_DIRECT_SERVICES.length : nearbyRegions.length}</strong>
+              <span>${isDirectService && state.service !== "other" ? "Aree disponibili" : isDirectService ? "Servizi rapidi" : "Altre aree"}</span>
+              <strong>${isDirectService && state.service !== "other" ? directServiceAreas.length : isDirectService ? HOME_DIRECT_SERVICES.length : nearbyAreas.length}</strong>
             </div>
             <div class="workspace-region-list">
               ${
-                isDirectService
+                isDirectService && state.service !== "other"
+                  ? directServiceAreaButtons || `<span class="workspace-empty-note">Nessuna area disponibile</span>`
+                  : isDirectService
                   ? HOME_DIRECT_SERVICES.map(
                       (serviceId) => `
                         <button type="button" class="workspace-region-shortcut workspace-service-shortcut" data-screen-action="service:${escapeHtmlAttr(
@@ -2013,7 +2050,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
                         </button>
                       `
                     ).join("")
-                  : nearbyButtons
+                  : areaButtons || nearbyButtons
               }
             </div>
           </aside>
@@ -2312,20 +2349,133 @@ function safeAnimate(node, keyframes, options) {
 
 function getActivePointsByRegion(regionId, serviceId = state.service) {
   const region = appData.regions.find((item) => item.id === regionId);
-  if (!region || !serviceId) return [];
+  const isKnownItalyRegion = isItalyMapRegionId(regionId);
+  if ((!region && !isKnownItalyRegion) || !serviceId) return [];
 
-  return (region.activePoints || []).filter(
-    (point) => Array.isArray(point.services) && point.services.includes(serviceId)
+  const localPoints = (region?.activePoints || []).filter((point) => pointHasService(point, serviceId));
+  if (serviceId !== "delivery") {
+    return localPoints;
+  }
+
+  const localIds = new Set(localPoints.map((point) => getPointSourceKey(point, regionId)));
+  const deliveryItaliaPoints = getDeliveryItaliaPointsForRegion(regionId).filter(
+    (point) => !localIds.has(getPointSourceKey(point, point.sourceRegionId || point.regionId))
+  );
+
+  return [...localPoints, ...deliveryItaliaPoints];
+}
+
+function pointHasService(point, serviceId) {
+  if (!point || !serviceId) return false;
+  if (serviceId === "delivery" && point.deliveryItalia === true) return true;
+  return Array.isArray(point.services) && point.services.includes(serviceId);
+}
+
+function getPointSourceKey(point, fallbackRegionId = "") {
+  return `${point?.sourceRegionId || point?.regionId || fallbackRegionId || ""}:${point?.sourcePointId || point?.id || ""}`;
+}
+
+function getDeliveryItaliaPointsForRegion(regionId) {
+  if (!isItalyMapRegionId(regionId)) return [];
+
+  return (appData.regions || []).flatMap((sourceRegion) =>
+    (sourceRegion.activePoints || [])
+      .filter((point) => point?.deliveryItalia === true)
+      .map((point) => {
+        const services = Array.isArray(point.services) && point.services.includes("delivery")
+          ? point.services
+          : [...(Array.isArray(point.services) ? point.services : []), "delivery"];
+        const isLocal = sourceRegion.id === regionId;
+
+        return {
+          ...point,
+          id: isLocal ? point.id : `${sourceRegion.id}-${point.id}-delivery-italia`,
+          sourcePointId: point.id,
+          sourceRegionId: sourceRegion.id,
+          regionName: sourceRegion.name,
+          deliveryItalia: true,
+          services,
+        };
+      })
   );
 }
 
+function getSelectedRegionMeta(regionMeta) {
+  if (!state.region) return null;
+
+  const mapMeta = Array.isArray(regionMeta) ? regionMeta.find((entry) => entry.region.id === state.region) : null;
+  if (mapMeta) return mapMeta;
+
+  const region = getRegionById(state.region);
+  if (!region) return null;
+
+  const activePoints = state.service ? getWorkspacePointsByService(region.id, state.service) : getMapSelectablePoints(region);
+  const totalCount = Array.isArray(region.activePoints) ? region.activePoints.length : 0;
+
+  return {
+    region,
+    activePoints,
+    activeCount: activePoints.length,
+    totalCount,
+    isDisabled: activePoints.length === 0,
+    isExternalArea: !isItalyMapRegionId(region.id),
+  };
+}
+
+function isItalyMapRegionId(regionId) {
+  return Object.prototype.hasOwnProperty.call(ITALY_REGION_NAMES, String(regionId || ""));
+}
+
+function getServiceAreaMeta(serviceId, excludedRegionId = null) {
+  if (!serviceId || serviceId === "other") return [];
+
+  return (appData.regions || [])
+    .map((region) => {
+      const activePoints = getWorkspacePointsByService(region.id, serviceId);
+      return {
+        region,
+        activePoints,
+        activeCount: activePoints.length,
+        totalCount: Array.isArray(region.activePoints) ? region.activePoints.length : 0,
+        isExternalArea: !isItalyMapRegionId(region.id),
+      };
+    })
+    .filter((entry) => entry.region.id !== excludedRegionId && entry.activeCount > 0)
+    .sort(
+      (a, b) =>
+        Number(b.isExternalArea) - Number(a.isExternalArea) ||
+        b.activeCount - a.activeCount ||
+        a.region.name.localeCompare(b.region.name, "it")
+    );
+}
+
+function getDirectServiceScopeLabel(serviceId) {
+  if (serviceId === "ship" || serviceId === "meetup") return "Italia / UE";
+  if (serviceId === "other") return "Categorie";
+  return "Tutte le aree";
+}
+
 function getMapSelectablePoints(region) {
+  const regionId = region?.id;
+  if (regionId) {
+    return uniquePointsBySource(
+      REGION_PRIORITY_SERVICES.flatMap((serviceId) => getActivePointsByRegion(regionId, serviceId)),
+      regionId
+    );
+  }
+
   const points = Array.isArray(region?.activePoints) ? region.activePoints : [];
-  return points.filter(
-    (point) =>
-      Array.isArray(point?.services) &&
-      REGION_PRIORITY_SERVICES.some((serviceId) => point.services.includes(serviceId))
-  );
+  return points.filter((point) => REGION_PRIORITY_SERVICES.some((serviceId) => pointHasService(point, serviceId)));
+}
+
+function uniquePointsBySource(points, fallbackRegionId = "") {
+  const seen = new Set();
+  return (Array.isArray(points) ? points : []).filter((point) => {
+    const key = getPointSourceKey(point, fallbackRegionId);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function getRegionalServiceCount(regionId, serviceId) {
@@ -2396,7 +2546,7 @@ function getActivePointsByService(serviceId) {
 
   return (appData.regions || []).flatMap((region) =>
     (region.activePoints || [])
-      .filter((point) => Array.isArray(point.services) && point.services.includes(serviceId))
+      .filter((point) => pointHasService(point, serviceId))
       .map((point) => ({ ...point, regionName: region.name }))
   );
 }
