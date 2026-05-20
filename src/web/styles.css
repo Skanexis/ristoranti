@@ -10153,3 +10153,42 @@ body.map-only-page {
   }
 }
 
+/* Region screens can exceed one viewport when many points are listed. */
+body.map-only-page {
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.map-only-page .app-screen-stack.is-region,
+.map-only-page .app-screen-stack.is-region .app-screen-region,
+.map-only-page .app-screen-stack.is-region .workspace-shell,
+.map-only-page .app-screen-stack.is-region .workspace-main,
+.map-only-page .app-screen-stack.is-region .workspace-points-panel,
+.map-only-page .app-screen-stack.is-region .workspace-point-grid {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.map-only-page .app-screen-stack.is-region,
+.map-only-page .app-screen-stack.is-region .app-screen-region,
+.map-only-page .app-screen-stack.is-region .workspace-shell {
+  min-height: 100dvh;
+}
+
+.map-only-page .app-screen-stack.is-region .workspace-shell {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 760px) {
+  .map-only-page .map-only-app,
+  .map-only-page .map-home,
+  .map-only-page #selectionContent,
+  .map-only-page .app-screen-stack.is-region {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+}
+

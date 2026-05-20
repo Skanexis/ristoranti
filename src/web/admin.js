@@ -3278,7 +3278,7 @@ function renderPointsList() {
               data-point-id="${escapeHtmlAttr(point.id)}"
               ${isSelected ? "checked" : ""}
             />
-            <span>Seleziona</span>
+            <span>${isSelected ? "Selezionato" : "Seleziona"}</span>
           </label>
           <p class="admin-item-drag-hint">Trascina la card per ordinare.</p>
           <div class="admin-item-actions">
@@ -4896,32 +4896,31 @@ function syncDeliveryItaliaServiceState() {
 }
 
 function syncShipCountryFieldState() {
-  const hasRegion = Boolean(getSelectedRegion());
   const isOtherMode = Boolean(otherPointMode.category);
 
-  if (hasRegion && !isOtherMode && getPointShipOriginValue() === "eu") {
+  if (!isOtherMode && getPointShipOriginValue() === "eu") {
     ensureShipServiceSelected();
   }
 
-  const shipSelected = hasRegion && hasShipServiceSelected();
+  const shipSelected = !isOtherMode && hasShipServiceSelected();
 
   if (els.pointShipOrigin) {
-    els.pointShipOrigin.disabled = !hasRegion || isOtherMode;
+    els.pointShipOrigin.disabled = isOtherMode;
     els.pointShipOrigin.required = shipSelected;
 
     const originWrapper = els.pointShipOrigin.closest("label");
     if (originWrapper) {
-      originWrapper.classList.toggle("admin-field-disabled", !hasRegion || isOtherMode);
+      originWrapper.classList.toggle("admin-field-disabled", isOtherMode);
     }
 
-    if (!hasRegion && !els.pointShipOrigin.value) {
+    if (!els.pointShipOrigin.value) {
       els.pointShipOrigin.value = getRegionShipOrigin(getSelectedRegion());
     }
   }
 
   if (!els.pointShipCountry) return;
 
-  const shouldEnableCountry = hasRegion && !isOtherMode && getPointShipOriginValue() === "eu";
+  const shouldEnableCountry = !isOtherMode && getPointShipOriginValue() === "eu";
   els.pointShipCountry.disabled = !shouldEnableCountry;
   els.pointShipCountry.required = shipSelected && shouldEnableCountry;
 
