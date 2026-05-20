@@ -1988,6 +1988,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
             )}">
               <div class="workspace-point-media">
                 <div class="workspace-point-logo">${logoHtml}</div>
+                ${buildStarMeter(clampStars(point.stars))}
                 <div class="workspace-point-services">${buildPointServiceBadges(serviceSelected ? [state.service] : point.services)}</div>
               </div>
               <div class="workspace-point-body">
@@ -3148,7 +3149,7 @@ function buildStarMeter(stars) {
     return "";
   }
   const starIcon = `<span class="point-star ${hasStar ? "is-filled" : ""}" aria-hidden="true">★</span>`;
-  const label = hasStar ? `<span class="point-star-label">Platinum</span>` : "";
+  const label = hasStar ? `<span class="point-star-label">Premium</span>` : "";
 
   return `
     <div class="point-stars ${hasStar ? "is-starred" : ""}" aria-label="${hasStar ? "Punto premium" : "Punto standard"}">

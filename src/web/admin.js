@@ -4889,8 +4889,8 @@ function syncShipCountryFieldState() {
       originWrapper.classList.toggle("admin-field-disabled", !shipSelected);
     }
 
-    if (!shipSelected) {
-      els.pointShipOrigin.value = "italy";
+    if (!shipSelected && !els.pointShipOrigin.value) {
+      els.pointShipOrigin.value = getRegionShipOrigin(getSelectedRegion());
     }
   }
 
