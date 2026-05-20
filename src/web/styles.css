@@ -9662,6 +9662,18 @@ body.map-only-page {
 .app-screen-region .workspace-point-grid {
   gap: 12px;
   grid-auto-rows: auto;
+  overflow: visible;
+  padding-bottom: 12px;
+}
+
+.app-screen-region .workspace-main,
+.app-screen-region .workspace-points-panel {
+  overflow: visible;
+}
+
+.app-screen-region .workspace-points-panel {
+  grid-template-rows: auto auto auto;
+  align-content: start;
 }
 
 .app-screen-region .workspace-point-card {
@@ -9677,6 +9689,7 @@ body.map-only-page {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 18px 54px rgba(0, 0, 0, 0.34);
+  overflow: visible;
 }
 
 .app-screen-region .workspace-point-card::after {
@@ -9708,7 +9721,7 @@ body.map-only-page {
 
 .app-screen-region .workspace-point-body {
   align-self: stretch;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto auto auto;
   gap: 6px;
 }
 
@@ -9769,6 +9782,7 @@ body.map-only-page {
 @media (max-width: 640px) {
   .app-screen-region .workspace-point-grid {
     gap: 10px;
+    overflow: visible;
   }
 
   .app-screen-region .workspace-point-card {
@@ -9848,11 +9862,14 @@ body.map-only-page {
 
   .app-screen-region.is-direct-ship .workspace-point-grid {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    overflow: visible;
   }
 
   .app-screen-region.is-direct-ship .workspace-point-card {
     min-height: 0;
     padding: 10px;
+    overflow: visible;
   }
 
   .app-screen-region.is-direct-ship .workspace-point-media {
@@ -9874,6 +9891,265 @@ body.map-only-page {
   .app-screen-region.is-direct-ship .workspace-point-body {
     justify-items: start;
     text-align: left;
+  }
+}
+
+/* Final mobile layout override: two columns, no clipped actions */
+@media (max-width: 760px) {
+  .app-screen-region .workspace-shell,
+  .app-screen-region .workspace-main,
+  .app-screen-region .workspace-points-panel,
+  .app-screen-region .workspace-point-grid {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .app-screen-region .workspace-point-grid,
+  .app-screen-region.is-direct-ship .workspace-point-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .app-screen-region .workspace-point-card,
+  .app-screen-region.is-direct-ship .workspace-point-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "media"
+      "body";
+    min-width: 0;
+    min-height: 0;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 15px;
+    overflow: visible;
+    contain-intrinsic-size: auto;
+  }
+
+  .app-screen-region .workspace-point-media,
+  .app-screen-region.is-direct-ship .workspace-point-media {
+    grid-area: media;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .app-screen-region .workspace-point-logo,
+  .app-screen-region.is-direct-ship .workspace-point-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .app-screen-region .workspace-point-logo img,
+  .app-screen-region.is-direct-ship .workspace-point-logo img {
+    border-radius: 10px;
+  }
+
+  .app-screen-region .workspace-point-card .point-stars,
+  .app-screen-region.is-direct-ship .workspace-point-card .point-stars {
+    justify-self: start;
+    width: auto;
+    max-width: 96px;
+    min-height: 22px;
+    padding: 3px 6px;
+  }
+
+  .app-screen-region .workspace-point-card .point-star,
+  .app-screen-region.is-direct-ship .workspace-point-card .point-star {
+    font-size: 0.74rem;
+  }
+
+  .app-screen-region .workspace-point-card .point-star-label,
+  .app-screen-region.is-direct-ship .workspace-point-card .point-star-label {
+    display: inline;
+    font-size: 0.43rem;
+  }
+
+  .app-screen-region .workspace-point-body,
+  .app-screen-region.is-direct-ship .workspace-point-body {
+    grid-area: body;
+    align-content: start;
+    justify-items: stretch;
+    gap: 4px;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .app-screen-region .workspace-point-type,
+  .app-screen-region.is-direct-ship .workspace-point-type {
+    display: none;
+  }
+
+  .app-screen-region .workspace-point-body h3,
+  .app-screen-region.is-direct-ship .workspace-point-body h3 {
+    min-height: 0;
+    font-size: 0.9rem;
+    line-height: 1.04;
+    -webkit-line-clamp: 2;
+  }
+
+  .app-screen-region .workspace-point-meta,
+  .app-screen-region.is-direct-ship .workspace-point-meta {
+    width: fit-content;
+    max-width: 100%;
+    padding: 3px 6px;
+    font-size: 0.48rem;
+  }
+
+  .app-screen-region .workspace-point-body p,
+  .app-screen-region.is-direct-ship .workspace-point-body p {
+    display: -webkit-box;
+    font-size: 0.6rem;
+    line-height: 1.22;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .app-screen-region .workspace-point-services,
+  .app-screen-region.is-direct-ship .workspace-point-services {
+    display: flex;
+    grid-column: 1 / -1;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .app-screen-region .workspace-point-services .point-service-pill,
+  .app-screen-region.is-direct-ship .workspace-point-services .point-service-pill {
+    flex: 1 1 calc(50% - 2px);
+    min-height: 20px;
+    padding: 0 5px 0 3px;
+    gap: 3px;
+    font-size: 0.47rem;
+  }
+
+  .app-screen-region .workspace-point-services .point-service-pill i,
+  .app-screen-region.is-direct-ship .workspace-point-services .point-service-pill i {
+    width: 14px;
+    height: 14px;
+    flex-basis: 14px;
+  }
+
+  .app-screen-region .workspace-point-services .service-icon svg,
+  .app-screen-region.is-direct-ship .workspace-point-services .service-icon svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .app-screen-region .workspace-point-links,
+  .app-screen-region.is-direct-ship .workspace-point-links {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    margin-top: 2px;
+    width: 100%;
+  }
+
+  .app-screen-region .workspace-point-links .point-link,
+  .app-screen-region.is-direct-ship .workspace-point-links .point-link {
+    min-height: 28px;
+    padding: 0 6px;
+    border-radius: 9px;
+    font-size: 0.52rem;
+    letter-spacing: 0.01em;
+  }
+}
+
+@media (max-width: 370px) {
+  .app-screen-region .workspace-point-grid,
+  .app-screen-region.is-direct-ship .workspace-point-grid {
+    gap: 6px;
+  }
+
+  .app-screen-region .workspace-point-card,
+  .app-screen-region.is-direct-ship .workspace-point-card {
+    padding: 7px;
+  }
+
+  .app-screen-region .workspace-point-media,
+  .app-screen-region.is-direct-ship .workspace-point-media {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .app-screen-region .workspace-point-logo,
+  .app-screen-region.is-direct-ship .workspace-point-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .app-screen-region .workspace-point-card .point-stars,
+  .app-screen-region.is-direct-ship .workspace-point-card .point-stars {
+    max-width: 42px;
+    padding: 3px 4px;
+  }
+
+  .app-screen-region .workspace-point-card .point-star-label,
+  .app-screen-region.is-direct-ship .workspace-point-card .point-star-label {
+    display: none;
+  }
+
+  .app-screen-region .workspace-point-body h3,
+  .app-screen-region.is-direct-ship .workspace-point-body h3 {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-screen-region .workspace-shell,
+  .app-screen-region .workspace-main,
+  .app-screen-region .workspace-points-panel,
+  .app-screen-region .workspace-point-grid {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .app-screen-region .workspace-point-card {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .app-screen-region .workspace-point-body p,
+  .app-screen-region.is-direct-ship .workspace-point-body p {
+    display: block;
+  }
+
+  .app-screen-region.is-direct-ship .workspace-point-links .point-link {
+    min-height: 32px;
+    font-size: 0.58rem;
+  }
+}
+
+/* Absolute last mobile card guard */
+@media (max-width: 760px) {
+  .app-screen-region .workspace-point-grid,
+  .app-screen-region.is-direct-ship .workspace-point-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .app-screen-region .workspace-point-body p,
+  .app-screen-region.is-direct-ship .workspace-point-body p {
+    display: -webkit-box;
+    font-size: 0.6rem;
+    line-height: 1.22;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .app-screen-region .workspace-point-links .point-link,
+  .app-screen-region.is-direct-ship .workspace-point-links .point-link {
+    min-height: 28px;
+    font-size: 0.52rem;
   }
 }
 

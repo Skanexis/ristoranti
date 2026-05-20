@@ -687,7 +687,7 @@ async function loadAppDataFromServer() {
     const response = await fetch(PUBLIC_DATA_ENDPOINT, {
       method: "GET",
       credentials: "same-origin",
-      cache: "no-store",
+      cache: "no-cache",
       signal: controller?.signal,
     });
 
@@ -3257,9 +3257,9 @@ function setupMobilePreloader() {
     return;
   }
 
-  const preloaderVisibleMs = 5000;
-  const preloaderMaxMs = isTelegramClient ? 5600 : 6500;
-  const preloaderExitMs = 420;
+  const preloaderVisibleMs = 650;
+  const preloaderMaxMs = isTelegramClient ? 1400 : 1800;
+  const preloaderExitMs = 280;
   let minTimeElapsed = false;
   let appReady = false;
   let preloaderDone = false;

@@ -1233,6 +1233,9 @@ function bindAdminEvents() {
   });
   if (els.pointShipOrigin) {
     els.pointShipOrigin.addEventListener("change", () => {
+      if (normalizeShipOrigin(els.pointShipOrigin.value) === "eu") {
+        ensureShipServiceSelected();
+      }
       syncShipCountryFieldState();
       validatePointShipCountryInline();
       renderPointPreview();
@@ -1241,6 +1244,10 @@ function bindAdminEvents() {
   }
   if (els.pointShipCountry) {
     els.pointShipCountry.addEventListener("input", () => {
+      if (String(els.pointShipCountry.value || "").trim()) {
+        ensureShipServiceSelected();
+        syncShipCountryFieldState();
+      }
       renderPointPreview();
       validatePointShipCountryInline();
       updatePointFormDirtyState();
@@ -3660,6 +3667,9 @@ function handlePointSubmit(event) {
 
   const selectedServices = getPointFormSelectedServices();
   const services = selectedServices.length > 0 ? selectedServices : ["meetup"];
+  if (!isOtherMode && (selectedShipOrigin === "eu" || shipCountry) && !services.includes("ship")) {
+    services.push("ship");
+  }
   if (deliveryItalia && !services.includes("delivery")) {
     services.push("delivery");
   }
@@ -4196,10 +4206,10 @@ function validatePointShipCountryInline() {
   const region = getSelectedRegion();
   const shipSelected = hasShipServiceSelected();
   const pointShipOrigin = normalizeShipOrigin(els.pointShipOrigin?.value);
-  const isRequired = Boolean(region) && shipSelected && pointShipOrigin === "eu";
+  const isRequired = Boolean(region) && (shipSelected || pointShipOrigin === "eu") && pointShipOrigin === "eu";
   const value = String(field.value || "").trim();
 
-  if (!region || !shipSelected) {
+  if (!region) {
     return setInlineFieldValidation(field, "neutral", "Attiva il servizio Ship per scegliere il paese.");
   }
 
@@ -4864,6 +4874,15 @@ function hasShipServiceSelected() {
   return getPointFormSelectedServices().includes("ship");
 }
 
+function ensureShipServiceSelected() {
+  if (!els.pointForm || otherPointMode.category) return;
+
+  const shipCheckbox = els.pointForm.querySelector("input[name='services'][value='ship']");
+  if (!shipCheckbox || shipCheckbox.disabled) return;
+
+  shipCheckbox.checked = true;
+}
+
 function syncDeliveryItaliaServiceState() {
   if (!els.pointDeliveryItalia || !els.pointForm) return;
 
@@ -4878,27 +4897,33 @@ function syncDeliveryItaliaServiceState() {
 
 function syncShipCountryFieldState() {
   const hasRegion = Boolean(getSelectedRegion());
+  const isOtherMode = Boolean(otherPointMode.category);
+
+  if (hasRegion && !isOtherMode && getPointShipOriginValue() === "eu") {
+    ensureShipServiceSelected();
+  }
+
   const shipSelected = hasRegion && hasShipServiceSelected();
 
   if (els.pointShipOrigin) {
-    els.pointShipOrigin.disabled = !shipSelected;
+    els.pointShipOrigin.disabled = !hasRegion || isOtherMode;
     els.pointShipOrigin.required = shipSelected;
 
     const originWrapper = els.pointShipOrigin.closest("label");
     if (originWrapper) {
-      originWrapper.classList.toggle("admin-field-disabled", !shipSelected);
+      originWrapper.classList.toggle("admin-field-disabled", !hasRegion || isOtherMode);
     }
 
-    if (!shipSelected && !els.pointShipOrigin.value) {
+    if (!hasRegion && !els.pointShipOrigin.value) {
       els.pointShipOrigin.value = getRegionShipOrigin(getSelectedRegion());
     }
   }
 
   if (!els.pointShipCountry) return;
 
-  const shouldEnableCountry = shipSelected && getPointShipOriginValue() === "eu";
+  const shouldEnableCountry = hasRegion && !isOtherMode && getPointShipOriginValue() === "eu";
   els.pointShipCountry.disabled = !shouldEnableCountry;
-  els.pointShipCountry.required = shouldEnableCountry;
+  els.pointShipCountry.required = shipSelected && shouldEnableCountry;
 
   const wrapper = els.pointShipCountry.closest("label");
   if (wrapper) {
