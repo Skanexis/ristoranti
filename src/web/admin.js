@@ -4004,7 +4004,7 @@ function updatePointFormDirtyState() {
   if (els.pointFormStickyBar) {
     els.pointFormStickyBar.dataset.dirty = dirty ? "true" : "false";
   }
-  els.pointFormDirtyState.textContent = dirty ? "Есть несохранённые изменения" : "Nessuna modifica";
+  els.pointFormDirtyState.textContent = dirty ? "Ci sono modifiche non salvate" : "Nessuna modifica";
 }
 
 function handlePointCancelEdit() {
