@@ -9,8 +9,8 @@ const state = {
   mapOffsetY: 0,
   screen: "map",
 };
-const WORKSPACE_SWAP_EXIT_MS = 180;
-const WORKSPACE_SWAP_REVEAL_MS = 560;
+const WORKSPACE_SWAP_EXIT_MS = 260;
+const WORKSPACE_SWAP_REVEAL_MS = 1080;
 let workspaceSwapTimer = 0;
 let workspaceRevealTimer = 0;
 let workspaceSwapSerial = 0;
@@ -1456,16 +1456,30 @@ function markMapHomeTransition() {
 }
 
 function renderWorkspaceScreenWithReveal() {
+  const content = els.selectionContent;
+  if (content instanceof HTMLElement) {
+    content.classList.add("is-workspace-reveal-render");
+  }
+
   renderMapHomeStep();
   renderPointsStep();
 
   window.requestAnimationFrame(() => {
+    const nextContent = els.selectionContent;
     const panel = els.selectionContent?.querySelector(".workspace-points-panel");
     const grid = els.selectionContent?.querySelector(".workspace-point-grid");
-    if (!(panel instanceof HTMLElement) || !(grid instanceof HTMLElement)) return;
+    if (!(panel instanceof HTMLElement) || !(grid instanceof HTMLElement)) {
+      if (nextContent instanceof HTMLElement) {
+        nextContent.classList.remove("is-workspace-reveal-render");
+      }
+      return;
+    }
 
     panel.classList.add("is-service-revealing");
     grid.classList.add("is-revealing");
+    if (nextContent instanceof HTMLElement) {
+      nextContent.classList.remove("is-workspace-reveal-render");
+    }
     window.clearTimeout(workspaceRevealTimer);
     workspaceRevealTimer = window.setTimeout(() => {
       panel.classList.remove("is-service-revealing");
@@ -2012,7 +2026,7 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
           </div>
           <div class="map-ux-service-guide" aria-hidden="true">
             <span class="map-ux-service-guide-line"></span>
-            <span class="map-ux-service-guide-label">Servizi rapidi</span>
+            <span class="map-ux-service-guide-label">Accesso veloce</span>
           </div>
         </div>
       </header>

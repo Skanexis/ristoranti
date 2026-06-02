@@ -13716,3 +13716,484 @@ body.preload-exit .mobile-preloader {
   }
 }
 
+/* Home map polish: remove hard shell geometry and make the quick-service guide quiet. */
+.static-map-shell,
+.static-map-shell .italy-home-map-shell,
+.static-map-shell .italy-map-stage-home,
+.static-map-shell .pro-map-stage,
+.static-map-shell .italy-map-stage-home::before,
+.static-map-shell .italy-map-stage-home::after,
+.static-map-shell .pro-map-stage::before,
+.static-map-shell .pro-map-stage::after {
+  clip-path: none !important;
+}
+
+.static-map-shell .italy-map-stage-home,
+.static-map-shell .pro-map-stage {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.static-map-shell .italy-map-stage-home::before,
+.static-map-shell .italy-map-stage-home::after,
+.static-map-shell .pro-map-stage::before,
+.static-map-shell .pro-map-stage::after {
+  display: none !important;
+  content: none !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.static-map-shell::after {
+  opacity: 0.18 !important;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px) !important;
+  background-size: 44px 44px !important;
+  mask-image: radial-gradient(ellipse at 50% 50%, #000 0 38%, transparent 72%) !important;
+}
+
+.static-map-shell::before {
+  opacity: 0.34 !important;
+  background:
+    radial-gradient(ellipse at 48% 50%, rgba(47, 191, 122, 0.2), transparent 36%),
+    radial-gradient(circle at 80% 76%, rgba(215, 189, 122, 0.055), transparent 28%) !important;
+  filter: blur(18px) !important;
+}
+
+.map-ux-service-guide {
+  top: calc(100% + 7px) !important;
+  right: 0 !important;
+  width: min(390px, 44vw) !important;
+  height: 28px !important;
+  opacity: 0;
+  overflow: visible !important;
+  transform: translate3d(0, -3px, 0);
+  animation: riQuickGuidePresence 11s cubic-bezier(0.22, 0.72, 0.22, 1) 1.2s infinite !important;
+}
+
+.map-ux-service-guide::before {
+  display: none !important;
+}
+
+.map-ux-service-guide::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 8px !important;
+  right: 8px !important;
+  top: 9px !important;
+  height: 1px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(90deg, transparent, rgba(118, 217, 162, 0.34), rgba(215, 189, 122, 0.28), transparent) !important;
+  filter: none !important;
+  opacity: 0.82 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.map-ux-service-guide-line {
+  left: 8px !important;
+  right: 8px !important;
+  top: 9px !important;
+  height: 1px !important;
+  overflow: visible !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.map-ux-service-guide-line::before {
+  top: 50% !important;
+  width: 8px !important;
+  height: 8px !important;
+  border: 0 !important;
+  background: var(--ri-luxe-champagne, #d7bd7a) !important;
+  box-shadow:
+    0 0 0 4px rgba(215, 189, 122, 0.08),
+    0 0 18px rgba(215, 189, 122, 0.22) !important;
+  transform: translate3d(-50%, -50%, 0) !important;
+  animation: riQuickGuideDot 11s cubic-bezier(0.18, 0.76, 0.22, 1) 1.2s infinite !important;
+}
+
+.map-ux-service-guide-label {
+  left: auto !important;
+  right: 0 !important;
+  top: 19px !important;
+  max-width: none !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: rgba(238, 246, 241, 0.62) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  font-size: 0.58rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  opacity: 0;
+  text-shadow: 0 10px 28px rgba(0, 0, 0, 0.72);
+  transform: translate3d(0, 2px, 0) !important;
+  animation: riQuickGuideLabel 11s cubic-bezier(0.22, 0.72, 0.22, 1) 1.2s infinite !important;
+}
+
+.map-ux-service-guide-label::before {
+  display: none !important;
+}
+
+@keyframes riQuickGuidePresence {
+  0%,
+  8%,
+  43%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -3px, 0);
+  }
+
+  12%,
+  34% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes riQuickGuideDot {
+  0%,
+  9% {
+    left: 8%;
+    opacity: 0;
+  }
+
+  13% {
+    left: 8%;
+    opacity: 1;
+  }
+
+  23% {
+    left: 50%;
+  }
+
+  34% {
+    left: 92%;
+    opacity: 1;
+  }
+
+  40%,
+  100% {
+    left: 92%;
+    opacity: 0;
+  }
+}
+
+@keyframes riQuickGuideLabel {
+  0%,
+  16%,
+  37%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 2px, 0);
+  }
+
+  20%,
+  31% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell::after {
+    opacity: 0.1 !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide {
+    top: calc(100% + 4px) !important;
+    right: 0 !important;
+    width: 110px !important;
+    height: 12px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide::after,
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-line {
+    left: 3px !important;
+    right: 3px !important;
+    top: 6px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-line::before {
+    width: 6px !important;
+    height: 6px !important;
+    box-shadow:
+      0 0 0 3px rgba(215, 189, 122, 0.07),
+      0 0 12px rgba(215, 189, 122, 0.18) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-label {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-ux-service-guide,
+  .map-ux-service-guide-line::before,
+  .map-ux-service-guide-label {
+    animation: none !important;
+  }
+
+  .map-ux-service-guide {
+    opacity: 0.82 !important;
+    transform: none !important;
+  }
+
+  .map-ux-service-guide-line::before {
+    left: 92% !important;
+    opacity: 0.9 !important;
+  }
+
+  .map-ux-service-guide-label {
+    opacity: 0.86 !important;
+    transform: none !important;
+  }
+}
+
+/* Workspace service switch: one calm reveal, no double card materialization. */
+#selectionContent.is-workspace-reveal-render .workspace-point-card,
+#selectionContent.is-workspace-reveal-render .workspace-empty,
+#selectionContent.is-workspace-reveal-render .workspace-service-select {
+  opacity: 0 !important;
+  filter: blur(8px);
+  transform: translate3d(0, 14px, 0) scale(0.986);
+  animation: none !important;
+}
+
+.workspace-point-grid.is-wiping {
+  animation: workspaceGridWipeOut 260ms cubic-bezier(0.42, 0, 0.7, 0.3) both !important;
+}
+
+.workspace-point-grid.is-wiping::before {
+  animation: workspaceGridWipeLine 260ms cubic-bezier(0.42, 0, 0.7, 0.3) both !important;
+}
+
+.workspace-point-grid.is-revealing {
+  animation: workspaceGridRevealIn 820ms cubic-bezier(0.16, 0.84, 0.28, 1) both !important;
+}
+
+.workspace-point-grid.is-revealing::before {
+  animation: workspaceGridRevealLine 780ms cubic-bezier(0.16, 0.84, 0.28, 1) both !important;
+}
+
+.workspace-points-panel.is-service-swapping .workspace-section-head,
+.workspace-points-panel.is-service-swapping .workspace-service-tabs {
+  animation: workspaceControlsWipe 260ms cubic-bezier(0.42, 0, 0.7, 0.3) both !important;
+}
+
+.workspace-points-panel.is-service-revealing .workspace-section-head,
+.workspace-points-panel.is-service-revealing .workspace-service-tabs {
+  animation: workspaceControlsReveal 560ms cubic-bezier(0.16, 0.84, 0.28, 1) both !important;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card,
+.workspace-point-grid.is-revealing .workspace-empty,
+.workspace-point-grid.is-revealing .workspace-service-select {
+  animation: workspaceCardRevealSingle 760ms cubic-bezier(0.16, 0.84, 0.28, 1) both !important;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(1) {
+  animation-delay: 70ms !important;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(2) {
+  animation-delay: 120ms !important;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(3) {
+  animation-delay: 170ms !important;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(4) {
+  animation-delay: 220ms !important;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(n + 5) {
+  animation-delay: 260ms !important;
+}
+
+@keyframes workspaceCardRevealSingle {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate3d(0, 14px, 0) scale(0.986);
+  }
+
+  55% {
+    opacity: 1;
+    filter: blur(2px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  #selectionContent.is-workspace-reveal-render .workspace-point-card,
+  #selectionContent.is-workspace-reveal-render .workspace-empty,
+  #selectionContent.is-workspace-reveal-render .workspace-service-select {
+    filter: blur(5px);
+    transform: translate3d(0, 9px, 0) scale(0.99);
+  }
+
+  .workspace-point-grid.is-wiping,
+  .workspace-point-grid.is-wiping::before {
+    animation-duration: 220ms !important;
+  }
+
+  .workspace-point-grid.is-revealing {
+    animation-duration: 720ms !important;
+  }
+
+  .workspace-point-grid.is-revealing::before {
+    animation-duration: 680ms !important;
+  }
+
+  .workspace-point-grid.is-revealing .workspace-point-card,
+  .workspace-point-grid.is-revealing .workspace-empty,
+  .workspace-point-grid.is-revealing .workspace-service-select {
+    animation-duration: 680ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #selectionContent.is-workspace-reveal-render .workspace-point-card,
+  #selectionContent.is-workspace-reveal-render .workspace-empty,
+  #selectionContent.is-workspace-reveal-render .workspace-service-select {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
+/* Region workspace scroll: keep header/tabs fixed and scroll only the points list. */
+.map-only-page .app-screen-stack.is-region,
+.map-only-page .app-screen-stack.is-region .app-screen-region,
+.map-only-page .app-screen-stack.is-region .workspace-shell {
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+.map-only-page .app-screen-stack.is-region .workspace-shell {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  align-content: stretch !important;
+}
+
+.app-screen-region .workspace-main {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.app-screen-region .workspace-points-panel {
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+}
+
+.app-screen-region .workspace-point-grid,
+.app-screen-region.is-direct-ship .workspace-point-grid {
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 7px;
+  padding-bottom: max(18px, env(safe-area-inset-bottom)) !important;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(215, 189, 122, 0.5) rgba(255, 255, 255, 0.055);
+}
+
+.app-screen-region .workspace-point-grid::-webkit-scrollbar,
+.app-screen-region.is-direct-ship .workspace-point-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.app-screen-region .workspace-point-grid::-webkit-scrollbar-track,
+.app-screen-region.is-direct-ship .workspace-point-grid::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.app-screen-region .workspace-point-grid::-webkit-scrollbar-thumb,
+.app-screen-region.is-direct-ship .workspace-point-grid::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(5, 12, 9, 0.9);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(118, 217, 162, 0.58), rgba(215, 189, 122, 0.56));
+}
+
+.app-screen-region .workspace-side-panel {
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.app-screen-region .workspace-region-list {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 900px) {
+  .app-screen-region .workspace-main {
+    grid-template-rows: minmax(0, 1fr) auto !important;
+  }
+
+  .app-screen-region .workspace-side-panel {
+    max-height: min(126px, 24dvh) !important;
+  }
+
+  .app-screen-region .workspace-region-list {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .map-only-page .app-screen-stack.is-region .workspace-shell {
+    padding:
+      max(7px, env(safe-area-inset-top))
+      max(7px, env(safe-area-inset-right))
+      max(7px, env(safe-area-inset-bottom))
+      max(7px, env(safe-area-inset-left)) !important;
+  }
+
+  .app-screen-region .workspace-main {
+    gap: 7px !important;
+  }
+
+  .app-screen-region .workspace-point-grid,
+  .app-screen-region.is-direct-ship .workspace-point-grid {
+    padding-right: 3px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
+    scrollbar-width: none;
+  }
+
+  .app-screen-region .workspace-point-grid::-webkit-scrollbar,
+  .app-screen-region.is-direct-ship .workspace-point-grid::-webkit-scrollbar {
+    display: none;
+  }
+}
+
