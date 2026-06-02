@@ -2432,6 +2432,9 @@ function buildRegionServiceMix(pointsList) {
 function renderPointsStep() {
   if (IS_MAP_ONLY_HOME) {
     els.pointsStep?.classList.add("hidden");
+    if (els.pointsContent) {
+      els.pointsContent.innerHTML = "";
+    }
     updateExperienceHud();
     return;
   }
@@ -3355,7 +3358,8 @@ function warmLogoOrigin(url) {
 function applySmartLogoFit(scope = document) {
   const host = scope instanceof HTMLElement ? scope : document;
   const logos = host.querySelectorAll(".point-logo img, .workspace-point-logo img");
-  const skipDetailedLogoAnalysis = isCoarsePointerDevice() || logos.length > 8;
+  const hasWorkspaceLogos = host.querySelector(".workspace-point-logo img") !== null;
+  const skipDetailedLogoAnalysis = isCoarsePointerDevice() || hasWorkspaceLogos || logos.length > 8;
 
   logos.forEach((img) => {
     if (!(img instanceof HTMLImageElement)) return;
