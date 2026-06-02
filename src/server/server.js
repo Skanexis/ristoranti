@@ -490,6 +490,8 @@ async function handleStaticRequest(req, res, pathname) {
   const hasVersionQuery = requestHasVersionQuery(req);
   if (ext === ".html" || ext === ".json") {
     headers["Cache-Control"] = "no-store";
+  } else if (cleanPath.startsWith("/uploads/")) {
+    headers["Cache-Control"] = "public, max-age=31536000, immutable";
   } else if ((ext === ".css" || ext === ".js") && hasVersionQuery) {
     headers["Cache-Control"] = "public, max-age=31536000, immutable";
   } else if (ext === ".css" || ext === ".js") {

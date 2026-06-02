@@ -199,13 +199,14 @@ const PUBLIC_DATA_CACHE_KEY = "ri-public-data-v2";
 const PUBLIC_DATA_PERSISTENT_CACHE_KEY = "ri-public-data-persistent-v2";
 const PUBLIC_DATA_SESSION_CACHE_TTL_MS = 1000 * 60 * 20;
 const PUBLIC_DATA_PERSISTENT_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
-const LOGO_PREFETCH_LIMIT = 5;
-const MOBILE_LOGO_PREFETCH_LIMIT = 2;
+const LOGO_PREFETCH_LIMIT = 6;
+const MOBILE_LOGO_PREFETCH_LIMIT = 6;
 const CRITICAL_LOGO_PRELOAD_LIMIT = 14;
-const MOBILE_CRITICAL_LOGO_PRELOAD_LIMIT = 3;
+const MOBILE_CRITICAL_LOGO_PRELOAD_LIMIT = 6;
 const CRITICAL_LOGO_PRELOAD_WAIT_MS = 620;
 const warmedLogoOrigins = new Set();
 const prefetchedLogoUrls = new Set();
+const loadedLogoUrls = new Set();
 const logoFitCache = new Map();
 const IS_MAP_ONLY_HOME = document.querySelector(".map-only-app") !== null;
 
@@ -2148,7 +2149,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
       : [];
   const totalPoints = activePoints.length;
   const serviceMix = serviceSelected ? buildPointServiceBadges([state.service]) : "";
-  const priorityLogoLimit = isCoarsePointerDevice() ? 2 : 5;
+  const priorityLogoLimit = 6;
   const workspaceAreaLabel = selectedMeta?.isExternalArea ? "Area fuori mappa" : "Area regione";
   const nearbyRegions = [...regionMeta]
     .filter((entry) => entry.region.id !== region?.id)
@@ -2189,19 +2190,25 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
                 priorityLogo ? "eager" : "lazy"
               }" decoding="async" fetchpriority="${priorityLogo ? "high" : isCoarsePointerDevice() ? "low" : "auto"}" data-logo-fallback="${escapeHtmlAttr(fallbackInitials)}" />`
             : `<span class="point-logo-fallback">${escapeHtml(fallbackInitials)}</span>`;
-          const socials = Array.isArray(point.socials)
-            ? point.socials
-                .slice(0, 3)
-                .map((link) => buildPointLinkMarkup(link))
-                .join("")
-            : "";
+          const socialLinks = Array.isArray(point.socials) ? point.socials.slice(0, 3) : [];
+          const socials = socialLinks.map((link) => buildPointLinkMarkup(link)).join("");
           const shipCountryText = state.service === "ship" ? (isDirectShip ? getShipCountryFilterLabel(point) : getPointShipCountryText(point)) : "";
           const categoryText =
             state.service === "other" ? point.categoryLabel || point.category || getServiceLabel("other") : "";
           const pointMeta = [shipCountryText, categoryText].filter(Boolean).join(" / ");
+          const detailText = point.details || point.address || "Dettagli non configurati.";
+          const cardDensityClasses = [
+            `workspace-point-card-${primaryService}`,
+            socialLinks.length >= 3 ? "has-many-links" : "",
+            pointMeta ? "has-point-meta" : "",
+            String(point.name || "").length > 18 ? "has-long-title" : "",
+            detailText.length > 80 ? "has-long-copy" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
 
           return `
-            <article class="workspace-point-card workspace-point-card-${escapeHtmlAttr(primaryService)}" data-service-kind="${escapeHtmlAttr(
+            <article class="workspace-point-card ${escapeHtmlAttr(cardDensityClasses)}" data-service-kind="${escapeHtmlAttr(
               primaryService
             )}">
               <div class="workspace-point-media">
@@ -2213,7 +2220,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
                 <span class="workspace-point-type">${escapeHtml(point.categoryLabel || point.category || "Punto")}</span>
                 <h3>${escapeHtml(point.name)}</h3>
                 ${pointMeta ? `<span class="workspace-point-meta">${escapeHtml(pointMeta)}</span>` : ""}
-                <p>${escapeHtml(point.details || point.address || "Dettagli non configurati.")}</p>
+                <p>${escapeHtml(detailText)}</p>
                 <div class="workspace-point-links">${socials || `<span class="point-links-empty">Nessun social</span>`}</div>
               </div>
             </article>
@@ -3284,6 +3291,9 @@ function prefetchPointLogos(points, limit = LOGO_PREFETCH_LIMIT) {
       const probe = new Image();
       probe.decoding = "async";
       probe.loading = "eager";
+      probe.onload = () => {
+        loadedLogoUrls.add(url);
+      };
       probe.src = url;
     });
   }, 420);
@@ -3331,6 +3341,7 @@ function preloadImageForRuntime(url) {
     image.decoding = "async";
     image.loading = "eager";
     image.onload = () => {
+      loadedLogoUrls.add(url);
       image.decode?.().catch(() => undefined).finally(resolve);
     };
     image.onerror = resolve;
@@ -3364,8 +3375,15 @@ function applySmartLogoFit(scope = document) {
   logos.forEach((img) => {
     if (!(img instanceof HTMLImageElement)) return;
     const wrap = img.closest(".point-logo, .workspace-point-logo");
-    wrap?.classList.add("is-loading");
-    img.classList.remove("is-ready");
+    const logoUrl = getLogoFitCacheKey(img);
+    const wasLoaded = Boolean(logoUrl && loadedLogoUrls.has(logoUrl));
+    if (wasLoaded) {
+      wrap?.classList.remove("is-loading");
+      img.classList.add("is-ready");
+    } else {
+      wrap?.classList.add("is-loading");
+      img.classList.remove("is-ready");
+    }
 
     const apply = () => {
       applyLogoFitMode(img, wrap, resolveCachedLogoFit(img));
@@ -3467,6 +3485,10 @@ function applyLogoFitMode(image, wrap, fit) {
 
   image.classList.add("is-ready");
   wrap?.classList.remove("is-loading");
+  const key = getLogoFitCacheKey(image);
+  if (key) {
+    loadedLogoUrls.add(key);
+  }
 }
 
 function resolveLogoFitMode(image) {

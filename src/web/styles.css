@@ -14235,10 +14235,11 @@ body.preload-exit .mobile-preloader {
 
   .app-screen-region .workspace-point-grid,
   .app-screen-region.is-direct-ship .workspace-point-grid {
+    --workspace-mobile-card-height: 286px;
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     align-content: start !important;
-    grid-auto-rows: auto !important;
+    grid-auto-rows: var(--workspace-mobile-card-height) !important;
     gap: 8px !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
@@ -14254,8 +14255,11 @@ body.preload-exit .mobile-preloader {
     grid-template-areas:
       "media"
       "body" !important;
+    grid-template-rows: 58px minmax(0, 1fr) !important;
     min-width: 0 !important;
-    min-height: 174px !important;
+    min-height: 0 !important;
+    height: var(--workspace-mobile-card-height) !important;
+    max-height: var(--workspace-mobile-card-height) !important;
     align-content: start !important;
     gap: 7px !important;
     padding: 8px !important;
@@ -14332,10 +14336,12 @@ body.preload-exit .mobile-preloader {
   .app-screen-region.is-direct-ship .workspace-point-body {
     grid-area: body !important;
     display: grid !important;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
     min-width: 0 !important;
+    min-height: 0 !important;
     align-content: start !important;
     justify-items: stretch !important;
-    gap: 5px !important;
+    gap: 6px !important;
     text-align: left !important;
   }
 
@@ -14378,8 +14384,8 @@ body.preload-exit .mobile-preloader {
     display: -webkit-box !important;
     overflow: hidden !important;
     color: var(--ri-luxe-muted, rgba(221, 231, 225, 0.68)) !important;
-    font-size: 0.64rem !important;
-    line-height: 1.24 !important;
+    font-size: 0.68rem !important;
+    line-height: 1.3 !important;
     -webkit-box-orient: vertical !important;
     -webkit-line-clamp: 2 !important;
   }
@@ -14390,6 +14396,7 @@ body.preload-exit .mobile-preloader {
     grid-template-columns: 1fr !important;
     gap: 5px !important;
     width: 100% !important;
+    align-self: end !important;
   }
 
   .app-screen-region .workspace-point-services .point-service-pill,
@@ -14419,33 +14426,135 @@ body.preload-exit .mobile-preloader {
   .app-screen-region.is-direct-ship .workspace-point-links {
     display: grid !important;
     grid-template-columns: 1fr !important;
-    gap: 4px !important;
-    margin-top: 1px !important;
+    gap: 5px !important;
+    margin-top: 3px !important;
     width: 100% !important;
   }
 
   .app-screen-region .workspace-point-links .point-link,
   .app-screen-region.is-direct-ship .workspace-point-links .point-link {
-    min-height: 30px !important;
-    grid-template-columns: 18px minmax(0, 1fr) 8px !important;
+    min-height: 34px !important;
+    grid-template-columns: 19px minmax(0, 1fr) 9px !important;
     gap: 5px !important;
-    padding: 4px 6px 4px 5px !important;
+    padding: 5px 7px 5px 6px !important;
     border-radius: 10px !important;
-    font-size: 0.56rem !important;
+    font-size: 0.6rem !important;
     letter-spacing: 0 !important;
   }
 
   .app-screen-region .workspace-point-links .point-link span,
   .app-screen-region.is-direct-ship .workspace-point-links .point-link span {
-    font-size: 0.56rem !important;
+    font-size: 0.6rem !important;
   }
 
   .app-screen-region .point-link-icon,
   .app-screen-region.is-direct-ship .point-link-icon {
-    width: 18px !important;
-    height: 18px !important;
+    width: 19px !important;
+    height: 19px !important;
     border-radius: 7px !important;
     padding: 3px !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links {
+    grid-template-rows: 53px minmax(0, 1fr) !important;
+    gap: 5px !important;
+    padding: 7px !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-media,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-media {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+    gap: 5px !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-logo,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-logo {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 11px !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .point-stars,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .point-stars {
+    max-width: 82px !important;
+    min-height: 20px !important;
+    padding: 2px 4px !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .point-star,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .point-star {
+    font-size: 0.68rem !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .point-star-label,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .point-star-label {
+    font-size: 0.48rem !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-body,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-body {
+    gap: 4px !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-type,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-type {
+    font-size: 0.58rem !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-body h3,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-body h3 {
+    font-size: 0.86rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links.has-long-title .workspace-point-body h3,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links.has-long-title .workspace-point-body h3 {
+    font-size: 0.8rem !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-meta,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-meta {
+    padding: 3px 5px !important;
+    font-size: 0.54rem !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-body p,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-body p,
+  .app-screen-region .workspace-point-card.has-long-copy .workspace-point-body p,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-long-copy .workspace-point-body p {
+    font-size: 0.61rem !important;
+    line-height: 1.18 !important;
+    -webkit-line-clamp: 1 !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-links,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-links {
+    gap: 3px !important;
+    margin-top: 1px !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-links .point-link,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-links .point-link {
+    min-height: 29px !important;
+    grid-template-columns: 17px minmax(0, 1fr) 7px !important;
+    gap: 4px !important;
+    padding: 4px 5px !important;
+    border-radius: 9px !important;
+    font-size: 0.53rem !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .workspace-point-links .point-link span,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .workspace-point-links .point-link span {
+    font-size: 0.53rem !important;
+  }
+
+  .app-screen-region .workspace-point-card.has-many-links .point-link-icon,
+  .app-screen-region.is-direct-ship .workspace-point-card.has-many-links .point-link-icon {
+    width: 17px !important;
+    height: 17px !important;
+    border-radius: 6px !important;
+    padding: 2px !important;
   }
 }
 
@@ -14480,9 +14589,16 @@ body.preload-exit .mobile-preloader {
 }
 
 @media (max-width: 370px) {
+  .app-screen-region .workspace-point-grid,
+  .app-screen-region.is-direct-ship .workspace-point-grid {
+    --workspace-mobile-card-height: 274px;
+  }
+
   .app-screen-region .workspace-point-card,
   .app-screen-region.is-direct-ship .workspace-point-card {
-    min-height: 166px !important;
+    min-height: 0 !important;
+    height: var(--workspace-mobile-card-height) !important;
+    max-height: var(--workspace-mobile-card-height) !important;
     gap: 6px !important;
     padding: 7px !important;
   }
@@ -14497,6 +14613,175 @@ body.preload-exit .mobile-preloader {
   .app-screen-region.is-direct-ship .workspace-point-card .point-stars {
     max-width: 86px !important;
   }
+}
+
+/* Main mobile quick actions: compact horizontal service pills. */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools {
+    width: min(calc(100vw - 24px), 348px) !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools .map-ux-home-actions {
+    width: 100% !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    justify-content: end !important;
+    align-items: stretch !important;
+    gap: 7px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service {
+    position: relative !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 58px !important;
+    display: grid !important;
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    grid-template-rows: 1fr !important;
+    align-items: center !important;
+    justify-items: start !important;
+    align-content: center !important;
+    gap: 7px !important;
+    padding: 7px 8px !important;
+    border-radius: 18px !important;
+    text-align: left !important;
+    background:
+      linear-gradient(180deg, rgba(57, 99, 77, 0.5), rgba(9, 30, 23, 0.94)),
+      rgba(13, 34, 27, 0.94) !important;
+    border: 1px solid rgba(132, 244, 190, 0.42) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 8px 18px rgba(0, 0, 0, 0.26) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-ship i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-meetup i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-other i {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 13px !important;
+    margin: 0 !important;
+    background:
+      radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.44), transparent 42%),
+      linear-gradient(145deg, #a8ffd0 0%, #69efa8 48%, #21b978 100%) !important;
+    border: 1px solid rgba(220, 255, 235, 0.5) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      0 5px 12px rgba(35, 218, 132, 0.22),
+      0 5px 12px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service .service-icon svg {
+    width: 21px !important;
+    height: 21px !important;
+    color: #071b13 !important;
+    stroke-width: 2.6 !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service span {
+    display: grid !important;
+    grid-template-rows: auto auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 2px !important;
+    color: rgba(250, 255, 252, 0.98) !important;
+    line-height: 1 !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service b {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    color: inherit !important;
+    font-size: 0.7rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    text-overflow: ellipsis !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service small {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    color: rgba(226, 237, 231, 0.72) !important;
+    font-size: 0.53rem !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    letter-spacing: 0.02em !important;
+    text-overflow: ellipsis !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 370px) {
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools {
+    width: min(calc(100vw - 18px), 318px) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools .map-ux-home-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service {
+    min-height: 52px !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    gap: 5px !important;
+    padding: 6px !important;
+    border-radius: 15px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-ship i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-meetup i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-other i {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 11px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service .service-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service b {
+    font-size: 0.6rem !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service small {
+    font-size: 0.45rem !important;
+  }
+}
+
+/* Subtle brightness polish: richer accents without adding heavy effects. */
+.map-only-page .static-map-shell,
+.map-only-page .workspace-points-panel,
+.map-only-page .workspace-region-bar,
+.map-only-page .workspace-nearby-panel {
+  border-color: rgba(116, 232, 173, 0.38) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(81, 210, 143, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.36) !important;
+}
+
+.map-only-page .workspace-service-tab.is-active,
+.map-only-page .workspace-region-shortcut.is-active,
+.map-only-page .map-ux-home-service:not(:disabled):hover {
+  border-color: rgba(163, 255, 205, 0.62) !important;
+  filter: saturate(1.08) brightness(1.04) !important;
+}
+
+.map-only-page .app-screen-region .workspace-point-card,
+.map-only-page .app-screen-region.is-direct-ship .workspace-point-card {
+  border-color: rgba(116, 232, 173, 0.3) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
