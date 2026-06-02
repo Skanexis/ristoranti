@@ -10,7 +10,7 @@ const state = {
   screen: "map",
 };
 const WORKSPACE_SWAP_EXIT_MS = 260;
-const WORKSPACE_SWAP_REVEAL_MS = 1080;
+const WORKSPACE_SWAP_REVEAL_MS = isCoarsePointerDevice() ? 620 : 780;
 let workspaceSwapTimer = 0;
 let workspaceRevealTimer = 0;
 let workspaceSwapSerial = 0;
@@ -200,7 +200,9 @@ const PUBLIC_DATA_PERSISTENT_CACHE_KEY = "ri-public-data-persistent-v2";
 const PUBLIC_DATA_SESSION_CACHE_TTL_MS = 1000 * 60 * 20;
 const PUBLIC_DATA_PERSISTENT_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const LOGO_PREFETCH_LIMIT = 5;
+const MOBILE_LOGO_PREFETCH_LIMIT = 2;
 const CRITICAL_LOGO_PRELOAD_LIMIT = 14;
+const MOBILE_CRITICAL_LOGO_PRELOAD_LIMIT = 3;
 const CRITICAL_LOGO_PRELOAD_WAIT_MS = 620;
 const warmedLogoOrigins = new Set();
 const prefetchedLogoUrls = new Set();
@@ -252,10 +254,10 @@ async function initializeAppData() {
   renderPointsStep();
   updateExperienceHud();
   window.dispatchEvent(new CustomEvent("ri:first-render"));
+  window.dispatchEvent(new CustomEvent("ri:app-ready"));
 
   await refreshPublicDataFromServer();
-  await preloadCriticalSiteAssets();
-  window.dispatchEvent(new CustomEvent("ri:app-ready"));
+  preloadCriticalSiteAssets();
 }
 
 function bindEvents() {
@@ -1090,7 +1092,7 @@ function renderMapHomeStep() {
   if (selectedMeta && REGION_PRIORITY_SERVICES.includes(state.service)) {
     prefetchPointLogos(
       sortPointsByStarsPriority(getActivePointsByRegion(selectedMeta.region.id, state.service)),
-      isCoarsePointerDevice() ? 3 : LOGO_PREFETCH_LIMIT
+      isCoarsePointerDevice() ? MOBILE_LOGO_PREFETCH_LIMIT : LOGO_PREFETCH_LIMIT
     );
   }
   const mapSvg = buildInteractiveItalySvg(regionMeta, state.region);
@@ -1101,6 +1103,7 @@ function renderMapHomeStep() {
       ${buildRegionWorkspaceScreen(regionMeta, selectedMeta)}
     </div>
   `;
+  applySmartLogoFit(els.selectionContent);
 
   els.selectionStep.classList.remove("hidden");
   if (hadMarkup) {
@@ -1456,33 +1459,20 @@ function markMapHomeTransition() {
 }
 
 function renderWorkspaceScreenWithReveal() {
-  const content = els.selectionContent;
-  if (content instanceof HTMLElement) {
-    content.classList.add("is-workspace-reveal-render");
-  }
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
   renderMapHomeStep();
   renderPointsStep();
 
   window.requestAnimationFrame(() => {
-    const nextContent = els.selectionContent;
-    const panel = els.selectionContent?.querySelector(".workspace-points-panel");
     const grid = els.selectionContent?.querySelector(".workspace-point-grid");
-    if (!(panel instanceof HTMLElement) || !(grid instanceof HTMLElement)) {
-      if (nextContent instanceof HTMLElement) {
-        nextContent.classList.remove("is-workspace-reveal-render");
-      }
+    if (!(grid instanceof HTMLElement) || reduceMotion) {
       return;
     }
 
-    panel.classList.add("is-service-revealing");
     grid.classList.add("is-revealing");
-    if (nextContent instanceof HTMLElement) {
-      nextContent.classList.remove("is-workspace-reveal-render");
-    }
     window.clearTimeout(workspaceRevealTimer);
     workspaceRevealTimer = window.setTimeout(() => {
-      panel.classList.remove("is-service-revealing");
       grid.classList.remove("is-revealing");
     }, WORKSPACE_SWAP_REVEAL_MS);
   });
@@ -2158,7 +2148,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
       : [];
   const totalPoints = activePoints.length;
   const serviceMix = serviceSelected ? buildPointServiceBadges([state.service]) : "";
-  const priorityLogoLimit = isCoarsePointerDevice() ? 3 : 5;
+  const priorityLogoLimit = isCoarsePointerDevice() ? 2 : 5;
   const workspaceAreaLabel = selectedMeta?.isExternalArea ? "Area fuori mappa" : "Area regione";
   const nearbyRegions = [...regionMeta]
     .filter((entry) => entry.region.id !== region?.id)
@@ -2197,7 +2187,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
           const logoHtml = point.logo
             ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" width="96" height="96" loading="${
                 priorityLogo ? "eager" : "lazy"
-              }" decoding="async" fetchpriority="${priorityLogo ? "high" : "auto"}" data-logo-fallback="${escapeHtmlAttr(fallbackInitials)}" />`
+              }" decoding="async" fetchpriority="${priorityLogo ? "high" : isCoarsePointerDevice() ? "low" : "auto"}" data-logo-fallback="${escapeHtmlAttr(fallbackInitials)}" />`
             : `<span class="point-logo-fallback">${escapeHtml(fallbackInitials)}</span>`;
           const socials = Array.isArray(point.socials)
             ? point.socials
@@ -2470,7 +2460,7 @@ function renderPointsStep() {
   const emptyMessage = "Nessun punto disponibile per questo servizio nella regione selezionata.";
 
   activePoints = sortPointsByStarsPriority(activePoints);
-  prefetchPointLogos(activePoints);
+  prefetchPointLogos(activePoints, isCoarsePointerDevice() ? MOBILE_LOGO_PREFETCH_LIMIT : LOGO_PREFETCH_LIMIT);
   const previousRects = capturePointCardRects(els.pointsContent);
 
   if (activePoints.length === 0) {
@@ -2492,11 +2482,11 @@ function renderPointsStep() {
       : "";
 
     const fallbackInitials = getInitials(point.name);
-    const priorityLogo = index < 4;
+    const priorityLogo = index < (isCoarsePointerDevice() ? 2 : 4);
     const logoHtml = point.logo
       ? `<img src="${escapeHtmlAttr(point.logo)}" alt="Logo ${escapeHtmlAttr(point.name)}" loading="${
           priorityLogo ? "eager" : "lazy"
-        }" decoding="async" fetchpriority="${priorityLogo ? "high" : "auto"}" data-logo-fallback="${escapeHtmlAttr(
+        }" decoding="async" fetchpriority="${priorityLogo ? "high" : isCoarsePointerDevice() ? "low" : "auto"}" data-logo-fallback="${escapeHtmlAttr(
           fallbackInitials
         )}" />`
       : `<span class="point-logo-fallback">${escapeHtml(fallbackInitials)}</span>`;
@@ -3297,7 +3287,7 @@ function prefetchPointLogos(points, limit = LOGO_PREFETCH_LIMIT) {
 }
 
 async function preloadCriticalSiteAssets() {
-  const urls = getCriticalLogoUrls(CRITICAL_LOGO_PRELOAD_LIMIT);
+  const urls = getCriticalLogoUrls(isCoarsePointerDevice() ? MOBILE_CRITICAL_LOGO_PRELOAD_LIMIT : CRITICAL_LOGO_PRELOAD_LIMIT);
   if (urls.length === 0) return;
 
   urls.forEach(warmLogoOrigin);
@@ -3364,16 +3354,18 @@ function warmLogoOrigin(url) {
 
 function applySmartLogoFit(scope = document) {
   const host = scope instanceof HTMLElement ? scope : document;
-  const logos = host.querySelectorAll(".point-logo img");
+  const logos = host.querySelectorAll(".point-logo img, .workspace-point-logo img");
+  const skipDetailedLogoAnalysis = isCoarsePointerDevice() || logos.length > 8;
 
   logos.forEach((img) => {
     if (!(img instanceof HTMLImageElement)) return;
-    const wrap = img.closest(".point-logo");
+    const wrap = img.closest(".point-logo, .workspace-point-logo");
     wrap?.classList.add("is-loading");
     img.classList.remove("is-ready");
 
     const apply = () => {
       applyLogoFitMode(img, wrap, resolveCachedLogoFit(img));
+      if (skipDetailedLogoAnalysis) return;
 
       scheduleIdleTask(() => {
         if (!img.isConnected || !(img instanceof HTMLImageElement)) return;
