@@ -711,6 +711,12 @@ function adminConfirm(message, options = {}) {
     mark.setAttribute("aria-hidden", "true");
     mark.textContent = options.danger ? "!" : "i";
 
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.className = "admin-modal-close";
+    closeButton.setAttribute("aria-label", "Chiudi finestra");
+    closeButton.textContent = "×";
+
     const title = document.createElement("h2");
     title.id = "adminConfirmTitle";
     title.textContent = options.title || "Conferma azione";
@@ -733,7 +739,7 @@ function adminConfirm(message, options = {}) {
     confirmButton.textContent = options.confirmLabel || "Conferma";
 
     actions.append(cancelButton, confirmButton);
-    dialog.append(mark, title, body, actions);
+    dialog.append(closeButton, mark, title, body, actions);
     overlay.append(dialog);
     document.body.append(overlay);
     document.body.classList.add("admin-modal-open");
@@ -749,6 +755,7 @@ function adminConfirm(message, options = {}) {
     };
 
     cancelButton.addEventListener("click", () => finish(false));
+    closeButton.addEventListener("click", () => finish(false));
     confirmButton.addEventListener("click", () => finish(true));
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) finish(false);

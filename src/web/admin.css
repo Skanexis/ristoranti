@@ -5791,3 +5791,249 @@ body.admin-body {
   background: #7f9f8d !important;
   box-shadow: 0 0 0 4px rgba(126, 168, 144, 0.055) !important;
 }
+
+/* Premium emerald/champagne admin palette and precision controls. */
+:root {
+  --admin-luxe-black: #020504;
+  --admin-luxe-panel: rgba(7, 17, 13, 0.78);
+  --admin-luxe-panel-strong: rgba(10, 24, 18, 0.9);
+  --admin-luxe-emerald: #2fbf7a;
+  --admin-luxe-emerald-2: #76d9a2;
+  --admin-luxe-champagne: #d7bd7a;
+  --admin-luxe-platinum: #e7eee9;
+  --admin-luxe-steel: #aebbc3;
+  --admin-luxe-line: rgba(118, 217, 162, 0.26);
+  --admin-luxe-line-hot: rgba(215, 189, 122, 0.54);
+  --admin-luxe-muted: rgba(221, 231, 225, 0.68);
+  --admin-luxe-shadow: 0 28px 82px rgba(0, 0, 0, 0.58);
+}
+
+.admin-shell,
+.admin-auth-gate,
+body.admin-body {
+  color: var(--admin-luxe-platinum) !important;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(47, 191, 122, 0.2), transparent 34%),
+    radial-gradient(circle at 68% 70%, rgba(215, 189, 122, 0.07), transparent 30%),
+    linear-gradient(145deg, #020504 0%, #06100c 50%, #030605 100%) !important;
+}
+
+.admin-sidebar,
+.admin-card,
+.admin-auth-card,
+.admin-main-header,
+.admin-guide,
+.admin-panel-fold-summary,
+.admin-collapsible-summary,
+.admin-services,
+.admin-services label,
+.admin-modal,
+.admin-form input:not([type="hidden"]):not([type="checkbox"]):not([type="file"]),
+.admin-form select,
+.admin-form textarea,
+.admin-inline-field input,
+.admin-inline-field select,
+.admin-bulk-service-row select,
+.admin-grid input,
+.admin-grid select,
+.admin-grid textarea,
+.social-row input,
+.other-category-config-label,
+#dataJson,
+.admin-item,
+.preview-card,
+.kpi-card {
+  border-color: var(--admin-luxe-line) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.026)),
+    linear-gradient(135deg, rgba(47, 191, 122, 0.11), rgba(215, 189, 122, 0.045)),
+    var(--admin-luxe-panel) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    var(--admin-luxe-shadow) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.12) !important;
+  backdrop-filter: blur(18px) saturate(1.12) !important;
+}
+
+.admin-card-head h2,
+.admin-card-head h3,
+.admin-main-headline h2,
+.admin-sidebar-brand h1,
+.admin-auth-card h1,
+.admin-item-title,
+.preview-name,
+.kpi-value {
+  color: var(--admin-luxe-platinum) !important;
+}
+
+.admin-copy,
+.admin-hint,
+.admin-item-meta,
+.admin-item-drag-hint,
+.preview-meta,
+.preview-empty,
+.admin-empty,
+.admin-panel-fold-hint {
+  color: var(--admin-luxe-muted) !important;
+}
+
+.admin-eyebrow,
+.kpi-label,
+.admin-panel-fold-title,
+.admin-block-title,
+.form-mode,
+.admin-item-id {
+  color: var(--admin-luxe-emerald-2) !important;
+}
+
+.admin-btn,
+.admin-back-link,
+.admin-nav-link,
+.admin-side-link,
+.point-select-control,
+.social-remove,
+.mini-chip {
+  border-color: var(--admin-luxe-line) !important;
+  color: var(--admin-luxe-platinum) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.02)),
+    rgba(6, 14, 10, 0.88) !important;
+}
+
+.admin-btn:hover,
+.admin-back-link:hover,
+.admin-nav-link:hover,
+.admin-side-link:hover,
+.point-select-control:hover,
+.social-remove:hover,
+.admin-item:hover,
+.admin-item.is-selected,
+.admin-item.is-active,
+.admin-item.is-editing {
+  border-color: var(--admin-luxe-line-hot) !important;
+  color: var(--admin-luxe-platinum) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 64px rgba(0, 0, 0, 0.56),
+    0 0 28px rgba(215, 189, 122, 0.08) !important;
+}
+
+.admin-btn:not(.admin-btn-secondary):not(.admin-btn-danger),
+.admin-side-link[aria-current="page"],
+.admin-nav-link[aria-current="page"],
+.admin-side-link::before,
+.admin-modal-mark,
+.admin-service-icon,
+.mini-chip-premium,
+.preview-stars,
+.kpi-service-line strong,
+.admin-services input[type="checkbox"]:checked,
+#pointDeliveryItalia:checked,
+.point-select-toggle:checked {
+  color: var(--admin-luxe-platinum) !important;
+  border-color: rgba(118, 217, 162, 0.46) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.035)),
+    linear-gradient(145deg, rgba(47, 191, 122, 0.88), rgba(13, 70, 45, 0.96)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 34px rgba(0, 0, 0, 0.38),
+    0 0 24px rgba(47, 191, 122, 0.1) !important;
+}
+
+.admin-btn:not(.admin-btn-secondary):not(.admin-btn-danger) *,
+.admin-side-link[aria-current="page"] *,
+.admin-nav-link[aria-current="page"] *,
+.admin-item.is-selected *,
+.admin-item.is-active *,
+.admin-item.is-editing * {
+  color: var(--admin-luxe-platinum) !important;
+}
+
+.admin-service-icon-ship {
+  color: #f7fbff !important;
+  border-color: rgba(174, 187, 195, 0.42) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03)),
+    linear-gradient(145deg, rgba(92, 111, 122, 0.96), rgba(23, 35, 42, 0.98)) !important;
+}
+
+.admin-service-icon-other {
+  color: #fff8e8 !important;
+  border-color: rgba(215, 189, 122, 0.38) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.028)),
+    linear-gradient(145deg, rgba(128, 98, 42, 0.9), rgba(41, 32, 17, 0.96)) !important;
+}
+
+.admin-modal {
+  position: relative !important;
+  padding-top: 46px !important;
+}
+
+.admin-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(215, 189, 122, 0.28);
+  border-radius: 11px;
+  color: var(--admin-luxe-platinum);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+    rgba(5, 12, 9, 0.86);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 12px 28px rgba(0, 0, 0, 0.34);
+  font: 700 20px/1 "Plus Jakarta Sans", system-ui, sans-serif;
+  text-align: center;
+  cursor: pointer;
+}
+
+.admin-modal-close:hover,
+.admin-modal-close:focus-visible {
+  border-color: rgba(215, 189, 122, 0.56);
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgba(215, 189, 122, 0.12),
+    0 14px 32px rgba(0, 0, 0, 0.42);
+}
+
+.admin-modal-mark,
+.admin-service-icon,
+.mini-chip-premium,
+.preview-stars {
+  display: grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+.admin-form input:focus-visible,
+.admin-form select:focus-visible,
+.admin-form textarea:focus-visible,
+.admin-inline-field input:focus-visible,
+.admin-inline-field select:focus-visible,
+.social-row input:focus-visible,
+#dataJson:focus-visible,
+.admin-modal:focus-visible {
+  outline-color: rgba(215, 189, 122, 0.72) !important;
+  border-color: rgba(215, 189, 122, 0.48) !important;
+  box-shadow:
+    0 0 0 5px rgba(215, 189, 122, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-form label:has(input[required])::after,
+.admin-form label:has(select[required])::after,
+.admin-form label:has(textarea[required])::after {
+  border-color: rgba(215, 189, 122, 0.42) !important;
+  background: var(--admin-luxe-champagne) !important;
+  box-shadow: 0 0 0 4px rgba(215, 189, 122, 0.08) !important;
+}

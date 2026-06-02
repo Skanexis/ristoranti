@@ -224,7 +224,30 @@ async function handleApiRequest(req, res, pathname) {
   if (pathname === "/api/public-data" && method === "GET") {
     currentData = loadDataFromDisk();
     const publicData = normalizeInputData(currentData);
-    sendJson(res, 200, { data: publicData });
+    const versionMeta = getPublicDataVersionMeta();
+    const cacheHeaders = {
+      "Cache-Control": "public, max-age=0, must-revalidate",
+      ETag: versionMeta.etag,
+      "Last-Modified": versionMeta.lastModified,
+    };
+
+    if (isFreshPublicDataRequest(req, versionMeta)) {
+      sendEmpty(res, 304, cacheHeaders);
+      return;
+    }
+
+    sendJson(
+      res,
+      200,
+      {
+        data: publicData,
+        meta: {
+          version: versionMeta.version,
+          updatedAt: versionMeta.lastModified,
+        },
+      },
+      cacheHeaders
+    );
     return;
   }
 
@@ -464,10 +487,15 @@ async function handleStaticRequest(req, res, pathname) {
     "Referrer-Policy": "same-origin",
   };
 
-  if ([".html", ".css", ".js", ".json"].includes(ext)) {
+  const hasVersionQuery = requestHasVersionQuery(req);
+  if (ext === ".html" || ext === ".json") {
     headers["Cache-Control"] = "no-store";
-  } else {
+  } else if ((ext === ".css" || ext === ".js") && hasVersionQuery) {
+    headers["Cache-Control"] = "public, max-age=31536000, immutable";
+  } else if (ext === ".css" || ext === ".js") {
     headers["Cache-Control"] = "public, max-age=300";
+  } else {
+    headers["Cache-Control"] = "public, max-age=604800";
   }
 
   if (method === "HEAD") {
@@ -495,6 +523,16 @@ function sendJson(res, statusCode, payload, extraHeaders = {}) {
   res.end(body);
 }
 
+function sendEmpty(res, statusCode, extraHeaders = {}) {
+  res.writeHead(statusCode, {
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "same-origin",
+    ...extraHeaders,
+  });
+  res.end();
+}
+
 function sendRedirect(res, location, statusCode = 301) {
   const safeLocation = typeof location === "string" && location ? location : "/";
   res.writeHead(statusCode, {
@@ -504,6 +542,43 @@ function sendRedirect(res, location, statusCode = 301) {
     "Referrer-Policy": "same-origin",
   });
   res.end();
+}
+
+function getPublicDataVersionMeta() {
+  let stat = null;
+  try {
+    stat = fs.statSync(DATA_FILE);
+  } catch {
+    stat = null;
+  }
+
+  const modifiedMs = Math.floor(Number(stat?.mtimeMs) || Date.now());
+  const size = Number(stat?.size || 0);
+  return {
+    etag: `"ri-public-data-${modifiedMs}-${size}"`,
+    lastModified: new Date(modifiedMs).toUTCString(),
+    version: `${modifiedMs}:${size}`,
+  };
+}
+
+function isFreshPublicDataRequest(req, versionMeta) {
+  const ifNoneMatch = String(req.headers["if-none-match"] || "");
+  if (ifNoneMatch.split(",").some((value) => value.trim() === versionMeta.etag)) {
+    return true;
+  }
+
+  const ifModifiedSince = Date.parse(String(req.headers["if-modified-since"] || ""));
+  const lastModified = Date.parse(versionMeta.lastModified);
+  return Number.isFinite(ifModifiedSince) && Number.isFinite(lastModified) && ifModifiedSince >= lastModified;
+}
+
+function requestHasVersionQuery(req) {
+  try {
+    const requestUrl = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+    return requestUrl.searchParams.has("v");
+  } catch {
+    return false;
+  }
 }
 
 function getCanonicalPageRedirect(pathname) {

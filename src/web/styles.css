@@ -229,6 +229,20 @@ body::before {
   animation: preloadProgress 5s linear both;
 }
 
+body.preload-pending .app {
+  opacity: 0;
+  transform: scale(0.996);
+  filter: none;
+  pointer-events: none;
+}
+
+body.preload-pending.preload-exit .app {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  pointer-events: auto;
+}
+
 @media (max-width: 760px) {
   .app-screen {
     transition:
@@ -5876,7 +5890,7 @@ body.map-only-page {
 .static-map-shell .italy-map-stage-home::after,
 .static-map-shell .pro-map-stage::before,
 .static-map-shell .pro-map-stage::after {
-  display: none;
+  display: grid;
 }
 
 .static-map-shell .italy-map-grid {
@@ -12884,6 +12898,821 @@ body,
   .map-ux-service-guide-label {
     opacity: 1 !important;
     transform: translate3d(-50%, -50%, 0) !important;
+  }
+}
+
+/* Premium emerald/champagne palette: brighter than carbon, still restrained and readable. */
+:root {
+  --ri-luxe-black: #020504;
+  --ri-luxe-ink: #06100c;
+  --ri-luxe-panel: rgba(7, 17, 13, 0.78);
+  --ri-luxe-panel-strong: rgba(10, 24, 18, 0.9);
+  --ri-luxe-emerald: #2fbf7a;
+  --ri-luxe-emerald-2: #76d9a2;
+  --ri-luxe-emerald-deep: #0f3f2b;
+  --ri-luxe-champagne: #d7bd7a;
+  --ri-luxe-platinum: #e7eee9;
+  --ri-luxe-steel: #aebbc3;
+  --ri-luxe-line: rgba(118, 217, 162, 0.28);
+  --ri-luxe-line-hot: rgba(215, 189, 122, 0.54);
+  --ri-luxe-muted: rgba(221, 231, 225, 0.68);
+  --ri-luxe-shadow: 0 28px 82px rgba(0, 0, 0, 0.58);
+}
+
+body,
+.static-map-screen,
+.workspace-shell {
+  color: var(--ri-luxe-platinum) !important;
+  background:
+    radial-gradient(circle at 24% 24%, rgba(47, 191, 122, 0.22), transparent 33%),
+    radial-gradient(circle at 70% 62%, rgba(215, 189, 122, 0.075), transparent 30%),
+    linear-gradient(145deg, #020504 0%, #06100c 48%, #030605 100%) !important;
+}
+
+.static-map-screen::before,
+.static-map-screen::after,
+.static-map-shell::before,
+.static-map-shell::after {
+  opacity: 0.34 !important;
+}
+
+.map-ux-brand,
+.map-ux-mini-stats,
+.map-ux-clear,
+.map-ux-dock,
+.workspace-header,
+.workspace-points-panel,
+.workspace-side-panel,
+.workspace-point-card,
+.workspace-region-shortcut,
+.workspace-service-tab,
+.map-ux-home-service,
+.map-ux-service-btn,
+.workspace-point-links .point-link,
+.point-links .point-link,
+.card,
+.map-ux-service-guide-label {
+  border-color: rgba(118, 217, 162, 0.22) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.026)),
+    linear-gradient(135deg, rgba(47, 191, 122, 0.12), rgba(215, 189, 122, 0.045)),
+    var(--ri-luxe-panel) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    var(--ri-luxe-shadow) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.12) !important;
+  backdrop-filter: blur(18px) saturate(1.12) !important;
+}
+
+.map-ux-brand b,
+.map-ux-dock-copy strong,
+.workspace-title-block h2,
+.workspace-section-head strong,
+.workspace-point-body h3 {
+  color: var(--ri-luxe-platinum) !important;
+}
+
+.map-ux-brand small,
+.map-ux-dock-copy p,
+.map-ux-service-btn small,
+.map-ux-home-service small,
+.workspace-title-block span,
+.workspace-section-head span,
+.workspace-point-body p,
+.workspace-point-meta {
+  color: var(--ri-luxe-muted) !important;
+}
+
+.map-ux-kicker,
+.map-ux-mini-stats b,
+.workspace-point-type,
+.workspace-point-meta,
+.workspace-point-card .point-star-label {
+  color: var(--ri-luxe-emerald-2) !important;
+}
+
+.map-ux-mark,
+.map-ux-pulse,
+.map-ux-home-service i,
+.map-ux-service-btn i,
+.workspace-service-tab i,
+.region-service-chip i,
+.point-service-pill i,
+.floating-btn,
+.workspace-region-shortcut b,
+.workspace-point-links .point-link:first-child,
+.point-link-icon,
+.point-link-instagram .point-link-icon,
+.point-link-telegram .point-link-icon,
+.workspace-point-card .point-stars,
+.preview-stars {
+  color: #f4fbf6 !important;
+  border-color: rgba(118, 217, 162, 0.46) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.035)),
+    linear-gradient(145deg, rgba(47, 191, 122, 0.88), rgba(13, 70, 45, 0.96)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 34px rgba(0, 0, 0, 0.38),
+    0 0 24px rgba(47, 191, 122, 0.1) !important;
+}
+
+.map-ux-home-service-ship i,
+.map-ux-service-btn-ship i,
+.workspace-service-tab-ship i,
+.region-service-chip-ship i,
+.point-service-pill-ship i,
+.point-link-site .point-link-icon,
+.point-link-facebook .point-link-icon {
+  color: #f7fbff !important;
+  border-color: rgba(174, 187, 195, 0.42) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03)),
+    linear-gradient(145deg, rgba(92, 111, 122, 0.96), rgba(23, 35, 42, 0.98)) !important;
+}
+
+.map-ux-home-service-other i,
+.map-ux-service-btn-other i,
+.workspace-service-tab-other i,
+.region-service-chip-other i,
+.point-service-pill-other i {
+  color: #fff8e8 !important;
+  border-color: rgba(215, 189, 122, 0.38) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.028)),
+    linear-gradient(145deg, rgba(128, 98, 42, 0.9), rgba(41, 32, 17, 0.96)) !important;
+}
+
+.map-ux-clear:hover,
+.workspace-back:hover,
+.workspace-clear:hover,
+.workspace-service-tab:hover:enabled,
+.map-ux-home-service:hover:enabled,
+.map-ux-service-btn:hover:enabled,
+.workspace-region-shortcut:hover,
+.workspace-point-links .point-link:hover,
+.point-links .point-link:hover,
+.floating-btn:hover {
+  border-color: var(--ri-luxe-line-hot) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 64px rgba(0, 0, 0, 0.56),
+    0 0 28px rgba(215, 189, 122, 0.08) !important;
+}
+
+.workspace-service-tab.is-active,
+.region-service-chip.is-active,
+.workspace-region-shortcut.is-active,
+.workspace-ship-country-filter.is-active,
+.admin-item.is-selected,
+.admin-item.is-active,
+.admin-item.is-editing {
+  color: var(--ri-luxe-platinum) !important;
+  border-color: rgba(215, 189, 122, 0.48) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.035)),
+    linear-gradient(145deg, rgba(31, 126, 78, 0.95), rgba(11, 45, 31, 0.96)) !important;
+}
+
+.workspace-service-tab.is-active *,
+.region-service-chip.is-active *,
+.workspace-region-shortcut.is-active *,
+.workspace-ship-country-filter.is-active *,
+.map-ux-home-service:focus-visible *,
+.map-ux-service-btn:focus-visible * {
+  color: var(--ri-luxe-platinum) !important;
+}
+
+.static-map-shell .italy-map-svg {
+  filter:
+    drop-shadow(0 1px 0 rgba(118, 217, 162, 0.14))
+    drop-shadow(0 30px 56px rgba(0, 0, 0, 0.5)) !important;
+}
+
+.static-map-shell .italy-region-shape,
+.static-map-shell .italy-region-shape.is-warm,
+.static-map-shell .italy-region-shape.is-hot {
+  stroke: rgba(118, 217, 162, 0.46) !important;
+}
+
+.static-map-shell .italy-region-shape {
+  fill: rgba(10, 40, 27, 0.78) !important;
+}
+
+.static-map-shell .italy-region-shape.is-warm {
+  fill: rgba(20, 76, 46, 0.84) !important;
+}
+
+.static-map-shell .italy-region-shape.is-hot {
+  fill: rgba(39, 130, 77, 0.86) !important;
+}
+
+.static-map-shell .italy-region-shape:not(.is-disabled):hover,
+.static-map-shell [data-region]:focus-visible .italy-region-shape,
+.static-map-shell .italy-region-shape.is-tapping,
+.static-map-shell .italy-region-shape:not(.is-disabled):active,
+.static-map-shell .italy-region-shape.is-selected {
+  fill: rgba(47, 191, 122, 0.9) !important;
+  stroke: rgba(255, 241, 204, 0.9) !important;
+  filter:
+    drop-shadow(0 0 9px rgba(47, 191, 122, 0.22))
+    drop-shadow(0 16px 30px rgba(0, 0, 0, 0.44)) !important;
+}
+
+.static-map-shell .italy-region-label {
+  fill: rgba(238, 246, 241, 0.84) !important;
+}
+
+.static-map-shell .italy-region-label.is-selected {
+  fill: #fff7df !important;
+}
+
+.static-map-shell .italy-region-halo {
+  fill: rgba(47, 191, 122, 0.09) !important;
+  stroke: rgba(215, 189, 122, 0.34) !important;
+}
+
+.map-ux-service-guide::before {
+  border-color: rgba(118, 217, 162, 0.18) !important;
+  background:
+    radial-gradient(circle at 10% 50%, rgba(118, 217, 162, 0.7) 0 2px, transparent 3px),
+    radial-gradient(circle at 50% 50%, rgba(215, 189, 122, 0.55) 0 2px, transparent 3px),
+    radial-gradient(circle at 90% 50%, rgba(174, 187, 195, 0.5) 0 2px, transparent 3px),
+    linear-gradient(90deg, transparent, rgba(118, 217, 162, 0.11), rgba(215, 189, 122, 0.08), transparent) !important;
+}
+
+.map-ux-service-guide::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 239, 197, 0.5), rgba(118, 217, 162, 0.28), transparent) !important;
+}
+
+.map-ux-service-guide-line {
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(118, 217, 162, 0.18) 16%, rgba(215, 189, 122, 0.24) 50%, rgba(174, 187, 195, 0.16) 84%, transparent 100%) !important;
+}
+
+.map-ux-service-guide-line::before {
+  border-color: rgba(255, 239, 197, 0.44) !important;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.44), transparent 26%),
+    radial-gradient(circle at 50% 50%, rgba(118, 217, 162, 0.62) 0 20%, rgba(215, 189, 122, 0.16) 24% 50%, transparent 54%),
+    rgba(5, 12, 9, 0.82) !important;
+}
+
+.map-ux-service-guide-label::before {
+  background: var(--ri-luxe-champagne) !important;
+  box-shadow: 0 0 12px rgba(215, 189, 122, 0.28) !important;
+}
+
+.workspace-back:focus-visible,
+.workspace-clear:focus-visible,
+.map-ux-clear:focus-visible,
+.map-ux-home-service:focus-visible,
+.map-ux-service-btn:focus-visible,
+.workspace-service-tab:focus-visible,
+.workspace-region-shortcut:focus-visible,
+.workspace-point-links .point-link:focus-visible,
+.point-links .point-link:focus-visible,
+.floating-btn:focus-visible {
+  outline-color: rgba(215, 189, 122, 0.72) !important;
+  box-shadow:
+    0 0 0 5px rgba(215, 189, 122, 0.14),
+    var(--ri-luxe-shadow) !important;
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell .italy-region-shape {
+    fill: rgba(9, 34, 24, 0.8) !important;
+  }
+
+  .static-map-shell .italy-region-shape.is-warm {
+    fill: rgba(19, 67, 43, 0.84) !important;
+  }
+
+  .static-map-shell .italy-region-shape.is-hot {
+    fill: rgba(35, 113, 69, 0.86) !important;
+  }
+}
+
+/* Workspace tab swap: wipe old cards, reveal new cards without layout jump. */
+.workspace-points-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.workspace-points-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -18%;
+  z-index: 8;
+  width: 18%;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 244, 207, 0.28), rgba(118, 217, 162, 0.16), transparent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 45%, rgba(255, 255, 255, 0.035));
+  filter: blur(2px);
+  transform: skewX(-8deg) translate3d(0, 0, 0);
+}
+
+.workspace-points-panel.is-service-swapping::after,
+.workspace-points-panel.is-service-revealing::after {
+  animation: workspacePanelSweep 560ms cubic-bezier(0.16, 0.84, 0.28, 1) both;
+}
+
+.workspace-point-grid {
+  position: relative;
+  isolation: isolate;
+  transform-origin: 50% 0;
+  will-change: opacity, transform, filter, clip-path;
+}
+
+.workspace-point-grid::before {
+  content: "";
+  position: absolute;
+  inset: -12px 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 244, 207, 0.22), rgba(118, 217, 162, 0.14), transparent),
+    linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  filter: blur(1px);
+  transform: translate3d(-38%, 0, 0);
+}
+
+.workspace-point-grid.is-wiping {
+  animation: workspaceGridWipeOut 180ms cubic-bezier(0.42, 0, 0.7, 0.3) both;
+}
+
+.workspace-point-grid.is-wiping::before {
+  animation: workspaceGridWipeLine 180ms cubic-bezier(0.42, 0, 0.7, 0.3) both;
+}
+
+.workspace-point-grid.is-revealing {
+  animation: workspaceGridRevealIn 520ms cubic-bezier(0.16, 0.84, 0.28, 1) both;
+}
+
+.workspace-point-grid.is-revealing::before {
+  animation: workspaceGridRevealLine 520ms cubic-bezier(0.16, 0.84, 0.28, 1) both;
+}
+
+.workspace-points-panel.is-service-swapping .workspace-section-head,
+.workspace-points-panel.is-service-swapping .workspace-service-tabs {
+  animation: workspaceControlsWipe 180ms cubic-bezier(0.42, 0, 0.7, 0.3) both;
+}
+
+.workspace-points-panel.is-service-revealing .workspace-section-head,
+.workspace-points-panel.is-service-revealing .workspace-service-tabs {
+  animation: workspaceControlsReveal 360ms cubic-bezier(0.16, 0.84, 0.28, 1) both;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card,
+.workspace-point-grid.is-revealing .workspace-empty,
+.workspace-point-grid.is-revealing .workspace-service-select {
+  animation: workspaceCardReveal 520ms cubic-bezier(0.16, 0.84, 0.28, 1) both;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(1) {
+  animation-delay: 35ms;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(3) {
+  animation-delay: 105ms;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(4) {
+  animation-delay: 140ms;
+}
+
+.workspace-point-grid.is-revealing .workspace-point-card:nth-child(n + 5) {
+  animation-delay: 170ms;
+}
+
+@keyframes workspaceGridWipeOut {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    clip-path: inset(0 0 0 0 round 18px);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(8px);
+    clip-path: inset(0 0 0 100% round 18px);
+    transform: translate3d(10px, 0, 0) scale(0.992);
+  }
+}
+
+@keyframes workspaceGridRevealIn {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    clip-path: inset(0 100% 0 0 round 18px);
+    transform: translate3d(-10px, 0, 0) scale(0.992);
+  }
+
+  72% {
+    opacity: 1;
+    filter: blur(1px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    clip-path: inset(0 0 0 0 round 18px);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes workspaceGridWipeLine {
+  0% {
+    opacity: 0;
+    transform: translate3d(-42%, 0, 0);
+  }
+
+  22%,
+  72% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(42%, 0, 0);
+  }
+}
+
+@keyframes workspaceGridRevealLine {
+  0% {
+    opacity: 0;
+    transform: translate3d(-48%, 0, 0);
+  }
+
+  18%,
+  64% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(54%, 0, 0);
+  }
+}
+
+@keyframes workspaceCardReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+    filter: blur(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes workspaceControlsWipe {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    opacity: 0.42;
+    transform: translate3d(8px, 0, 0);
+  }
+}
+
+@keyframes workspaceControlsReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(-8px, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes workspacePanelSweep {
+  0% {
+    opacity: 0;
+    transform: skewX(-8deg) translate3d(-10%, 0, 0);
+  }
+
+  16%,
+  72% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+    transform: skewX(-8deg) translate3d(760%, 0, 0);
+  }
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .workspace-point-grid.is-wiping {
+    animation-duration: 150ms;
+  }
+
+  .workspace-point-grid.is-wiping::before {
+    animation-duration: 150ms;
+  }
+
+  .workspace-point-grid.is-revealing {
+    animation-duration: 420ms;
+  }
+
+  .workspace-point-grid.is-revealing::before {
+    animation-duration: 420ms;
+  }
+
+  .workspace-point-grid.is-revealing .workspace-point-card,
+  .workspace-point-grid.is-revealing .workspace-empty,
+  .workspace-point-grid.is-revealing .workspace-service-select {
+    animation-duration: 420ms;
+  }
+
+  .workspace-points-panel::after {
+    width: 26%;
+  }
+
+  @keyframes workspaceCardReveal {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0) scale(0.99);
+      filter: blur(6px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+      filter: blur(0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-point-grid.is-wiping,
+  .workspace-point-grid.is-wiping::before,
+  .workspace-point-grid.is-revealing,
+  .workspace-point-grid.is-revealing::before,
+  .workspace-points-panel.is-service-swapping .workspace-section-head,
+  .workspace-points-panel.is-service-swapping .workspace-service-tabs,
+  .workspace-points-panel.is-service-revealing .workspace-section-head,
+  .workspace-points-panel.is-service-revealing .workspace-service-tabs,
+  .workspace-point-grid.is-revealing .workspace-point-card,
+  .workspace-point-grid.is-revealing .workspace-empty,
+  .workspace-point-grid.is-revealing .workspace-service-select {
+    animation: none !important;
+  }
+}
+
+/* Performance reveal pass: keep the preloader, but stop it from masking the ready UI. */
+body.preload-pending .app,
+body.preload-pending.preload-exit .app {
+  transition:
+    opacity 220ms cubic-bezier(0.2, 0.9, 0.24, 1),
+    transform 220ms cubic-bezier(0.2, 0.9, 0.24, 1) !important;
+}
+
+.mobile-preloader {
+  transition:
+    opacity 220ms cubic-bezier(0.2, 0.9, 0.24, 1),
+    transform 220ms cubic-bezier(0.2, 0.9, 0.24, 1),
+    filter 220ms cubic-bezier(0.2, 0.9, 0.24, 1) !important;
+}
+
+.mobile-preloader-frame,
+.mobile-preloader-title,
+.mobile-preloader-subtitle,
+.mobile-preloader-bar {
+  transition:
+    opacity 180ms cubic-bezier(0.2, 0.9, 0.24, 1),
+    transform 180ms cubic-bezier(0.2, 0.9, 0.24, 1) !important;
+}
+
+/* Luxe preloader: plays as a real loading phase while data/assets are warmed. */
+.mobile-preloader {
+  gap: 10px !important;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(47, 191, 122, 0.18), transparent 36%),
+    radial-gradient(circle at 50% 68%, rgba(215, 189, 122, 0.08), transparent 34%),
+    linear-gradient(145deg, rgba(2, 5, 4, 0.96), rgba(6, 16, 12, 0.98) 54%, rgba(2, 5, 4, 0.98)) !important;
+  transition:
+    opacity 320ms cubic-bezier(0.2, 0.9, 0.24, 1),
+    transform 320ms cubic-bezier(0.2, 0.9, 0.24, 1),
+    filter 320ms cubic-bezier(0.2, 0.9, 0.24, 1) !important;
+}
+
+.mobile-preloader::before,
+.mobile-preloader::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.mobile-preloader::before {
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(118, 217, 162, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(118, 217, 162, 0.025) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(circle at 50% 48%, #000 0 42%, transparent 78%);
+  opacity: 0.5;
+}
+
+.mobile-preloader::after {
+  left: 50%;
+  top: 50%;
+  width: min(72vw, 320px);
+  height: min(72vw, 320px);
+  border: 1px solid rgba(118, 217, 162, 0.13);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 0 0 1px rgba(215, 189, 122, 0.08),
+    0 0 80px rgba(47, 191, 122, 0.08);
+  transform: translate(-50%, -50%);
+  animation: luxePreloaderOrbit 1.8s cubic-bezier(0.2, 0.9, 0.24, 1) both;
+}
+
+.mobile-preloader-frame {
+  width: min(28vw, 112px) !important;
+  border-radius: 26px !important;
+  border-color: rgba(215, 189, 122, 0.38) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.025)),
+    radial-gradient(circle at 50% 50%, rgba(47, 191, 122, 0.18), transparent 64%),
+    rgba(5, 13, 10, 0.86) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.32),
+    0 26px 70px rgba(0, 0, 0, 0.58),
+    0 0 44px rgba(47, 191, 122, 0.1) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.14);
+  backdrop-filter: blur(18px) saturate(1.14);
+}
+
+.mobile-preloader-brand {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(118, 217, 162, 0.42);
+  border-radius: 16px;
+  color: #f4fbf6;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.035)),
+    linear-gradient(145deg, rgba(47, 191, 122, 0.9), rgba(13, 70, 45, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 12px 28px rgba(0, 0, 0, 0.34);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.mobile-preloader-glow {
+  inset: 18% !important;
+  background: radial-gradient(circle, rgba(118, 217, 162, 0.36), rgba(47, 191, 122, 0.08) 62%, transparent 78%) !important;
+  filter: blur(12px) !important;
+  animation: luxePreloaderGlow 1.8s ease-in-out infinite !important;
+}
+
+.mobile-preloader-ring {
+  width: min(20vw, 78px) !important;
+  border-color: rgba(118, 217, 162, 0.16) !important;
+  border-top-color: rgba(215, 189, 122, 0.95) !important;
+  border-right-color: rgba(118, 217, 162, 0.48) !important;
+  animation: preloaderSpin 1.45s cubic-bezier(0.62, 0.05, 0.28, 0.98) infinite !important;
+}
+
+.mobile-preloader-dot {
+  width: 7px !important;
+  height: 7px !important;
+  background: var(--ri-luxe-champagne, #d7bd7a) !important;
+  box-shadow:
+    0 0 0 5px rgba(215, 189, 122, 0.1),
+    0 0 20px rgba(215, 189, 122, 0.38) !important;
+  animation: luxePreloaderDot 1.45s ease-in-out infinite !important;
+}
+
+.mobile-preloader-title {
+  margin-top: 8px !important;
+  color: #f2f7f3 !important;
+  font-size: clamp(1rem, 4vw, 1.18rem) !important;
+  letter-spacing: 0 !important;
+}
+
+.mobile-preloader-subtitle {
+  color: rgba(221, 231, 225, 0.68) !important;
+  font-size: 0.58rem !important;
+  letter-spacing: 0.12em !important;
+}
+
+.mobile-preloader-meta {
+  position: relative;
+  margin: 0;
+  color: rgba(215, 189, 122, 0.76);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mobile-preloader-bar {
+  width: min(56vw, 210px) !important;
+  height: 4px !important;
+  margin-top: 3px;
+  border: 1px solid rgba(118, 217, 162, 0.18);
+  background: rgba(4, 12, 9, 0.76) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 28px rgba(0, 0, 0, 0.32);
+}
+
+.mobile-preloader-bar span {
+  background:
+    linear-gradient(90deg, rgba(47, 191, 122, 0.26), rgba(215, 189, 122, 0.98), rgba(118, 217, 162, 0.72)) !important;
+  box-shadow: 0 0 18px rgba(215, 189, 122, 0.22);
+  animation: luxePreloadProgress 1.65s cubic-bezier(0.2, 0.8, 0.22, 1) both !important;
+}
+
+body.preload-pending .mobile-preloader {
+  display: grid !important;
+}
+
+body.preload-exit .mobile-preloader {
+  transform: scale(1.012);
+}
+
+@keyframes luxePreloadProgress {
+  0% {
+    transform: scaleX(0);
+  }
+
+  42% {
+    transform: scaleX(0.62);
+  }
+
+  76% {
+    transform: scaleX(0.88);
+  }
+
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes luxePreloaderOrbit {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.82);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes luxePreloaderGlow {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes luxePreloaderDot {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(0.86);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.18);
   }
 }
 

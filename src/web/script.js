@@ -9,6 +9,11 @@ const state = {
   mapOffsetY: 0,
   screen: "map",
 };
+const WORKSPACE_SWAP_EXIT_MS = 180;
+const WORKSPACE_SWAP_REVEAL_MS = 560;
+let workspaceSwapTimer = 0;
+let workspaceRevealTimer = 0;
+let workspaceSwapSerial = 0;
 const VALID_SERVICES = ["meetup", "delivery", "ship", "other"];
 const REGION_PRIORITY_SERVICES = ["meetup", "delivery"];
 const WORKSPACE_SERVICES = ["meetup", "delivery", "ship", "other"];
@@ -190,14 +195,22 @@ const REGION_MAP_VIEWBOX =
     : "0 0 360 430";
 const REGION_MAP_DISPLAY_VIEWBOX = "10 10 326 410";
 const PUBLIC_DATA_ENDPOINT = "/api/public-data";
+const PUBLIC_DATA_CACHE_KEY = "ri-public-data-v2";
+const PUBLIC_DATA_PERSISTENT_CACHE_KEY = "ri-public-data-persistent-v2";
+const PUBLIC_DATA_SESSION_CACHE_TTL_MS = 1000 * 60 * 20;
+const PUBLIC_DATA_PERSISTENT_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const LOGO_PREFETCH_LIMIT = 5;
+const CRITICAL_LOGO_PRELOAD_LIMIT = 14;
+const CRITICAL_LOGO_PRELOAD_WAIT_MS = 620;
 const warmedLogoOrigins = new Set();
 const prefetchedLogoUrls = new Set();
+const logoFitCache = new Map();
 const IS_MAP_ONLY_HOME = document.querySelector(".map-only-app") !== null;
 
 applyGeneratedRegionMapData();
 
-let appData = fallbackData();
+let appData = loadFallbackAppData();
+let appDataCacheSignature = "";
 let mapPanSession = null;
 let activeTiltCard = null;
 
@@ -227,18 +240,21 @@ setupFloatingTools();
 void initializeAppData();
 
 async function initializeAppData() {
-  normalizeState();
-  renderHeroSocialLinks();
-  renderMapHomeStep();
-  renderPointsStep();
-  updateExperienceHud();
+  const cachedData = readCachedPublicData();
+  if (cachedData) {
+    appData = cachedData.data;
+    appDataCacheSignature = cachedData.signature;
+  }
 
-  await loadAppDataFromServer();
   normalizeState();
   renderHeroSocialLinks();
   renderMapHomeStep();
   renderPointsStep();
   updateExperienceHud();
+  window.dispatchEvent(new CustomEvent("ri:first-render"));
+
+  await refreshPublicDataFromServer();
+  await preloadCriticalSiteAssets();
   window.dispatchEvent(new CustomEvent("ri:app-ready"));
 }
 
@@ -672,39 +688,190 @@ function setupTelegram() {
 }
 
 async function refreshLiveData() {
-  await loadAppDataFromServer();
+  await refreshPublicDataFromServer();
+}
+
+async function refreshPublicDataFromServer() {
+  const nextData = await fetchPublicDataFromServer();
+  if (!nextData) {
+    updateExperienceHud();
+    return false;
+  }
+
+  appData = nextData.data;
+  appDataCacheSignature = nextData.signature;
+  writeCachedPublicData(appData, appDataCacheSignature);
+
   normalizeState();
   renderHeroSocialLinks();
   renderMapHomeStep();
   renderPointsStep();
+  updateExperienceHud();
+  return true;
 }
 
-async function loadAppDataFromServer() {
-  const controller = typeof AbortController === "function" ? new AbortController() : null;
-  const timeoutId = controller ? window.setTimeout(() => controller.abort(), 2600) : 0;
+async function fetchPublicDataFromServer() {
+  const preloadedResponse = consumePublicDataPreload();
+  const controller = !preloadedResponse && typeof AbortController === "function" ? new AbortController() : null;
+  const timeoutId = controller ? window.setTimeout(() => controller.abort(), 1800) : 0;
 
   try {
-    const response = await fetch(PUBLIC_DATA_ENDPOINT, {
-      method: "GET",
-      credentials: "same-origin",
-      cache: "no-cache",
-      signal: controller?.signal,
-    });
+    const response = preloadedResponse
+      ? await waitForPreloadedPublicData(preloadedResponse)
+      : await fetch(PUBLIC_DATA_ENDPOINT, {
+          method: "GET",
+          credentials: "same-origin",
+          signal: controller?.signal,
+        });
+
+    if (!response) {
+      return null;
+    }
+
+    if (response.status === 304) {
+      return null;
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const payload = await response.json();
-    appData = normalizeDataInput(payload?.data);
-    return;
+    const rawPayload = await response.text();
+    const payload = JSON.parse(rawPayload || "{}");
+    const data = normalizeDataInput(payload?.data);
+    const signature = createResponseSignature(payload, rawPayload, response);
+    if (signature && signature === appDataCacheSignature) {
+      return null;
+    }
+
+    return { data, signature };
   } catch {
-    appData = loadFallbackAppData();
+    return null;
   } finally {
     if (timeoutId) {
       window.clearTimeout(timeoutId);
     }
   }
+}
+
+function consumePublicDataPreload() {
+  const pendingResponse = window.__riPublicDataPreload;
+  window.__riPublicDataPreload = null;
+  return pendingResponse && typeof pendingResponse.then === "function" ? pendingResponse : null;
+}
+
+function waitForPreloadedPublicData(pendingResponse) {
+  return Promise.race([
+    pendingResponse,
+    new Promise((resolve) => {
+      window.setTimeout(() => resolve(null), 1800);
+    }),
+  ]);
+}
+
+function readCachedPublicData() {
+  const sessionData = readPublicDataCacheFromStorage(
+    "sessionStorage",
+    PUBLIC_DATA_CACHE_KEY,
+    PUBLIC_DATA_SESSION_CACHE_TTL_MS
+  );
+  if (sessionData) return sessionData;
+
+  const persistentData = readPublicDataCacheFromStorage(
+    "localStorage",
+    PUBLIC_DATA_PERSISTENT_CACHE_KEY,
+    PUBLIC_DATA_PERSISTENT_CACHE_TTL_MS
+  );
+  if (persistentData) {
+    writePublicDataCacheToStorage("sessionStorage", PUBLIC_DATA_CACHE_KEY, persistentData.data, persistentData.signature);
+  }
+
+  return persistentData;
+}
+
+function readPublicDataCacheFromStorage(storageName, key, maxAgeMs) {
+  try {
+    const storage = getBrowserStorage(storageName);
+    if (!storage) return null;
+
+    const raw = storage.getItem(key);
+    if (!raw) return null;
+
+    const cache = JSON.parse(raw);
+    const createdAt = Number(cache?.createdAt || 0);
+    if (!createdAt || Date.now() - createdAt > maxAgeMs) {
+      storage.removeItem(key);
+      return null;
+    }
+
+    const data = normalizeDataInput(cache?.data);
+    const signature = String(cache?.signature || createDataSignature(data));
+    return { data, signature };
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedPublicData(data, signature) {
+  writePublicDataCacheToStorage("sessionStorage", PUBLIC_DATA_CACHE_KEY, data, signature);
+  writePublicDataCacheToStorage("localStorage", PUBLIC_DATA_PERSISTENT_CACHE_KEY, data, signature);
+}
+
+function writePublicDataCacheToStorage(storageName, key, data, signature) {
+  try {
+    const storage = getBrowserStorage(storageName);
+    if (!storage) return;
+
+    storage.setItem(
+      key,
+      JSON.stringify({
+        createdAt: Date.now(),
+        signature: signature || createDataSignature(data),
+        data,
+      })
+    );
+  } catch {
+    // Storage can be unavailable in restricted webviews.
+  }
+}
+
+function getBrowserStorage(storageName) {
+  try {
+    return window[storageName] || null;
+  } catch {
+    return null;
+  }
+}
+
+function createResponseSignature(payload, rawPayload, response) {
+  const headerSignature = response?.headers?.get("etag") || response?.headers?.get("last-modified");
+  const explicitSignature =
+    headerSignature ||
+    payload?.meta?.version ||
+    payload?.meta?.updatedAt ||
+    payload?.version ||
+    payload?.updatedAt;
+
+  if (explicitSignature) return String(explicitSignature);
+  return `${rawPayload.length}:${hashStringFast(rawPayload)}`;
+}
+
+function createDataSignature(data) {
+  try {
+    const rawData = JSON.stringify(data || {});
+    return `${rawData.length}:${hashStringFast(rawData)}`;
+  } catch {
+    return String(Date.now());
+  }
+}
+
+function hashStringFast(value) {
+  const input = String(value || "");
+  let hash = 5381;
+  for (let index = 0; index < input.length; index += 1) {
+    hash = ((hash << 5) + hash) ^ input.charCodeAt(index);
+  }
+  return (hash >>> 0).toString(36);
 }
 
 function loadFallbackAppData() {
@@ -1183,12 +1350,11 @@ function runScreenAction(actionId) {
     }
 
     const validFilters = getShipCountryFilterOptions(getActivePointsByService("ship")).map((option) => option.id);
-    state.shipCountryFilter = filterId && validFilters.includes(filterId) ? filterId : null;
-    state.screen = "region";
-    normalizeState();
-    renderMapHomeStep();
-    renderPointsStep();
-    triggerSelectionHaptic();
+    animateWorkspaceContentSwap(() => {
+      state.shipCountryFilter = filterId && validFilters.includes(filterId) ? filterId : null;
+      state.screen = "region";
+      normalizeState();
+    });
     return;
   }
 
@@ -1200,29 +1366,27 @@ function runScreenAction(actionId) {
       if (!HOME_DIRECT_SERVICES.includes(service)) return;
       if (getActivePointsByService(service).length === 0) return;
 
-      state.service = service;
-      state.region = null;
-      state.compareRegions = [];
-      state.shipCountryFilter = null;
-      state.screen = "region";
-      normalizeState();
-      renderMapHomeStep();
-      renderPointsStep();
-      triggerSelectionHaptic();
+      animateWorkspaceContentSwap(() => {
+        state.service = service;
+        state.region = null;
+        state.compareRegions = [];
+        state.shipCountryFilter = null;
+        state.screen = "region";
+        normalizeState();
+      });
       return;
     }
 
     if (!REGION_PRIORITY_SERVICES.includes(service)) return;
     if (getWorkspacePointsByService(state.region, service).length === 0) return;
 
-    state.service = service;
-    state.compareRegions = [];
-    state.shipCountryFilter = null;
-    state.screen = "region";
-    normalizeState();
-    renderMapHomeStep();
-    renderPointsStep();
-    triggerSelectionHaptic();
+    animateWorkspaceContentSwap(() => {
+      state.service = service;
+      state.compareRegions = [];
+      state.shipCountryFilter = null;
+      state.screen = "region";
+      normalizeState();
+    });
     return;
   }
 
@@ -1289,6 +1453,58 @@ function markMapHomeTransition() {
     content.classList.add("is-soft-refresh");
     window.setTimeout(() => content.classList.remove("is-soft-refresh"), 240);
   });
+}
+
+function renderWorkspaceScreenWithReveal() {
+  renderMapHomeStep();
+  renderPointsStep();
+
+  window.requestAnimationFrame(() => {
+    const panel = els.selectionContent?.querySelector(".workspace-points-panel");
+    const grid = els.selectionContent?.querySelector(".workspace-point-grid");
+    if (!(panel instanceof HTMLElement) || !(grid instanceof HTMLElement)) return;
+
+    panel.classList.add("is-service-revealing");
+    grid.classList.add("is-revealing");
+    window.clearTimeout(workspaceRevealTimer);
+    workspaceRevealTimer = window.setTimeout(() => {
+      panel.classList.remove("is-service-revealing");
+      grid.classList.remove("is-revealing");
+    }, WORKSPACE_SWAP_REVEAL_MS);
+  });
+}
+
+function animateWorkspaceContentSwap(applyStateChange) {
+  if (typeof applyStateChange !== "function") return;
+
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const panel = els.selectionContent?.querySelector(".workspace-points-panel");
+  const grid = els.selectionContent?.querySelector(".workspace-point-grid");
+  const canAnimate = panel instanceof HTMLElement && grid instanceof HTMLElement && !reduceMotion;
+
+  window.clearTimeout(workspaceSwapTimer);
+  window.clearTimeout(workspaceRevealTimer);
+  workspaceSwapSerial += 1;
+  const serial = workspaceSwapSerial;
+
+  if (!canAnimate) {
+    applyStateChange();
+    renderWorkspaceScreenWithReveal();
+    triggerSelectionHaptic();
+    return;
+  }
+
+  panel.classList.remove("is-service-revealing");
+  grid.classList.remove("is-revealing");
+  panel.classList.add("is-service-swapping");
+  grid.classList.add("is-wiping");
+
+  workspaceSwapTimer = window.setTimeout(() => {
+    if (serial !== workspaceSwapSerial) return;
+    applyStateChange();
+    renderWorkspaceScreenWithReveal();
+    triggerSelectionHaptic();
+  }, WORKSPACE_SWAP_EXIT_MS);
 }
 
 function applyGeneratedRegionMapData() {
@@ -3044,19 +3260,75 @@ function buildPointMediaMarkup(mediaType, mediaUrl, pointName) {
 function prefetchPointLogos(points, limit = LOGO_PREFETCH_LIMIT) {
   if (!Array.isArray(points) || points.length === 0) return;
 
-  points
+  const urls = points
     .map((point) => String(point?.logo || "").trim())
     .filter(isHttpUrl)
     .slice(0, limit)
-    .forEach((url) => {
+    .filter((url) => !prefetchedLogoUrls.has(url));
+
+  if (urls.length === 0) return;
+
+  scheduleIdleTask(() => {
+    urls.forEach((url) => {
       if (prefetchedLogoUrls.has(url)) return;
       prefetchedLogoUrls.add(url);
       warmLogoOrigin(url);
 
       const probe = new Image();
       probe.decoding = "async";
+      probe.loading = "eager";
       probe.src = url;
     });
+  }, 420);
+}
+
+async function preloadCriticalSiteAssets() {
+  const urls = getCriticalLogoUrls(CRITICAL_LOGO_PRELOAD_LIMIT);
+  if (urls.length === 0) return;
+
+  urls.forEach(warmLogoOrigin);
+  await Promise.race([
+    Promise.allSettled(urls.map((url) => preloadImageForRuntime(url))),
+    new Promise((resolve) => window.setTimeout(resolve, CRITICAL_LOGO_PRELOAD_WAIT_MS)),
+  ]);
+}
+
+function getCriticalLogoUrls(limit = CRITICAL_LOGO_PRELOAD_LIMIT) {
+  const points = [];
+  for (const region of appData.regions || []) {
+    for (const point of region.activePoints || []) {
+      points.push(point);
+    }
+  }
+
+  for (const categoryPoints of Object.values(appData.otherCategories || {})) {
+    if (!Array.isArray(categoryPoints)) continue;
+    points.push(...categoryPoints);
+  }
+
+  return sortPointsByStarsPriority(points)
+    .map((point) => String(point?.logo || "").trim())
+    .filter(isHttpUrl)
+    .filter((url, index, arr) => arr.indexOf(url) === index)
+    .slice(0, limit);
+}
+
+function preloadImageForRuntime(url) {
+  if (!url || prefetchedLogoUrls.has(url)) {
+    return Promise.resolve();
+  }
+
+  prefetchedLogoUrls.add(url);
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.loading = "eager";
+    image.onload = () => {
+      image.decode?.().catch(() => undefined).finally(resolve);
+    };
+    image.onerror = resolve;
+    image.src = url;
+  });
 }
 
 function warmLogoOrigin(url) {
@@ -3087,24 +3359,13 @@ function applySmartLogoFit(scope = document) {
     img.classList.remove("is-ready");
 
     const apply = () => {
-      const frame = analyzeLogoContentFrame(img);
-      const boost = shouldBoostLogoFrame(frame);
-      const mode = boost ? "cover" : resolveLogoFitMode(img);
+      applyLogoFitMode(img, wrap, resolveCachedLogoFit(img));
 
-      img.classList.toggle("point-logo-img--contain", mode === "contain");
-      img.classList.toggle("point-logo-img--boost", boost);
-      if (boost && frame) {
-        img.style.setProperty("--logo-focus-x", `${(frame.centerX * 100).toFixed(2)}%`);
-        img.style.setProperty("--logo-focus-y", `${(frame.centerY * 100).toFixed(2)}%`);
-        img.style.setProperty("--logo-zoom", calculateLogoBoostScale(frame).toFixed(2));
-      } else {
-        img.style.removeProperty("--logo-focus-x");
-        img.style.removeProperty("--logo-focus-y");
-        img.style.removeProperty("--logo-zoom");
-      }
-
-      img.classList.add("is-ready");
-      wrap?.classList.remove("is-loading");
+      scheduleIdleTask(() => {
+        if (!img.isConnected || !(img instanceof HTMLImageElement)) return;
+        const fit = resolveAnalyzedLogoFit(img);
+        applyLogoFitMode(img, wrap, fit);
+      }, 520);
     };
 
     if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
@@ -3127,6 +3388,75 @@ function applySmartLogoFit(scope = document) {
       { once: true }
     );
   });
+}
+
+function scheduleIdleTask(callback, timeout = 500) {
+  if (typeof callback !== "function") return;
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(callback, { timeout });
+    return;
+  }
+
+  window.setTimeout(callback, Math.min(timeout, 120));
+}
+
+function getLogoFitCacheKey(image) {
+  return String(image?.currentSrc || image?.src || "").trim();
+}
+
+function resolveCachedLogoFit(image) {
+  const key = getLogoFitCacheKey(image);
+  if (key && logoFitCache.has(key)) {
+    return logoFitCache.get(key);
+  }
+
+  return {
+    mode: resolveLogoFitMode(image),
+    boost: false,
+    frame: null,
+  };
+}
+
+function resolveAnalyzedLogoFit(image) {
+  const key = getLogoFitCacheKey(image);
+  if (key && logoFitCache.has(key)) {
+    return logoFitCache.get(key);
+  }
+
+  const frame = analyzeLogoContentFrame(image);
+  const boost = shouldBoostLogoFrame(frame);
+  const fit = {
+    mode: boost ? "cover" : resolveLogoFitMode(image),
+    boost,
+    frame,
+  };
+
+  if (key) {
+    logoFitCache.set(key, fit);
+  }
+
+  return fit;
+}
+
+function applyLogoFitMode(image, wrap, fit) {
+  const mode = fit?.mode || "cover";
+  const boost = Boolean(fit?.boost);
+  const frame = fit?.frame || null;
+
+  image.classList.toggle("point-logo-img--contain", mode === "contain");
+  image.classList.toggle("point-logo-img--boost", boost);
+  if (boost && frame) {
+    image.style.setProperty("--logo-focus-x", `${(frame.centerX * 100).toFixed(2)}%`);
+    image.style.setProperty("--logo-focus-y", `${(frame.centerY * 100).toFixed(2)}%`);
+    image.style.setProperty("--logo-zoom", calculateLogoBoostScale(frame).toFixed(2));
+  } else {
+    image.style.removeProperty("--logo-focus-x");
+    image.style.removeProperty("--logo-focus-y");
+    image.style.removeProperty("--logo-zoom");
+  }
+
+  image.classList.add("is-ready");
+  wrap?.classList.remove("is-loading");
 }
 
 function resolveLogoFitMode(image) {
@@ -3330,14 +3660,14 @@ function setupMobilePreloader() {
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isTelegramClient = isTelegramWebView();
 
-  if ((!isMobileViewport && !hasCoarsePointer) || prefersReducedMotion) {
+  if (prefersReducedMotion) {
     revealImmediately();
     return;
   }
 
-  const preloaderVisibleMs = 650;
-  const preloaderMaxMs = isTelegramClient ? 1400 : 1800;
-  const preloaderExitMs = 280;
+  const preloaderVisibleMs = isTelegramClient ? 1700 : isMobileViewport || hasCoarsePointer ? 1500 : 1250;
+  const preloaderMaxMs = isTelegramClient ? 3200 : isMobileViewport || hasCoarsePointer ? 2800 : 2400;
+  const preloaderExitMs = 320;
   let minTimeElapsed = false;
   let appReady = false;
   let preloaderDone = false;
