@@ -1794,6 +1794,10 @@ function buildMapUxOverlay(regionMeta, selectedMeta) {
               buildHomeDirectServiceButton(serviceId, directServiceCounts[serviceId] || 0)
             ).join("")}
           </div>
+          <div class="map-ux-service-guide" aria-hidden="true">
+            <span class="map-ux-service-guide-line"></span>
+            <span class="map-ux-service-guide-label">Servizi rapidi</span>
+          </div>
         </div>
       </header>
 
@@ -1968,13 +1972,7 @@ function buildRegionWorkspaceScreen(regionMeta, selectedMeta) {
           const socials = Array.isArray(point.socials)
             ? point.socials
                 .slice(0, 3)
-                .map(
-                  (link) => `
-                    <a class="point-link" href="${escapeHtmlAttr(link.url)}" target="_blank" rel="noopener noreferrer">
-                      ${escapeHtml(link.label)}
-                    </a>
-                  `
-                )
+                .map((link) => buildPointLinkMarkup(link))
                 .join("")
             : "";
           const shipCountryText = state.service === "ship" ? (isDirectShip ? getShipCountryFilterLabel(point) : getPointShipCountryText(point)) : "";
@@ -2259,13 +2257,7 @@ function renderPointsStep() {
   const cardTemplates = activePoints.map((point, index) => {
     const socials = Array.isArray(point.socials)
       ? point.socials
-          .map(
-            (link) => `
-              <a class="point-link" href="${escapeHtmlAttr(link.url)}" target="_blank" rel="noopener noreferrer">
-                ${escapeHtml(link.label)}
-              </a>
-            `
-          )
+          .map((link) => buildPointLinkMarkup(link))
           .join("")
       : "";
 
@@ -2745,6 +2737,92 @@ function buildPointServiceBadges(services) {
       `
     )
     .join("");
+}
+
+function buildPointLinkMarkup(link) {
+  const label = String(link?.label || "Link").trim() || "Link";
+  const url = String(link?.url || "").trim();
+  const socialKind = getPointSocialKind(label, url);
+
+  return `
+    <a
+      class="point-link point-link-${escapeHtmlAttr(socialKind)}"
+      data-social-kind="${escapeHtmlAttr(socialKind)}"
+      href="${escapeHtmlAttr(url)}"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      ${getPointSocialIconMarkup(socialKind)}
+      <span>${escapeHtml(label)}</span>
+    </a>
+  `;
+}
+
+function getPointSocialKind(label, url) {
+  const value = `${label || ""} ${url || ""}`.toLowerCase();
+  if (value.includes("instagram")) return "instagram";
+  if (value.includes("t.me") || value.includes("telegram")) return "telegram";
+  if (value.includes("facebook") || value.includes("fb.")) return "facebook";
+  if (value.includes("tiktok")) return "tiktok";
+  if (value.includes("http")) return "site";
+  return "external";
+}
+
+function getPointSocialIconMarkup(kind) {
+  const common = `class="point-link-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false"`;
+
+  if (kind === "instagram") {
+    return `
+      <svg ${common}>
+        <rect x="5.2" y="5.2" width="13.6" height="13.6" rx="4.2"></rect>
+        <circle cx="12" cy="12" r="3.2"></circle>
+        <circle cx="16.4" cy="7.8" r="0.9"></circle>
+      </svg>
+    `;
+  }
+
+  if (kind === "telegram") {
+    return `
+      <svg ${common}>
+        <path d="M20 5.6 16.9 18c-.2.9-.8 1.1-1.5.7l-4.1-3-2 1.9c-.2.2-.4.4-.9.4l.3-4.3L16.5 8c.3-.3-.1-.4-.5-.2l-9.6 6-4.1-1.3c-.9-.3-.9-.9.2-1.3L18.9 4.8c.8-.3 1.5.2 1.1 1.6Z"></path>
+      </svg>
+    `;
+  }
+
+  if (kind === "facebook") {
+    return `
+      <svg ${common}>
+        <path d="M14.1 8.7h2.2V5.4c-.4-.1-1.6-.2-3-.2-3 0-5 1.8-5 5.1v2.8H5v3.7h3.3V22h4v-5.2h3.2l.5-3.7h-3.7v-2.4c0-1.1.3-1.8 1.8-1.8Z"></path>
+      </svg>
+    `;
+  }
+
+  if (kind === "tiktok") {
+    return `
+      <svg ${common}>
+        <path d="M15 4.5c.5 2 1.7 3.3 3.7 3.5v3.3c-1.3 0-2.4-.4-3.6-1.1v5.2c0 3.2-2.1 5.3-5 5.3-2.8 0-4.8-1.9-4.8-4.5 0-2.9 2.3-4.9 5.5-4.6v3.3c-1.3-.2-2.2.5-2.2 1.5 0 .9.7 1.5 1.7 1.5 1.1 0 1.8-.7 1.8-2.2V4.5Z"></path>
+      </svg>
+    `;
+  }
+
+  if (kind === "site") {
+    return `
+      <svg ${common}>
+        <circle cx="12" cy="12" r="8.2"></circle>
+        <path d="M4.8 12h14.4"></path>
+        <path d="M12 4.8c2.1 2.1 3.2 4.5 3.2 7.2s-1.1 5.1-3.2 7.2"></path>
+        <path d="M12 4.8C9.9 6.9 8.8 9.3 8.8 12s1.1 5.1 3.2 7.2"></path>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg ${common}>
+      <path d="M8.5 12h7"></path>
+      <path d="M12.6 8.2 16 12l-3.4 3.8"></path>
+      <circle cx="12" cy="12" r="8.2"></circle>
+    </svg>
+  `;
 }
 
 function getServiceIconMarkup(serviceId) {

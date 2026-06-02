@@ -10192,3 +10192,2698 @@ body.map-only-page {
   }
 }
 
+/* Visual refinement layer: calmer premium surfaces and tighter interaction states. */
+:root {
+  --ri-void: #050907;
+  --ri-ink: #0c1410;
+  --ri-panel: rgba(16, 27, 22, 0.78);
+  --ri-panel-strong: rgba(21, 34, 28, 0.92);
+  --ri-line: rgba(208, 228, 214, 0.16);
+  --ri-line-hot: rgba(176, 226, 195, 0.48);
+  --ri-mint: #8ee6ae;
+  --ri-mint-2: #c8f2d7;
+  --ri-cream: #f7f3e9;
+  --ri-muted: rgba(232, 238, 228, 0.66);
+  --ri-red-glow: rgba(198, 76, 60, 0.1);
+  --ri-warm: #efd49c;
+  --ri-blue-soft: #9bbfe4;
+  --ri-surface-shadow: 0 22px 64px rgba(0, 0, 0, 0.34);
+  --ri-inset-line: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.static-map-screen {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 34%),
+    linear-gradient(128deg, #0d1914 0%, #07100d 54%, #100d0a 100%);
+}
+
+.static-map-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(247, 243, 233, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(247, 243, 233, 0.026) 1px, transparent 1px),
+    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.22) 100%);
+  background-size: 36px 36px, 36px 36px, 100% 100%;
+  opacity: 0.8;
+}
+
+.static-map-shell::before {
+  background:
+    linear-gradient(138deg, rgba(142, 230, 174, 0.12), transparent 32%),
+    linear-gradient(36deg, transparent 54%, rgba(239, 212, 156, 0.08)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 46%);
+  filter: none;
+}
+
+.static-map-shell::after {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, transparent, #000 16%, #000 84%, transparent);
+  opacity: 0.78;
+}
+
+.static-map-shell .italy-map-svg {
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.2))
+    drop-shadow(0 26px 46px rgba(0, 0, 0, 0.38));
+}
+
+.static-map-shell .italy-region-shape,
+.static-map-shell .italy-region-shape.is-warm,
+.static-map-shell .italy-region-shape.is-hot {
+  fill: rgba(28, 55, 41, 0.68) !important;
+  stroke: rgba(185, 226, 199, 0.76);
+  stroke-width: 1.15;
+  filter: none;
+}
+
+.static-map-shell .italy-region-shape.is-warm {
+  fill: rgba(48, 87, 62, 0.72) !important;
+}
+
+.static-map-shell .italy-region-shape.is-hot {
+  fill: rgba(66, 111, 79, 0.78) !important;
+}
+
+.static-map-shell .italy-region-shape:not(.is-disabled):hover,
+.static-map-shell [data-region]:focus-visible .italy-region-shape,
+.static-map-shell .italy-region-shape.is-tapping,
+.static-map-shell .italy-region-shape:not(.is-disabled):active,
+.static-map-shell .italy-region-shape.is-selected {
+  fill: rgba(143, 221, 169, 0.88) !important;
+  stroke: rgba(255, 250, 238, 0.98);
+  stroke-width: 1.75;
+  filter:
+    drop-shadow(0 0 8px rgba(183, 236, 202, 0.34))
+    drop-shadow(0 13px 24px rgba(0, 0, 0, 0.34));
+}
+
+.static-map-shell .italy-region-halo {
+  fill: rgba(199, 237, 212, 0.12);
+  stroke: rgba(239, 212, 156, 0.54);
+  stroke-width: 4.8;
+  filter: none;
+}
+
+.static-map-shell .italy-region-label {
+  fill: rgba(247, 243, 233, 0.86);
+  font-weight: 850;
+  letter-spacing: 0;
+  stroke: rgba(2, 7, 5, 0.82);
+  stroke-width: 2.6px;
+  text-shadow: none;
+}
+
+.static-map-shell .italy-region-label.is-selected {
+  fill: #fffaf0;
+  stroke: rgba(4, 9, 6, 0.92);
+  stroke-width: 3.2px;
+  filter: drop-shadow(0 0 8px rgba(239, 212, 156, 0.32));
+}
+
+.map-ux-brand,
+.map-ux-mini-stats,
+.map-ux-clear,
+.map-ux-dock,
+.workspace-header,
+.workspace-points-panel,
+.workspace-side-panel,
+.workspace-point-card,
+.workspace-region-shortcut {
+  border-color: var(--ri-line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+    var(--ri-panel);
+  box-shadow:
+    var(--ri-inset-line),
+    var(--ri-surface-shadow);
+}
+
+.map-ux-brand,
+.map-ux-mini-stats,
+.map-ux-clear,
+.map-ux-dock {
+  -webkit-backdrop-filter: blur(20px) saturate(1.08);
+  backdrop-filter: blur(20px) saturate(1.08);
+}
+
+.map-ux-brand {
+  border-radius: 20px;
+  padding: 8px 13px 8px 8px;
+}
+
+.map-ux-mark {
+  border-radius: 13px;
+  color: #102018;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 42%),
+    linear-gradient(135deg, #f1e3bd 0%, #bdeac8 54%, #68b982 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.map-ux-brand b,
+.workspace-title-block h2,
+.workspace-hero-card h3,
+.workspace-point-body h3,
+.map-ux-dock-copy strong {
+  letter-spacing: 0;
+}
+
+.map-ux-brand b,
+.workspace-title-block h2,
+.workspace-point-body h3 {
+  color: #fffaf0;
+}
+
+.map-ux-brand small,
+.map-ux-dock-copy p,
+.map-ux-service-btn small,
+.map-ux-home-service small,
+.workspace-title-block span,
+.workspace-section-head span,
+.workspace-point-type,
+.workspace-point-body p {
+  color: var(--ri-muted);
+}
+
+.map-ux-mini-stats {
+  gap: 6px;
+  padding: 7px;
+}
+
+.map-ux-mini-stats span {
+  min-height: 30px;
+  background: rgba(255, 255, 255, 0.052);
+  color: rgba(247, 243, 233, 0.72);
+}
+
+.map-ux-mini-stats b,
+.map-ux-kicker,
+.workspace-section-head strong {
+  color: var(--ri-mint-2);
+}
+
+.map-ux-clear,
+.workspace-back,
+.workspace-clear {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f7f3e9;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.074), rgba(255, 255, 255, 0.026)),
+    rgba(10, 18, 15, 0.76);
+}
+
+.map-ux-clear:hover,
+.workspace-back:hover,
+.workspace-clear:hover {
+  border-color: rgba(239, 212, 156, 0.5);
+  background:
+    linear-gradient(180deg, rgba(239, 212, 156, 0.13), rgba(255, 255, 255, 0.028)),
+    rgba(18, 24, 18, 0.84);
+}
+
+.map-ux-dock {
+  border-radius: 24px;
+}
+
+.map-ux-dock.is-selected {
+  border-color: rgba(191, 231, 205, 0.4);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.092), rgba(255, 255, 255, 0.03)),
+    rgba(13, 23, 19, 0.84);
+  box-shadow:
+    var(--ri-inset-line),
+    0 24px 74px rgba(0, 0, 0, 0.42);
+}
+
+.map-ux-pulse {
+  border-radius: 15px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 238, 0.22), rgba(199, 237, 212, 0.08)),
+    rgba(10, 22, 16, 0.72);
+  box-shadow:
+    inset 0 0 0 1px rgba(247, 243, 233, 0.16),
+    0 12px 26px rgba(0, 0, 0, 0.22);
+}
+
+.map-ux-pulse::before,
+.map-ux-pulse::after {
+  border-color: rgba(239, 212, 156, 0.46);
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-dock {
+  border-color: rgba(208, 228, 214, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.026)),
+    rgba(13, 23, 19, 0.76);
+}
+
+.map-ux-home-service,
+.map-ux-home-service-meetup,
+.map-ux-home-service-ship,
+.map-ux-home-service-other,
+.map-ux-service-btn {
+  border-color: rgba(208, 228, 214, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025)),
+    rgba(12, 22, 18, 0.78);
+  box-shadow:
+    var(--ri-inset-line),
+    0 14px 34px rgba(0, 0, 0, 0.24);
+}
+
+.map-ux-home-service::after,
+.map-ux-service-btn::after,
+.workspace-point-card::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 44%);
+  opacity: 0.58;
+}
+
+.map-ux-home-service::after,
+.map-ux-service-btn::after {
+  inset: 1px;
+  border-radius: inherit;
+}
+
+.map-ux-home-service i,
+.map-ux-home-service-meetup i,
+.map-ux-home-service-ship i,
+.map-ux-home-service-other i,
+.map-ux-service-btn i {
+  color: #102018;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.44), transparent 44%),
+    linear-gradient(135deg, #f4e0ad, #b9e7c5 58%, #6ebe89);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    0 10px 22px rgba(0, 0, 0, 0.24);
+}
+
+.map-ux-home-service-ship i,
+.map-ux-service-btn-ship i,
+.workspace-service-tab-ship i,
+.point-service-pill-ship i {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.44), transparent 44%),
+    linear-gradient(135deg, #e8f2ff, #9bbfe4 58%, #5f86bb);
+}
+
+.map-ux-home-service-other i,
+.map-ux-service-btn-other i,
+.workspace-service-tab-other i,
+.point-service-pill-other i {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.44), transparent 44%),
+    linear-gradient(135deg, #fff0c9, #efd49c 58%, #bf8651);
+}
+
+.map-ux-home-service:hover:enabled,
+.map-ux-service-btn:hover:enabled {
+  border-color: var(--ri-line-hot);
+  filter: brightness(1.035);
+  transform: translateY(-2px);
+  box-shadow:
+    var(--ri-inset-line),
+    0 18px 44px rgba(0, 0, 0, 0.3);
+}
+
+.map-ux-service-btn b,
+.map-ux-home-service b,
+.workspace-service-tab span,
+.workspace-region-shortcut span,
+.point-service-pill span {
+  letter-spacing: 0;
+}
+
+.workspace-shell {
+  background:
+    linear-gradient(145deg, rgba(17, 31, 25, 0.96) 0%, rgba(7, 13, 11, 0.98) 58%, rgba(16, 13, 10, 0.98) 100%);
+}
+
+.workspace-header {
+  border-radius: 18px;
+  padding: 10px;
+}
+
+.workspace-back,
+.workspace-clear {
+  border-radius: 13px;
+}
+
+.workspace-title-block h2 {
+  text-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+.workspace-points-panel,
+.workspace-side-panel {
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.074), rgba(255, 255, 255, 0.026)),
+    rgba(12, 22, 18, 0.76);
+}
+
+.workspace-service-tabs {
+  gap: 8px;
+}
+
+.workspace-service-tab {
+  border-radius: 14px;
+  border-color: rgba(208, 228, 214, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.022)),
+    rgba(7, 15, 12, 0.68);
+}
+
+.workspace-service-tab.is-active {
+  color: #0f1d16;
+  border-color: rgba(239, 212, 156, 0.5);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.38), transparent 46%),
+    linear-gradient(135deg, #f3dfb3, #bce9c9 58%, #7ccf99);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+.workspace-point-card,
+.app-screen-region .workspace-point-card,
+.app-screen-region.is-direct-ship .workspace-point-card {
+  border-radius: 18px;
+  border-color: rgba(208, 228, 214, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.024)),
+    rgba(13, 24, 20, 0.84);
+  box-shadow:
+    var(--ri-inset-line),
+    0 18px 46px rgba(0, 0, 0, 0.28);
+}
+
+.workspace-point-card::before {
+  background:
+    linear-gradient(115deg, transparent 0 34%, rgba(255, 255, 255, 0.15) 48%, transparent 62%),
+    linear-gradient(180deg, rgba(199, 237, 212, 0.08), transparent);
+}
+
+.workspace-point-card::after {
+  right: 0;
+  bottom: 0;
+  width: 44%;
+  height: 44%;
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, transparent, rgba(239, 212, 156, 0.07));
+}
+
+.workspace-point-card:hover {
+  border-color: rgba(191, 231, 205, 0.42);
+  transform: translateY(-4px);
+  box-shadow:
+    var(--ri-inset-line),
+    0 24px 58px rgba(0, 0, 0, 0.34);
+}
+
+.workspace-point-logo,
+.app-screen-region .workspace-point-logo,
+.app-screen-region.is-direct-ship .workspace-point-logo {
+  border-color: rgba(208, 228, 214, 0.2);
+  border-radius: 15px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)),
+    rgba(8, 16, 13, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 13px 28px rgba(0, 0, 0, 0.24);
+}
+
+.workspace-point-logo img,
+.app-screen-region .workspace-point-logo img,
+.app-screen-region.is-direct-ship .workspace-point-logo img {
+  border-radius: 12px;
+}
+
+.point-logo-fallback {
+  color: var(--ri-warm);
+  text-shadow: none;
+}
+
+.workspace-point-card .point-stars {
+  border-color: rgba(239, 212, 156, 0.38);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(239, 212, 156, 0.08)),
+    rgba(11, 18, 15, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 10px 22px rgba(0, 0, 0, 0.24);
+}
+
+.workspace-point-card .point-star {
+  color: #ffe8ad;
+  text-shadow: 0 0 10px rgba(239, 212, 156, 0.34);
+}
+
+.workspace-point-card .point-star-label {
+  color: #f8e3ac;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  letter-spacing: 0;
+}
+
+.workspace-point-type {
+  letter-spacing: 0;
+}
+
+.workspace-point-body h3 {
+  line-height: 1.05;
+  text-shadow: none;
+}
+
+.workspace-point-services .point-service-pill,
+.region-service-chip,
+.point-service-pill {
+  border-color: rgba(208, 228, 214, 0.18);
+  color: rgba(247, 243, 233, 0.82);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.018)),
+    rgba(7, 15, 12, 0.68);
+}
+
+.region-service-chip.is-active,
+.point-service-pill {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(13, 24, 20, 0.78);
+}
+
+.workspace-point-links .point-link {
+  border-color: rgba(208, 228, 214, 0.16);
+  color: #fffaf0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.074), rgba(255, 255, 255, 0.022)),
+    rgba(7, 14, 12, 0.78);
+}
+
+.workspace-point-links .point-link:first-child {
+  color: #102018;
+  border-color: rgba(239, 212, 156, 0.42);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 45%),
+    linear-gradient(135deg, #f3dfb3, #bce9c9 56%, #79c993);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+.workspace-region-shortcut {
+  border-radius: 15px;
+}
+
+.workspace-region-shortcut b {
+  color: #102018;
+  background: linear-gradient(135deg, #efd49c, #bfe9c9);
+}
+
+.workspace-region-shortcut:hover,
+.workspace-region-shortcut.is-active,
+.workspace-ship-country-filter.is-active {
+  border-color: rgba(239, 212, 156, 0.46);
+  background:
+    linear-gradient(180deg, rgba(239, 212, 156, 0.13), rgba(255, 255, 255, 0.025)),
+    rgba(17, 25, 19, 0.82);
+}
+
+.workspace-back:focus-visible,
+.workspace-clear:focus-visible,
+.map-ux-clear:focus-visible,
+.map-ux-home-service:focus-visible,
+.map-ux-service-btn:focus-visible,
+.workspace-service-tab:focus-visible,
+.workspace-region-shortcut:focus-visible,
+.workspace-point-links .point-link:focus-visible {
+  outline: 2px solid rgba(239, 212, 156, 0.72);
+  outline-offset: 3px;
+}
+
+.workspace-point-grid,
+.workspace-region-list {
+  scrollbar-color: rgba(239, 212, 156, 0.48) rgba(255, 255, 255, 0.06);
+}
+
+.map-only-page .app-screen-stack.is-region .workspace-shell {
+  grid-template-rows: auto auto;
+  align-content: start;
+}
+
+.app-screen-region .workspace-main {
+  align-items: start;
+}
+
+.app-screen-region .workspace-points-panel,
+.app-screen-region .workspace-side-panel {
+  height: auto;
+  min-height: 0;
+}
+
+.app-screen-region .workspace-side-panel {
+  align-self: start;
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-screen::after {
+    background-size: 30px 30px, 30px 30px, 100% 100%;
+    opacity: 0.64;
+  }
+
+  .static-map-shell:not(.has-region-selection) {
+    --home-map-top-clearance: clamp(156px, 20dvh, 178px);
+  }
+
+  .map-ux-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px;
+  }
+
+  .map-ux-brand {
+    max-width: min(230px, calc(100vw - 104px));
+    border-radius: 17px;
+  }
+
+  .map-ux-home-tools {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .map-ux-dock {
+    border-radius: 18px;
+  }
+
+  .map-ux-home-tools .map-ux-home-actions {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .map-ux-home-service {
+    grid-template-columns: 24px minmax(0, 1fr);
+    min-height: 38px;
+    border-radius: 12px;
+  }
+
+  .map-ux-home-service b {
+    font-size: 0.58rem;
+  }
+
+  .workspace-shell {
+    gap: 8px;
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+  }
+
+  .workspace-header,
+  .workspace-points-panel,
+  .workspace-side-panel,
+  .workspace-point-card,
+  .app-screen-region .workspace-point-card,
+  .app-screen-region.is-direct-ship .workspace-point-card {
+    border-radius: 16px;
+  }
+
+  .workspace-point-card:hover {
+    transform: none;
+  }
+
+  .workspace-point-links .point-link {
+    letter-spacing: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-point-card:hover,
+  .map-ux-home-service:hover:enabled,
+  .map-ux-service-btn:hover:enabled {
+    transform: none;
+  }
+}
+
+/* Cross-device viewing guard: keep phone layouts compact and scroll-safe. */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .map-only-page .app-screen-stack.is-region .workspace-shell {
+    min-height: 100dvh;
+    align-content: start;
+  }
+
+  .app-screen-region .workspace-header {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    min-height: 48px;
+    gap: 7px;
+    padding: 7px;
+  }
+
+  .app-screen-region .workspace-back,
+  .app-screen-region .workspace-clear {
+    min-height: 34px;
+    border-radius: 11px;
+  }
+
+  .app-screen-region .workspace-clear {
+    padding: 0 9px;
+    font-size: 0.62rem;
+  }
+
+  .app-screen-region .workspace-title-block span {
+    font-size: 0.56rem;
+  }
+
+  .app-screen-region .workspace-title-block h2 {
+    font-size: clamp(1.35rem, 7vw, 2rem);
+    line-height: 0.92;
+  }
+
+  .app-screen-region .workspace-main {
+    gap: 7px;
+  }
+
+  .app-screen-region .workspace-points-panel,
+  .app-screen-region .workspace-side-panel {
+    padding: 7px;
+  }
+
+  .app-screen-region .workspace-section-head {
+    min-height: 26px;
+  }
+
+  .app-screen-region .workspace-section-head strong {
+    font-size: 1.38rem;
+  }
+
+  .workspace-service-tabs {
+    gap: 5px;
+  }
+
+  .workspace-service-tab {
+    min-height: 34px;
+    gap: 5px;
+    padding: 0 6px;
+    border-radius: 11px;
+  }
+
+  .workspace-service-tab i {
+    width: 22px;
+    height: 22px;
+    border-radius: 8px;
+  }
+
+  .workspace-service-tab .service-icon svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .workspace-service-tab span {
+    font-size: 0.56rem;
+  }
+
+  .workspace-service-tab b {
+    min-width: 20px;
+    height: 20px;
+    font-size: 0.58rem;
+  }
+
+  .app-screen-region .workspace-point-grid,
+  .app-screen-region.is-direct-ship .workspace-point-grid {
+    gap: 7px;
+  }
+
+  .app-screen-region .workspace-point-card,
+  .app-screen-region.is-direct-ship .workspace-point-card {
+    gap: 5px;
+    padding: 7px;
+    border-radius: 13px;
+  }
+
+  .app-screen-region .workspace-point-body h3,
+  .app-screen-region.is-direct-ship .workspace-point-body h3 {
+    font-size: 0.82rem;
+    line-height: 1.04;
+  }
+
+  .app-screen-region .workspace-point-body p,
+  .app-screen-region.is-direct-ship .workspace-point-body p {
+    display: none;
+  }
+
+  .app-screen-region .workspace-point-services .point-service-pill,
+  .app-screen-region.is-direct-ship .workspace-point-services .point-service-pill {
+    min-height: 18px;
+    font-size: 0.43rem;
+  }
+
+  .app-screen-region .workspace-point-links .point-link,
+  .app-screen-region.is-direct-ship .workspace-point-links .point-link {
+    min-height: 26px;
+    font-size: 0.49rem;
+  }
+
+  .app-screen-region .workspace-region-shortcut {
+    min-height: 34px;
+    border-radius: 11px;
+  }
+}
+
+@media (max-width: 390px) {
+  .map-ux-brand b {
+    font-size: 0.72rem;
+  }
+
+  .map-ux-brand small {
+    font-size: 0.54rem;
+  }
+
+  .map-ux-home-service b {
+    font-size: 0.52rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .app-screen-region .workspace-point-grid,
+  .app-screen-region.is-direct-ship .workspace-point-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-screen-region .workspace-point-body p,
+  .app-screen-region.is-direct-ship .workspace-point-body p {
+    display: -webkit-box;
+  }
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+  .static-map-shell:not(.has-region-selection) {
+    --home-map-top-clearance: 88px;
+    --home-map-bottom-clearance: 54px;
+  }
+
+  .map-ux-brand small,
+  .map-ux-mini-stats {
+    display: none;
+  }
+
+  .map-ux-home-tools .map-ux-home-actions {
+    grid-template-columns: repeat(3, minmax(84px, 1fr));
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock {
+    width: min(360px, calc(100vw - 18px));
+    bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock-copy p {
+    display: none;
+  }
+}
+
+/* Final map-first home pass: compact controls and reserve clear space around the SVG map. */
+.static-map-shell:not(.has-region-selection) {
+  --home-map-top-clearance: clamp(70px, 9dvh, 96px);
+  --home-map-bottom-clearance: clamp(70px, 10dvh, 98px);
+  --home-map-side-clearance: clamp(12px, 2vw, 28px);
+}
+
+.static-map-shell:not(.has-region-selection) .italy-map-viewport {
+  box-sizing: border-box;
+  padding:
+    calc(var(--home-map-top-clearance) + env(safe-area-inset-top))
+    calc(var(--home-map-side-clearance) + env(safe-area-inset-right))
+    calc(var(--home-map-bottom-clearance) + env(safe-area-inset-bottom))
+    calc(var(--home-map-side-clearance) + env(safe-area-inset-left)) !important;
+}
+
+.static-map-shell:not(.has-region-selection) .italy-map-svg {
+  width: min(92vw, 1120px);
+  height: auto;
+  max-height: calc(
+    100dvh - var(--home-map-top-clearance) - var(--home-map-bottom-clearance) -
+      env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-topbar {
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  right: max(10px, env(safe-area-inset-right));
+  gap: 8px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-brand {
+  gap: 7px;
+  padding: 5px 9px 5px 5px;
+  border-radius: 15px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-brand b {
+  font-size: 0.72rem;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-brand small {
+  margin-top: 2px;
+  font-size: 0.5rem;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-home-tools {
+  gap: 5px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-mini-stats {
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-mini-stats span {
+  min-height: 23px;
+  padding: 0 7px;
+  font-size: 0.58rem;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-home-tools .map-ux-home-actions {
+  width: min(330px, 42vw);
+  gap: 5px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-home-service {
+  grid-template-columns: 24px minmax(0, 1fr);
+  min-height: 34px;
+  gap: 5px;
+  padding: 4px 6px 4px 4px;
+  border-radius: 10px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-home-service i,
+.static-map-shell:not(.has-region-selection) .map-ux-home-service-ship i,
+.static-map-shell:not(.has-region-selection) .map-ux-home-service-meetup i,
+.static-map-shell:not(.has-region-selection) .map-ux-home-service-other i {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-home-service .service-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-home-service b {
+  font-size: 0.56rem;
+  line-height: 1;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-home-service small {
+  margin-top: 1px;
+  font-size: 0.46rem;
+  line-height: 1;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-dock {
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: min(376px, calc(100vw - 24px));
+  min-height: 0;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 10px 8px 8px;
+  border-radius: 16px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-pulse {
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-pulse::before,
+.static-map-shell:not(.has-region-selection) .map-ux-pulse::after {
+  inset: 6px;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-kicker {
+  font-size: 0.54rem;
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-dock-copy strong {
+  margin-top: 1px;
+  font-size: clamp(1.2rem, 3.2vw, 1.62rem);
+}
+
+.static-map-shell:not(.has-region-selection) .map-ux-dock-copy p {
+  display: none;
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell:not(.has-region-selection) {
+    --home-map-top-clearance: clamp(58px, 10dvh, 76px);
+    --home-map-bottom-clearance: clamp(48px, 8dvh, 64px);
+    --home-map-side-clearance: 4px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-topbar {
+    display: block;
+    top: max(7px, env(safe-area-inset-top));
+    left: max(7px, env(safe-area-inset-left));
+    right: max(7px, env(safe-area-inset-right));
+    height: 33px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-brand {
+    max-width: 124px;
+    gap: 5px;
+    padding: 4px 6px 4px 4px;
+    border-radius: 12px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-mark {
+    width: 25px;
+    height: 25px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-brand b {
+    font-size: 0.58rem;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-brand small,
+  .static-map-shell:not(.has-region-selection) .map-ux-mini-stats {
+    display: none;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 110px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools .map-ux-home-actions {
+    width: 100%;
+    grid-template-columns: repeat(3, 32px);
+    justify-content: end;
+    gap: 4px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    width: 32px;
+    min-height: 31px;
+    gap: 0;
+    padding: 4px 3px;
+    text-align: center;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-ship i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-meetup i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-other i {
+    width: 20px;
+    height: 20px;
+    border-radius: 7px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service .service-icon svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service span {
+    display: none;
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-svg {
+    width: min(92vw, 492px);
+    max-height: calc(
+      100dvh - var(--home-map-top-clearance) - var(--home-map-bottom-clearance) -
+        env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock {
+    bottom: max(7px, env(safe-area-inset-bottom));
+    width: min(284px, calc(100vw - 14px));
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 6px;
+    padding: 6px 7px 6px 6px;
+    border-radius: 13px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-pulse {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-pulse::before,
+  .static-map-shell:not(.has-region-selection) .map-ux-pulse::after {
+    inset: 5px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-kicker {
+    font-size: 0.46rem;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock-copy strong {
+    font-size: 1.06rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .static-map-shell:not(.has-region-selection) {
+    --home-map-top-clearance: 56px;
+    --home-map-bottom-clearance: 48px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-brand {
+    max-width: 96px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools {
+    width: 98px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools .map-ux-home-actions {
+    grid-template-columns: repeat(3, 30px);
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service {
+    width: 30px;
+    min-height: 28px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-ship i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-meetup i,
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service-other i {
+    width: 18px;
+    height: 18px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .italy-map-svg {
+    width: min(88vw, 390px);
+  }
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+  .static-map-shell:not(.has-region-selection) {
+    --home-map-top-clearance: 46px;
+    --home-map-bottom-clearance: 44px;
+    --home-map-side-clearance: 8px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-topbar {
+    grid-template-columns: auto auto;
+    width: auto;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools {
+    width: auto;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools .map-ux-home-actions {
+    width: auto;
+    grid-template-columns: repeat(3, 32px);
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-home-service {
+    width: 32px;
+    min-height: 30px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-dock {
+    width: min(260px, calc(100vw - 14px));
+  }
+}
+
+/* Premium detail pass: buttons, service glyphs, cards and social actions. */
+:root {
+  --ri-premium-panel: rgba(10, 18, 15, 0.82);
+  --ri-premium-panel-strong: rgba(16, 27, 22, 0.9);
+  --ri-premium-line: rgba(236, 224, 190, 0.22);
+  --ri-premium-line-hot: rgba(238, 218, 166, 0.58);
+  --ri-premium-highlight: #f1dcad;
+  --ri-premium-mint: #a9e8bd;
+  --ri-premium-ink: #101b16;
+  --ri-premium-steel: #a8c5df;
+  --ri-premium-shadow: 0 18px 44px rgba(0, 0, 0, 0.36);
+  --ri-premium-shadow-deep: 0 26px 76px rgba(0, 0, 0, 0.46);
+}
+
+.map-ux-brand,
+.map-ux-mini-stats,
+.map-ux-clear,
+.map-ux-dock,
+.workspace-header,
+.workspace-points-panel,
+.workspace-side-panel,
+.workspace-point-card,
+.workspace-region-shortcut,
+.workspace-service-tab,
+.map-ux-home-service,
+.map-ux-service-btn,
+.workspace-point-links .point-link,
+.point-links .point-link {
+  border-color: var(--ri-premium-line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.026) 54%),
+    linear-gradient(135deg, rgba(241, 220, 173, 0.06), transparent 42%),
+    var(--ri-premium-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    var(--ri-premium-shadow);
+}
+
+.map-ux-clear,
+.workspace-back,
+.workspace-clear,
+.workspace-service-tab,
+.map-ux-home-service,
+.map-ux-service-btn,
+.workspace-region-shortcut,
+.workspace-point-links .point-link,
+.point-links .point-link,
+.floating-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    filter 180ms ease;
+}
+
+.map-ux-clear::before,
+.workspace-back::before,
+.workspace-clear::before,
+.workspace-service-tab::before,
+.map-ux-home-service::before,
+.map-ux-service-btn::before,
+.workspace-region-shortcut::before,
+.workspace-point-links .point-link::before,
+.point-links .point-link::before,
+.floating-btn::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 30%),
+    radial-gradient(circle at var(--card-x, 50%) var(--card-y, 10%), rgba(241, 220, 173, 0.16), transparent 42%);
+  opacity: 0.72;
+}
+
+.map-ux-clear:hover,
+.workspace-back:hover,
+.workspace-clear:hover,
+.workspace-service-tab:hover:enabled,
+.map-ux-home-service:hover:enabled,
+.map-ux-service-btn:hover:enabled,
+.workspace-region-shortcut:hover,
+.workspace-point-links .point-link:hover,
+.point-links .point-link:hover,
+.floating-btn:hover {
+  border-color: var(--ri-premium-line-hot);
+  transform: translate3d(0, -2px, 0);
+  filter: brightness(1.035);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 22px 58px rgba(0, 0, 0, 0.42);
+}
+
+.map-ux-home-service:disabled,
+.map-ux-service-btn:disabled,
+.workspace-service-tab:disabled {
+  opacity: 0.46;
+  filter: saturate(0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.map-ux-home-service i,
+.map-ux-service-btn i,
+.workspace-service-tab i,
+.region-service-chip i,
+.point-service-pill i {
+  display: inline-grid;
+  place-items: center;
+  color: var(--ri-premium-ink);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.08) 46%),
+    linear-gradient(135deg, var(--ri-premium-highlight), var(--ri-premium-mint) 58%, #73c68e);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.58),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 11px 24px rgba(0, 0, 0, 0.28);
+}
+
+.map-ux-home-service-ship i,
+.map-ux-service-btn-ship i,
+.workspace-service-tab-ship i,
+.region-service-chip-ship i,
+.point-service-pill-ship i {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.08) 46%),
+    linear-gradient(135deg, #eaf4ff, var(--ri-premium-steel) 58%, #5f86b7);
+}
+
+.map-ux-home-service-other i,
+.map-ux-service-btn-other i,
+.workspace-service-tab-other i,
+.region-service-chip-other i,
+.point-service-pill-other i {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.08) 46%),
+    linear-gradient(135deg, #fff1cd, #e5c07a 58%, #b9794d);
+}
+
+.service-icon svg {
+  width: 58%;
+  height: 58%;
+  display: block;
+  overflow: visible;
+}
+
+.service-icon svg path,
+.service-icon svg circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.service-icon-delivery svg path:first-child,
+.service-icon-ship svg path:first-child {
+  fill: rgba(16, 27, 22, 0.1);
+}
+
+.map-ux-home-service b,
+.map-ux-service-btn b,
+.workspace-service-tab span {
+  color: #fffaf0;
+  font-weight: 900;
+}
+
+.map-ux-home-service small,
+.map-ux-service-btn small,
+.map-ux-service-btn em {
+  color: rgba(247, 243, 233, 0.66);
+  font-style: normal;
+}
+
+.map-ux-service-btn {
+  min-height: 62px;
+  align-items: center;
+}
+
+.workspace-service-tab.is-active {
+  color: var(--ri-premium-ink);
+  border-color: rgba(241, 220, 173, 0.7);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.08) 47%),
+    linear-gradient(135deg, #f5e4bb, #c5edcf 58%, #78ca94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    0 18px 40px rgba(0, 0, 0, 0.26);
+}
+
+.workspace-service-tab.is-active span,
+.workspace-service-tab.is-active b {
+  color: var(--ri-premium-ink);
+}
+
+.workspace-service-tab b {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.workspace-service-tab.is-active b {
+  border-color: rgba(16, 27, 22, 0.18);
+  background: rgba(16, 27, 22, 0.12);
+}
+
+.workspace-point-card,
+.app-screen-region .workspace-point-card,
+.app-screen-region.is-direct-ship .workspace-point-card {
+  border-color: rgba(236, 224, 190, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.024) 58%),
+    linear-gradient(135deg, rgba(169, 232, 189, 0.07), rgba(241, 220, 173, 0.045) 58%, transparent),
+    rgba(12, 22, 18, 0.86);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 20px 52px rgba(0, 0, 0, 0.34);
+}
+
+.workspace-point-card:hover {
+  border-color: rgba(241, 220, 173, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    var(--ri-premium-shadow-deep);
+}
+
+.workspace-point-card .point-stars {
+  border-color: rgba(241, 220, 173, 0.52);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(241, 220, 173, 0.08)),
+    rgba(18, 19, 15, 0.86);
+}
+
+.workspace-point-card .point-star {
+  color: #ffe5a0;
+  filter: drop-shadow(0 0 8px rgba(241, 220, 173, 0.4));
+}
+
+.workspace-point-type,
+.workspace-point-meta {
+  color: rgba(241, 220, 173, 0.78);
+}
+
+.workspace-point-body h3 {
+  color: #fffdf6;
+  font-weight: 900;
+}
+
+.workspace-point-services .point-service-pill,
+.region-service-chip,
+.point-service-pill {
+  border-color: rgba(236, 224, 190, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.018)),
+    rgba(7, 14, 12, 0.76);
+}
+
+.workspace-point-links .point-link,
+.point-links .point-link {
+  display: inline-grid;
+  grid-template-columns: 22px minmax(0, 1fr) 12px;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 6px 9px 6px 7px;
+  color: #fffaf0;
+  text-decoration: none;
+  border-radius: 13px;
+}
+
+.workspace-point-links .point-link::after,
+.point-links .point-link::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  justify-self: end;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  opacity: 0.54;
+  transform: rotate(45deg);
+  background: none;
+}
+
+.workspace-point-links .point-link:hover::after,
+.point-links .point-link:hover::after {
+  opacity: 0.9;
+  transform: translateX(1px) rotate(45deg);
+}
+
+.point-link-icon {
+  width: 22px;
+  height: 22px;
+  padding: 4px;
+  border-radius: 8px;
+  color: var(--ri-premium-ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.06)),
+    linear-gradient(135deg, #f2deb1, #a9e8bd);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.44),
+    0 7px 15px rgba(0, 0, 0, 0.2);
+}
+
+.point-link-icon rect,
+.point-link-icon circle,
+.point-link-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.point-link-telegram .point-link-icon path,
+.point-link-facebook .point-link-icon path,
+.point-link-tiktok .point-link-icon path {
+  fill: currentColor;
+  stroke: none;
+}
+
+.point-link-instagram .point-link-icon {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.07)),
+    linear-gradient(135deg, #f5cf75, #e76f99 50%, #8a6fd1);
+}
+
+.point-link-telegram .point-link-icon {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.07)),
+    linear-gradient(135deg, #dff4ff, #7fc4ef 58%, #4d91c8);
+}
+
+.point-link-facebook .point-link-icon,
+.point-link-site .point-link-icon {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.07)),
+    linear-gradient(135deg, #e8f2ff, #a8c5df 58%, #6989b3);
+}
+
+.point-link-tiktok .point-link-icon {
+  color: #fffaf0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04)),
+    linear-gradient(135deg, #111827, #2dd4bf 50%, #fb7185);
+}
+
+.workspace-point-links .point-link span,
+.point-links .point-link span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.66rem;
+  font-weight: 900;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-point-links .point-link:first-child {
+  color: var(--ri-premium-ink);
+  border-color: rgba(241, 220, 173, 0.62);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.06) 48%),
+    linear-gradient(135deg, #f4dfb1, #c2edcf 58%, #79c892);
+}
+
+.workspace-region-shortcut b {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.floating-btn {
+  border-color: rgba(241, 220, 173, 0.36);
+  color: var(--ri-premium-ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 48%),
+    linear-gradient(135deg, #f2dfb5, #aee8c0);
+}
+
+.workspace-back:focus-visible,
+.workspace-clear:focus-visible,
+.map-ux-clear:focus-visible,
+.map-ux-home-service:focus-visible,
+.map-ux-service-btn:focus-visible,
+.workspace-service-tab:focus-visible,
+.workspace-region-shortcut:focus-visible,
+.workspace-point-links .point-link:focus-visible,
+.point-links .point-link:focus-visible,
+.floating-btn:focus-visible {
+  outline: 2px solid rgba(241, 220, 173, 0.86);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 5px rgba(241, 220, 173, 0.15),
+    var(--ri-premium-shadow);
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .map-ux-home-service:hover:enabled,
+  .map-ux-service-btn:hover:enabled,
+  .workspace-point-card:hover,
+  .workspace-point-links .point-link:hover,
+  .point-links .point-link:hover {
+    transform: none;
+  }
+
+  .app-screen-region .workspace-point-links .point-link,
+  .app-screen-region.is-direct-ship .workspace-point-links .point-link {
+    min-height: 32px;
+    grid-template-columns: 19px minmax(0, 1fr) 10px;
+    gap: 5px;
+    padding: 4px 7px 4px 5px;
+    font-size: 0.56rem;
+  }
+
+  .app-screen-region .point-link-icon,
+  .app-screen-region.is-direct-ship .point-link-icon {
+    width: 19px;
+    height: 19px;
+    border-radius: 7px;
+    padding: 3px;
+  }
+
+  .app-screen-region .workspace-point-links .point-link span,
+  .app-screen-region.is-direct-ship .workspace-point-links .point-link span {
+    font-size: 0.54rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-ux-clear,
+  .workspace-back,
+  .workspace-clear,
+  .workspace-service-tab,
+  .map-ux-home-service,
+  .map-ux-service-btn,
+  .workspace-region-shortcut,
+  .workspace-point-links .point-link,
+  .point-links .point-link,
+  .floating-btn {
+    transition: none;
+  }
+}
+
+/* Serious black/green system pass: restrained palette, less decorative gradients. */
+:root {
+  --ri-serious-black: #020504;
+  --ri-serious-void: #050a08;
+  --ri-serious-panel: rgba(6, 13, 10, 0.88);
+  --ri-serious-panel-2: rgba(9, 18, 14, 0.9);
+  --ri-serious-line: rgba(92, 148, 112, 0.28);
+  --ri-serious-line-hot: rgba(125, 225, 157, 0.62);
+  --ri-serious-green-1: #133322;
+  --ri-serious-green-2: #1f6f43;
+  --ri-serious-green-3: #36c878;
+  --ri-serious-green-4: #92e8b0;
+  --ri-serious-steel: #c7d0d9;
+  --ri-serious-steel-soft: #8d9aa6;
+  --ri-serious-text: #f5f7f3;
+  --ri-serious-muted: rgba(207, 219, 211, 0.64);
+  --ri-serious-shadow: 0 24px 68px rgba(0, 0, 0, 0.52);
+}
+
+body {
+  color: var(--ri-serious-text);
+  background: var(--ri-serious-black);
+}
+
+body::before {
+  background:
+    linear-gradient(rgba(146, 232, 176, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(146, 232, 176, 0.014) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity: 0.54;
+}
+
+.static-map-screen,
+.workspace-shell {
+  background: #020504;
+}
+
+.static-map-screen::before,
+.static-map-screen::after,
+.static-map-shell::before,
+.static-map-shell::after {
+  opacity: 0.38;
+  filter: none;
+}
+
+.map-ux-brand,
+.map-ux-mini-stats,
+.map-ux-clear,
+.map-ux-dock,
+.workspace-header,
+.workspace-points-panel,
+.workspace-side-panel,
+.workspace-point-card,
+.workspace-region-shortcut,
+.workspace-service-tab,
+.map-ux-home-service,
+.map-ux-service-btn,
+.workspace-point-links .point-link,
+.point-links .point-link,
+.card {
+  border-color: var(--ri-serious-line);
+  background: var(--ri-serious-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    var(--ri-serious-shadow);
+}
+
+.map-ux-clear::before,
+.workspace-back::before,
+.workspace-clear::before,
+.workspace-service-tab::before,
+.map-ux-home-service::before,
+.map-ux-service-btn::before,
+.workspace-region-shortcut::before,
+.workspace-point-links .point-link::before,
+.point-links .point-link::before,
+.floating-btn::before,
+.workspace-point-card::before,
+.workspace-point-card::after {
+  opacity: 0.18;
+  background: none;
+}
+
+.map-ux-mark,
+.map-ux-pulse,
+.map-ux-home-service i,
+.map-ux-service-btn i,
+.workspace-service-tab i,
+.region-service-chip i,
+.point-service-pill i,
+.floating-btn,
+.workspace-region-shortcut b,
+.workspace-point-links .point-link:first-child {
+  color: #041008;
+  border-color: rgba(146, 232, 176, 0.62);
+  background: var(--ri-serious-green-4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 12px 28px rgba(0, 0, 0, 0.3);
+}
+
+.map-ux-home-service-ship i,
+.map-ux-service-btn-ship i,
+.workspace-service-tab-ship i,
+.region-service-chip-ship i,
+.point-service-pill-ship i,
+.point-link-site .point-link-icon,
+.point-link-facebook .point-link-icon {
+  color: #071019;
+  border-color: rgba(199, 208, 217, 0.48);
+  background: var(--ri-serious-steel);
+}
+
+.map-ux-home-service-other i,
+.map-ux-service-btn-other i,
+.workspace-service-tab-other i,
+.region-service-chip-other i,
+.point-service-pill-other i {
+  color: var(--ri-serious-text);
+  border-color: rgba(125, 225, 157, 0.28);
+  background: #16221b;
+}
+
+.map-ux-brand b,
+.workspace-title-block h2,
+.workspace-point-body h3,
+.map-ux-dock-copy strong,
+.workspace-section-head strong {
+  color: var(--ri-serious-text);
+}
+
+.map-ux-brand small,
+.map-ux-dock-copy p,
+.map-ux-service-btn small,
+.map-ux-home-service small,
+.workspace-title-block span,
+.workspace-section-head span,
+.workspace-point-type,
+.workspace-point-body p,
+.workspace-point-meta {
+  color: var(--ri-serious-muted);
+}
+
+.map-ux-kicker,
+.map-ux-mini-stats b,
+.workspace-point-type,
+.workspace-point-meta {
+  color: var(--ri-serious-green-4);
+}
+
+.map-ux-clear,
+.workspace-back,
+.workspace-clear,
+.workspace-service-tab,
+.map-ux-home-service,
+.map-ux-service-btn,
+.workspace-region-shortcut,
+.workspace-point-links .point-link,
+.point-links .point-link {
+  border-color: var(--ri-serious-line);
+  background: rgba(5, 11, 8, 0.88);
+}
+
+.map-ux-clear:hover,
+.workspace-back:hover,
+.workspace-clear:hover,
+.workspace-service-tab:hover:enabled,
+.map-ux-home-service:hover:enabled,
+.map-ux-service-btn:hover:enabled,
+.workspace-region-shortcut:hover,
+.workspace-point-links .point-link:hover,
+.point-links .point-link:hover,
+.floating-btn:hover {
+  border-color: var(--ri-serious-line-hot);
+  filter: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 22px 58px rgba(0, 0, 0, 0.5);
+}
+
+.workspace-service-tab.is-active,
+.region-service-chip.is-active {
+  color: #041008;
+  border-color: rgba(146, 232, 176, 0.78);
+  background: var(--ri-serious-green-4);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32);
+}
+
+.workspace-service-tab.is-active span,
+.workspace-service-tab.is-active b {
+  color: #041008;
+}
+
+.static-map-shell .italy-map-svg {
+  filter:
+    drop-shadow(0 1px 0 rgba(146, 232, 176, 0.18))
+    drop-shadow(0 28px 48px rgba(0, 0, 0, 0.46));
+}
+
+.static-map-shell .italy-region-shape,
+.static-map-shell .italy-region-shape.is-warm,
+.static-map-shell .italy-region-shape.is-hot {
+  stroke: rgba(146, 232, 176, 0.62);
+}
+
+.static-map-shell .italy-region-shape {
+  fill: rgba(15, 39, 26, 0.74) !important;
+}
+
+.static-map-shell .italy-region-shape.is-warm {
+  fill: rgba(27, 83, 49, 0.82) !important;
+}
+
+.static-map-shell .italy-region-shape.is-hot {
+  fill: rgba(41, 126, 72, 0.88) !important;
+}
+
+.static-map-shell .italy-region-shape:not(.is-disabled):hover,
+.static-map-shell [data-region]:focus-visible .italy-region-shape,
+.static-map-shell .italy-region-shape.is-tapping,
+.static-map-shell .italy-region-shape:not(.is-disabled):active,
+.static-map-shell .italy-region-shape.is-selected {
+  fill: rgba(79, 210, 122, 0.92) !important;
+  stroke: rgba(245, 247, 243, 0.96);
+  filter:
+    drop-shadow(0 0 8px rgba(79, 210, 122, 0.28))
+    drop-shadow(0 16px 30px rgba(0, 0, 0, 0.42));
+}
+
+.static-map-shell .italy-region-halo {
+  fill: rgba(79, 210, 122, 0.1);
+  stroke: rgba(146, 232, 176, 0.48);
+}
+
+.workspace-point-card,
+.app-screen-region .workspace-point-card,
+.app-screen-region.is-direct-ship .workspace-point-card {
+  border-color: rgba(92, 148, 112, 0.32);
+  background: rgba(7, 14, 11, 0.9);
+}
+
+.workspace-point-card:hover {
+  border-color: rgba(146, 232, 176, 0.52);
+}
+
+.workspace-point-card .point-stars,
+.preview-stars {
+  color: #041008;
+  border-color: rgba(146, 232, 176, 0.66);
+  background: var(--ri-serious-green-4);
+}
+
+.workspace-point-card .point-star {
+  color: #041008;
+  filter: none;
+}
+
+.workspace-point-services .point-service-pill,
+.region-service-chip,
+.point-service-pill {
+  border-color: rgba(92, 148, 112, 0.28);
+  background: rgba(4, 10, 7, 0.78);
+}
+
+.point-link-icon,
+.point-link-instagram .point-link-icon,
+.point-link-telegram .point-link-icon {
+  color: #041008;
+  background: var(--ri-serious-green-4);
+}
+
+.point-link-tiktok .point-link-icon {
+  color: var(--ri-serious-text);
+  background: #16221b;
+}
+
+.workspace-back:focus-visible,
+.workspace-clear:focus-visible,
+.map-ux-clear:focus-visible,
+.map-ux-home-service:focus-visible,
+.map-ux-service-btn:focus-visible,
+.workspace-service-tab:focus-visible,
+.workspace-region-shortcut:focus-visible,
+.workspace-point-links .point-link:focus-visible,
+.point-links .point-link:focus-visible,
+.floating-btn:focus-visible {
+  outline-color: rgba(146, 232, 176, 0.9);
+  box-shadow:
+    0 0 0 5px rgba(54, 200, 120, 0.14),
+    var(--ri-serious-shadow);
+}
+
+/* Mobile map luminance parity: touch screens use stronger strokes, so the fills need a darker pass. */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell .italy-map-svg {
+    filter: drop-shadow(0 1px 0 rgba(146, 232, 176, 0.12)) drop-shadow(0 24px 42px rgba(0, 0, 0, 0.5)) !important;
+  }
+
+  .static-map-shell .italy-region-shape,
+  .static-map-shell .italy-region-shape.is-warm,
+  .static-map-shell .italy-region-shape.is-hot {
+    stroke: rgba(125, 225, 157, 0.46) !important;
+    stroke-width: 1.05 !important;
+  }
+
+  .static-map-shell .italy-region-shape {
+    fill: rgba(11, 31, 20, 0.78) !important;
+  }
+
+  .static-map-shell .italy-region-shape.is-warm {
+    fill: rgba(20, 66, 39, 0.8) !important;
+  }
+
+  .static-map-shell .italy-region-shape.is-hot {
+    fill: rgba(29, 100, 56, 0.84) !important;
+  }
+
+  .static-map-shell .italy-region-shape:not(.is-disabled):hover,
+  .static-map-shell [data-region]:focus-visible .italy-region-shape,
+  .static-map-shell .italy-region-shape.is-tapping,
+  .static-map-shell .italy-region-shape:not(.is-disabled):active,
+  .static-map-shell .italy-region-shape.is-selected {
+    fill: rgba(64, 190, 105, 0.88) !important;
+    stroke: rgba(200, 244, 214, 0.86) !important;
+    stroke-width: 1.55 !important;
+    filter: drop-shadow(0 0 6px rgba(64, 190, 105, 0.2)) drop-shadow(0 13px 24px rgba(0, 0, 0, 0.44)) !important;
+  }
+
+  .static-map-shell .italy-region-label {
+    fill: rgba(230, 238, 231, 0.78) !important;
+    stroke: rgba(0, 5, 3, 0.84) !important;
+  }
+
+  .static-map-shell .italy-region-halo {
+    fill: rgba(54, 200, 120, 0.075) !important;
+    stroke: rgba(125, 225, 157, 0.34) !important;
+  }
+}
+
+/* Quick services guide: absolute overlay, so it never shifts the top controls. */
+.map-ux-home-tools {
+  position: relative;
+}
+
+.map-ux-service-guide {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 4;
+  width: min(330px, 42vw);
+  height: 24px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(0, -2px, 0);
+  animation: quickServiceGuideCycle 10s ease-in-out 1.2s infinite;
+}
+
+.map-ux-service-guide-line {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 1px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(146, 232, 176, 0.34), rgba(199, 208, 217, 0.24), transparent);
+  transform: translateY(-50%);
+}
+
+.map-ux-service-guide-line::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(146, 232, 176, 0.72);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(146, 232, 176, 0.95) 0 22%, rgba(146, 232, 176, 0.22) 24% 48%, transparent 52%),
+    rgba(4, 10, 7, 0.72);
+  box-shadow:
+    0 0 0 5px rgba(54, 200, 120, 0.08),
+    0 0 18px rgba(146, 232, 176, 0.24);
+  transform: translate3d(-50%, -50%, 0);
+  animation: quickServiceGuideMarker 10s cubic-bezier(0.2, 0.78, 0.2, 1) 1.2s infinite;
+}
+
+.map-ux-service-guide-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: calc(100% - 42px);
+  padding: 5px 10px 5px 24px;
+  overflow: hidden;
+  border: 1px solid rgba(92, 148, 112, 0.34);
+  border-radius: 999px;
+  color: rgba(245, 247, 243, 0.82);
+  background: rgba(3, 8, 6, 0.76);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 14px 34px rgba(0, 0, 0, 0.36);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
+  backdrop-filter: blur(14px) saturate(1.08);
+  font-size: 0.56rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translate3d(-50%, -50%, 0);
+}
+
+.map-ux-service-guide-label::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--ri-serious-green-4);
+  box-shadow: 0 0 12px rgba(146, 232, 176, 0.42);
+  transform: translateY(-50%);
+}
+
+.static-map-shell.has-region-selection .map-ux-service-guide {
+  display: none;
+}
+
+@keyframes quickServiceGuideCycle {
+  0%,
+  50%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -2px, 0);
+  }
+
+  8%,
+  40% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes quickServiceGuideMarker {
+  0%,
+  8% {
+    left: 10%;
+    opacity: 0;
+  }
+
+  13% {
+    opacity: 1;
+  }
+
+  26% {
+    left: 50%;
+  }
+
+  40% {
+    left: 90%;
+    opacity: 1;
+  }
+
+  48%,
+  100% {
+    left: 90%;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell:not(.has-region-selection) .map-ux-home-tools {
+    overflow: visible;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide {
+    top: calc(100% + 5px);
+    right: 0;
+    width: 110px;
+    height: 19px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-line {
+    left: 5px;
+    right: 5px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-line::before {
+    width: 16px;
+    height: 16px;
+    box-shadow:
+      0 0 0 4px rgba(54, 200, 120, 0.07),
+      0 0 14px rgba(146, 232, 176, 0.22);
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-label {
+    max-width: 88px;
+    padding: 4px 7px 4px 17px;
+    font-size: 0.45rem;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-label::before {
+    left: 7px;
+    width: 5px;
+    height: 5px;
+  }
+}
+
+@media (max-width: 360px) {
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide {
+    width: 106px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-label {
+    max-width: 82px;
+    font-size: 0.42rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-ux-service-guide,
+  .map-ux-service-guide-line::before {
+    animation: none;
+  }
+
+  .map-ux-service-guide {
+    opacity: 0.92;
+    transform: none;
+  }
+}
+
+/* Carbon glass premium pass: muted emerald accents, no bright neon green. */
+:root {
+  --ri-carbon-black: #010302;
+  --ri-carbon-void: #050807;
+  --ri-carbon-panel: rgba(8, 12, 11, 0.74);
+  --ri-carbon-panel-strong: rgba(11, 16, 14, 0.86);
+  --ri-carbon-line: rgba(136, 165, 149, 0.2);
+  --ri-carbon-line-hot: rgba(126, 168, 144, 0.42);
+  --ri-carbon-emerald: #6f9f84;
+  --ri-carbon-emerald-soft: #9bb7a6;
+  --ri-carbon-emerald-deep: #193427;
+  --ri-carbon-steel: #b7c0c6;
+  --ri-carbon-text: #eef2ef;
+  --ri-carbon-muted: rgba(210, 219, 214, 0.62);
+  --ri-carbon-glass-shadow: 0 26px 72px rgba(0, 0, 0, 0.58);
+  --ri-carbon-focus: rgba(148, 181, 162, 0.48);
+  --ri-serious-green-3: var(--ri-carbon-emerald);
+  --ri-serious-green-4: var(--ri-carbon-emerald-soft);
+  --ri-serious-line-hot: var(--ri-carbon-line-hot);
+}
+
+body,
+.static-map-screen,
+.workspace-shell {
+  background:
+    radial-gradient(circle at 26% 28%, rgba(34, 70, 51, 0.18), transparent 34%),
+    linear-gradient(145deg, #010302 0%, #050807 48%, #080908 100%) !important;
+}
+
+.static-map-screen::before,
+.static-map-screen::after,
+.static-map-shell::before,
+.static-map-shell::after {
+  opacity: 0.26 !important;
+}
+
+.map-ux-brand,
+.map-ux-mini-stats,
+.map-ux-clear,
+.map-ux-dock,
+.workspace-header,
+.workspace-points-panel,
+.workspace-side-panel,
+.workspace-point-card,
+.workspace-region-shortcut,
+.workspace-service-tab,
+.map-ux-home-service,
+.map-ux-service-btn,
+.workspace-point-links .point-link,
+.point-links .point-link,
+.card,
+.map-ux-service-guide-label {
+  border-color: var(--ri-carbon-line) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.02)),
+    linear-gradient(135deg, rgba(37, 58, 48, 0.22), rgba(9, 13, 12, 0.18)),
+    var(--ri-carbon-panel) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    var(--ri-carbon-glass-shadow) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.04) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+}
+
+.map-ux-mark,
+.map-ux-pulse,
+.map-ux-home-service i,
+.map-ux-service-btn i,
+.workspace-service-tab i,
+.region-service-chip i,
+.point-service-pill i,
+.floating-btn,
+.workspace-region-shortcut b,
+.workspace-point-links .point-link:first-child,
+.point-link-icon,
+.point-link-instagram .point-link-icon,
+.point-link-telegram .point-link-icon,
+.workspace-point-card .point-stars,
+.preview-stars {
+  color: var(--ri-carbon-text) !important;
+  border-color: rgba(155, 183, 166, 0.36) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.025)),
+    linear-gradient(145deg, rgba(45, 75, 58, 0.92), rgba(16, 29, 23, 0.96)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    0 13px 30px rgba(0, 0, 0, 0.38) !important;
+}
+
+.map-ux-home-service-ship i,
+.map-ux-service-btn-ship i,
+.workspace-service-tab-ship i,
+.region-service-chip-ship i,
+.point-service-pill-ship i,
+.point-link-site .point-link-icon,
+.point-link-facebook .point-link-icon {
+  color: #f0f3f1 !important;
+  border-color: rgba(183, 192, 198, 0.34) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.025)),
+    linear-gradient(145deg, rgba(77, 89, 96, 0.9), rgba(24, 30, 34, 0.96)) !important;
+}
+
+.map-ux-home-service-other i,
+.map-ux-service-btn-other i,
+.workspace-service-tab-other i,
+.region-service-chip-other i,
+.point-service-pill-other i,
+.point-link-tiktok .point-link-icon {
+  color: #edf1ee !important;
+  border-color: rgba(126, 168, 144, 0.24) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.02)),
+    linear-gradient(145deg, rgba(28, 39, 34, 0.94), rgba(10, 14, 13, 0.96)) !important;
+}
+
+.map-ux-kicker,
+.map-ux-mini-stats b,
+.workspace-section-head strong,
+.workspace-point-type,
+.workspace-point-meta,
+.workspace-point-card .point-star-label {
+  color: var(--ri-carbon-emerald-soft) !important;
+}
+
+.map-ux-brand small,
+.map-ux-dock-copy p,
+.map-ux-service-btn small,
+.map-ux-home-service small,
+.workspace-title-block span,
+.workspace-section-head span,
+.workspace-point-body p,
+.workspace-point-meta {
+  color: var(--ri-carbon-muted) !important;
+}
+
+.map-ux-clear:hover,
+.workspace-back:hover,
+.workspace-clear:hover,
+.workspace-service-tab:hover:enabled,
+.map-ux-home-service:hover:enabled,
+.map-ux-service-btn:hover:enabled,
+.workspace-region-shortcut:hover,
+.workspace-point-links .point-link:hover,
+.point-links .point-link:hover,
+.floating-btn:hover {
+  border-color: var(--ri-carbon-line-hot) !important;
+  filter: none !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 22px 56px rgba(0, 0, 0, 0.54) !important;
+}
+
+.workspace-service-tab.is-active,
+.region-service-chip.is-active,
+.map-ux-home-service:focus-visible,
+.map-ux-service-btn:focus-visible {
+  color: var(--ri-carbon-text) !important;
+  border-color: rgba(155, 183, 166, 0.5) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.03)),
+    linear-gradient(145deg, rgba(57, 87, 68, 0.92), rgba(18, 33, 25, 0.95)) !important;
+}
+
+.workspace-service-tab.is-active span,
+.workspace-service-tab.is-active b {
+  color: var(--ri-carbon-text) !important;
+}
+
+.static-map-shell .italy-map-svg {
+  filter:
+    drop-shadow(0 1px 0 rgba(155, 183, 166, 0.1))
+    drop-shadow(0 30px 54px rgba(0, 0, 0, 0.54)) !important;
+}
+
+.static-map-shell .italy-region-shape,
+.static-map-shell .italy-region-shape.is-warm,
+.static-map-shell .italy-region-shape.is-hot {
+  stroke: rgba(116, 151, 130, 0.42) !important;
+}
+
+.static-map-shell .italy-region-shape {
+  fill: rgba(9, 26, 18, 0.78) !important;
+}
+
+.static-map-shell .italy-region-shape.is-warm {
+  fill: rgba(19, 52, 34, 0.82) !important;
+}
+
+.static-map-shell .italy-region-shape.is-hot {
+  fill: rgba(33, 78, 50, 0.84) !important;
+}
+
+.static-map-shell .italy-region-shape:not(.is-disabled):hover,
+.static-map-shell [data-region]:focus-visible .italy-region-shape,
+.static-map-shell .italy-region-shape.is-tapping,
+.static-map-shell .italy-region-shape:not(.is-disabled):active,
+.static-map-shell .italy-region-shape.is-selected {
+  fill: rgba(78, 133, 94, 0.9) !important;
+  stroke: rgba(201, 213, 206, 0.82) !important;
+  filter:
+    drop-shadow(0 0 7px rgba(126, 168, 144, 0.18))
+    drop-shadow(0 16px 30px rgba(0, 0, 0, 0.46)) !important;
+}
+
+.static-map-shell .italy-region-halo {
+  fill: rgba(126, 168, 144, 0.07) !important;
+  stroke: rgba(155, 183, 166, 0.3) !important;
+}
+
+.static-map-shell .italy-region-label {
+  fill: rgba(226, 232, 228, 0.76) !important;
+}
+
+.workspace-point-card:hover {
+  border-color: rgba(155, 183, 166, 0.38) !important;
+}
+
+.workspace-point-card .point-star,
+.preview-stars {
+  color: var(--ri-carbon-text) !important;
+  filter: none !important;
+}
+
+.workspace-back:focus-visible,
+.workspace-clear:focus-visible,
+.map-ux-clear:focus-visible,
+.map-ux-home-service:focus-visible,
+.map-ux-service-btn:focus-visible,
+.workspace-service-tab:focus-visible,
+.workspace-region-shortcut:focus-visible,
+.workspace-point-links .point-link:focus-visible,
+.point-links .point-link:focus-visible,
+.floating-btn:focus-visible {
+  outline-color: var(--ri-carbon-focus) !important;
+  box-shadow:
+    0 0 0 5px rgba(126, 168, 144, 0.12),
+    var(--ri-carbon-glass-shadow) !important;
+}
+
+.map-ux-service-guide-line {
+  background: linear-gradient(90deg, transparent, rgba(155, 183, 166, 0.24), rgba(183, 192, 198, 0.18), transparent) !important;
+}
+
+.map-ux-service-guide-line::before {
+  border-color: rgba(155, 183, 166, 0.5) !important;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(155, 183, 166, 0.82) 0 20%, rgba(126, 168, 144, 0.18) 24% 46%, transparent 52%),
+    rgba(4, 8, 7, 0.76) !important;
+  box-shadow:
+    0 0 0 5px rgba(126, 168, 144, 0.055),
+    0 0 16px rgba(155, 183, 166, 0.16) !important;
+}
+
+.map-ux-service-guide-label::before {
+  background: var(--ri-carbon-emerald-soft) !important;
+  box-shadow: 0 0 10px rgba(155, 183, 166, 0.22) !important;
+}
+
+.map-ux-pulse {
+  border-color: rgba(155, 183, 166, 0.46) !important;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.16), transparent 38%),
+    linear-gradient(145deg, rgba(82, 125, 98, 0.78), rgba(23, 43, 32, 0.92)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.26),
+    0 0 0 5px rgba(126, 168, 144, 0.055),
+    0 13px 30px rgba(0, 0, 0, 0.42) !important;
+}
+
+.map-ux-pulse::before,
+.map-ux-pulse::after {
+  border-color: rgba(155, 183, 166, 0.34) !important;
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell .italy-map-svg {
+    filter: drop-shadow(0 1px 0 rgba(155, 183, 166, 0.08)) drop-shadow(0 24px 42px rgba(0, 0, 0, 0.54)) !important;
+  }
+
+  .static-map-shell .italy-region-shape,
+  .static-map-shell .italy-region-shape.is-warm,
+  .static-map-shell .italy-region-shape.is-hot {
+    stroke: rgba(116, 151, 130, 0.34) !important;
+  }
+
+  .static-map-shell .italy-region-shape {
+    fill: rgba(8, 22, 16, 0.8) !important;
+  }
+
+  .static-map-shell .italy-region-shape.is-warm {
+    fill: rgba(17, 45, 30, 0.82) !important;
+  }
+
+  .static-map-shell .italy-region-shape.is-hot {
+    fill: rgba(27, 66, 42, 0.84) !important;
+  }
+
+  .static-map-shell .italy-region-shape:not(.is-disabled):hover,
+  .static-map-shell [data-region]:focus-visible .italy-region-shape,
+  .static-map-shell .italy-region-shape.is-tapping,
+  .static-map-shell .italy-region-shape:not(.is-disabled):active,
+  .static-map-shell .italy-region-shape.is-selected {
+    fill: rgba(67, 116, 83, 0.88) !important;
+    stroke: rgba(201, 213, 206, 0.72) !important;
+    filter: drop-shadow(0 0 6px rgba(126, 168, 144, 0.14)) drop-shadow(0 13px 24px rgba(0, 0, 0, 0.48)) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-line::before {
+    box-shadow:
+      0 0 0 4px rgba(126, 168, 144, 0.05),
+      0 0 12px rgba(155, 183, 166, 0.14) !important;
+  }
+}
+
+/* Premium quick-service guide motion: cinematic, quiet, and layout-neutral. */
+.map-ux-service-guide {
+  height: 30px !important;
+  overflow: visible;
+  opacity: 0;
+  transform: translate3d(0, -2px, 0) scale(0.985);
+  transform-origin: 100% 0;
+  animation: premiumServiceGuidePresence 12s cubic-bezier(0.22, 0.72, 0.22, 1) 1.15s infinite !important;
+}
+
+.map-ux-service-guide::before,
+.map-ux-service-guide::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.map-ux-service-guide::before {
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 10px;
+  border: 1px solid rgba(155, 183, 166, 0.14);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 10% 50%, rgba(155, 183, 166, 0.48) 0 2px, transparent 3px),
+    radial-gradient(circle at 50% 50%, rgba(183, 192, 198, 0.42) 0 2px, transparent 3px),
+    radial-gradient(circle at 90% 50%, rgba(126, 168, 144, 0.42) 0 2px, transparent 3px),
+    linear-gradient(90deg, transparent, rgba(155, 183, 166, 0.08), transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 26px rgba(0, 0, 0, 0.32);
+  opacity: 0.72;
+  transform: translateY(-50%);
+}
+
+.map-ux-service-guide::after {
+  left: 8px;
+  top: 50%;
+  width: 42px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(220, 230, 224, 0.42), transparent);
+  filter: blur(3px);
+  opacity: 0;
+  transform: translate3d(-36px, -50%, 0);
+  animation: premiumServiceGuideSweep 12s cubic-bezier(0.18, 0.76, 0.22, 1) 1.15s infinite;
+}
+
+.map-ux-service-guide-line {
+  left: 10px !important;
+  right: 10px !important;
+  height: 1px !important;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(155, 183, 166, 0.16) 16%, rgba(183, 192, 198, 0.22) 50%, rgba(126, 168, 144, 0.16) 84%, transparent 100%) !important;
+  box-shadow: 0 0 18px rgba(126, 168, 144, 0.08);
+}
+
+.map-ux-service-guide-line::before {
+  width: 22px !important;
+  height: 22px !important;
+  border-color: rgba(205, 216, 209, 0.42) !important;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.38), transparent 26%),
+    radial-gradient(circle at 50% 50%, rgba(155, 183, 166, 0.5) 0 20%, rgba(126, 168, 144, 0.14) 24% 50%, transparent 54%),
+    rgba(5, 9, 8, 0.82) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.34),
+    0 0 0 5px rgba(126, 168, 144, 0.045),
+    0 0 20px rgba(155, 183, 166, 0.16),
+    0 12px 28px rgba(0, 0, 0, 0.42) !important;
+  animation: premiumServiceGuideLens 12s cubic-bezier(0.18, 0.76, 0.22, 1) 1.15s infinite !important;
+}
+
+.map-ux-service-guide-label {
+  top: calc(50% + 1px) !important;
+  padding: 5px 11px 5px 22px !important;
+  border-color: rgba(155, 183, 166, 0.22) !important;
+  color: rgba(232, 238, 234, 0.82) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)),
+    rgba(5, 9, 8, 0.78) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 14px 34px rgba(0, 0, 0, 0.4) !important;
+  opacity: 0;
+  transform: translate3d(-50%, -50%, 0) scale(0.96);
+  animation: premiumServiceGuideLabel 12s cubic-bezier(0.22, 0.72, 0.22, 1) 1.15s infinite;
+}
+
+.map-ux-service-guide-label::before {
+  width: 5px !important;
+  height: 5px !important;
+  background: #a4b7aa !important;
+  box-shadow: 0 0 10px rgba(155, 183, 166, 0.18) !important;
+}
+
+@keyframes premiumServiceGuidePresence {
+  0%,
+  7%,
+  43%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -2px, 0) scale(0.985);
+  }
+
+  11%,
+  34% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes premiumServiceGuideLens {
+  0%,
+  8% {
+    left: 10%;
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) scale(0.72);
+  }
+
+  12% {
+    left: 10%;
+    opacity: 1;
+    transform: translate3d(-50%, -50%, 0) scale(1);
+  }
+
+  22% {
+    left: 50%;
+    opacity: 1;
+  }
+
+  34% {
+    left: 90%;
+    opacity: 1;
+    transform: translate3d(-50%, -50%, 0) scale(1);
+  }
+
+  40%,
+  100% {
+    left: 90%;
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) scale(0.76);
+  }
+}
+
+@keyframes premiumServiceGuideSweep {
+  0%,
+  9% {
+    opacity: 0;
+    transform: translate3d(-36px, -50%, 0);
+  }
+
+  13%,
+  31% {
+    opacity: 0.7;
+  }
+
+  36% {
+    opacity: 0;
+    transform: translate3d(calc(100% + 18px), -50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(100% + 18px), -50%, 0);
+  }
+}
+
+@keyframes premiumServiceGuideLabel {
+  0%,
+  12%,
+  38%,
+  100% {
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) scale(0.96);
+  }
+
+  17%,
+  31% {
+    opacity: 1;
+    transform: translate3d(-50%, -50%, 0) scale(1);
+  }
+}
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide {
+    height: 23px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide::before {
+    left: 6px;
+    right: 6px;
+    height: 8px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide::after {
+    left: 6px;
+    width: 28px;
+    height: 8px;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-line {
+    left: 7px !important;
+    right: 7px !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-line::before {
+    width: 15px !important;
+    height: 15px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 0 0 4px rgba(126, 168, 144, 0.04),
+      0 0 12px rgba(155, 183, 166, 0.12) !important;
+  }
+
+  .static-map-shell:not(.has-region-selection) .map-ux-service-guide-label {
+    max-width: 86px !important;
+    padding: 4px 7px 4px 16px !important;
+    font-size: 0.42rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-ux-service-guide,
+  .map-ux-service-guide::after,
+  .map-ux-service-guide-line::before,
+  .map-ux-service-guide-label {
+    animation: none !important;
+  }
+
+  .map-ux-service-guide {
+    opacity: 0.86 !important;
+    transform: none !important;
+  }
+
+  .map-ux-service-guide-label {
+    opacity: 1 !important;
+    transform: translate3d(-50%, -50%, 0) !important;
+  }
+}
+

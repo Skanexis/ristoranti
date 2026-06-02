@@ -682,6 +682,103 @@ document.addEventListener("click", () => {
   closeAllAdminCustomSelects();
 });
 
+function adminConfirm(message, options = {}) {
+  const text = String(message || "").trim();
+  if (!text) return Promise.resolve(true);
+
+  if (typeof document === "undefined" || !document.body) {
+    return Promise.resolve(window.confirm(text));
+  }
+
+  closeAllAdminCustomSelects();
+
+  return new Promise((resolve) => {
+    const previousActiveElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const overlay = document.createElement("div");
+    overlay.className = "admin-modal-overlay";
+    overlay.setAttribute("role", "presentation");
+
+    const dialog = document.createElement("section");
+    dialog.className = `admin-modal ${options.danger ? "admin-modal-danger" : "admin-modal-neutral"}`.trim();
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "adminConfirmTitle");
+    dialog.setAttribute("aria-describedby", "adminConfirmMessage");
+    dialog.tabIndex = -1;
+
+    const mark = document.createElement("span");
+    mark.className = "admin-modal-mark";
+    mark.setAttribute("aria-hidden", "true");
+    mark.textContent = options.danger ? "!" : "i";
+
+    const title = document.createElement("h2");
+    title.id = "adminConfirmTitle";
+    title.textContent = options.title || "Conferma azione";
+
+    const body = document.createElement("p");
+    body.id = "adminConfirmMessage";
+    body.textContent = text;
+
+    const actions = document.createElement("div");
+    actions.className = "admin-modal-actions";
+
+    const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.className = "admin-btn admin-btn-secondary";
+    cancelButton.textContent = options.cancelLabel || "Annulla";
+
+    const confirmButton = document.createElement("button");
+    confirmButton.type = "button";
+    confirmButton.className = `admin-btn ${options.danger ? "admin-btn-danger" : ""}`.trim();
+    confirmButton.textContent = options.confirmLabel || "Conferma";
+
+    actions.append(cancelButton, confirmButton);
+    dialog.append(mark, title, body, actions);
+    overlay.append(dialog);
+    document.body.append(overlay);
+    document.body.classList.add("admin-modal-open");
+
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      document.body.classList.remove("admin-modal-open");
+      overlay.remove();
+      previousActiveElement?.focus?.({ preventScroll: true });
+      resolve(result);
+    };
+
+    cancelButton.addEventListener("click", () => finish(false));
+    confirmButton.addEventListener("click", () => finish(true));
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) finish(false);
+    });
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        finish(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = [cancelButton, confirmButton];
+      const currentIndex = focusable.indexOf(document.activeElement);
+      if (event.shiftKey && currentIndex <= 0) {
+        event.preventDefault();
+        focusable[focusable.length - 1].focus();
+      } else if (!event.shiftKey && currentIndex === focusable.length - 1) {
+        event.preventDefault();
+        focusable[0].focus();
+      }
+    });
+
+    window.setTimeout(() => {
+      dialog.focus({ preventScroll: true });
+      cancelButton.focus({ preventScroll: true });
+    }, 0);
+  });
+}
+
 async function handleAdminAuthSubmit(event) {
   event.preventDefault();
 
@@ -1181,9 +1278,9 @@ function bindAdminEvents() {
   }
 
   if (els.pointEditorBackBtn) {
-    els.pointEditorBackBtn.addEventListener("click", () => {
+    els.pointEditorBackBtn.addEventListener("click", async () => {
       if (isPointFormDirty()) {
-        const ok = window.confirm("Uscire dall'editor senza salvare?");
+        const ok = await adminConfirm("Uscire dall'editor senza salvare?", { danger: true });
         if (!ok) return;
       }
       if (otherPointMode.category) {
@@ -1375,7 +1472,10 @@ function bindAdminEvents() {
   });
 
   els.resetDataBtn.addEventListener("click", async () => {
-    const ok = window.confirm("Resettare tutti i dati ai valori di default?");
+    const ok = await adminConfirm("Resettare tutti i dati ai valori di default?", {
+      danger: true,
+      confirmLabel: "Reset",
+    });
     if (!ok) return;
     try {
       const response = await apiRequest(API.reset, { method: "POST", requiresCsrf: true });
@@ -2373,7 +2473,7 @@ function handleServiceBlockSubmit(event) {
   persistData("Blocchi servizi aggiornati.");
 }
 
-function handleServiceBlockActions(event) {
+async function handleServiceBlockActions(event) {
   const button = event.target.closest("[data-service-block-action]");
   if (!button) return;
 
@@ -2394,7 +2494,10 @@ function handleServiceBlockActions(event) {
   }
 
   if (action === "delete") {
-    const ok = window.confirm(`Eliminare il blocco servizio '${blocks[index].title}'?`);
+    const ok = await adminConfirm(`Eliminare il blocco servizio '${blocks[index].title}'?`, {
+      danger: true,
+      confirmLabel: "Elimina",
+    });
     if (!ok) return;
     blocks.splice(index, 1);
     if (editingServiceBlockId === blockId) {
@@ -2553,7 +2656,7 @@ function renderRegionList() {
     .join("");
 }
 
-function handleRegionActions(event) {
+async function handleRegionActions(event) {
   const actionButton = event.target.closest("[data-region-action]");
   const regionCard = event.target.closest(".admin-item[data-region-id]");
 
@@ -2603,7 +2706,10 @@ function handleRegionActions(event) {
   }
 
   if (action === "delete") {
-    const ok = window.confirm(`Eliminare la regione "${region.name}" e tutti i suoi punti?`);
+    const ok = await adminConfirm(`Eliminare la regione "${region.name}" e tutti i suoi punti?`, {
+      danger: true,
+      confirmLabel: "Elimina",
+    });
     if (!ok) return;
     data.regions = data.regions.filter((item) => item.id !== region.id);
     if (editingRegionId === region.id) {
@@ -3236,14 +3342,14 @@ function renderPointsList() {
   els.pointsList.innerHTML = filtered
     .map((point) => {
       const services = (point.services || [])
-        .map((service) => `<span class="mini-chip">${escapeHtml(getServiceLabel(service))}</span>`)
+        .map((service) => buildAdminServiceChip(service))
         .join("");
       const socialsCount = Array.isArray(point.socials) ? point.socials.length : 0;
       const hasDetails = Boolean(String(point.details || "").trim());
       const mediaType = resolvePointMediaType(point.mediaType, point.mediaUrl);
       const mediaLabel = mediaType === "none" ? "NO" : mediaType.toUpperCase();
       const starsValue = clampStars(point.stars);
-      const starsChip = starsValue === 1 ? `<span class="mini-chip">Stella ★ Platinum</span>` : "";
+      const starsChip = starsValue === 1 ? `<span class="mini-chip mini-chip-premium">Stella ★ Platinum</span>` : "";
       const isEditing = point.id === editingPointId;
       const isSelected = selectedPointIds.has(point.id);
       const hasShip = Array.isArray(point.services) && point.services.includes("ship");
@@ -3263,14 +3369,14 @@ function renderPointsList() {
           </div>
           <div class="admin-item-tags">
             ${starsChip}
-            <span class="mini-chip">Social ${socialsCount}</span>
-            <span class="mini-chip">Retro ${hasDetails ? "OK" : "NO"}</span>
-            <span class="mini-chip">Media ${mediaLabel}</span>
-            ${hasDeliveryItalia ? `<span class="mini-chip">Delivery Italia</span>` : ""}
-            ${hasShip ? `<span class="mini-chip">Ship ${escapeHtml(shipOriginLabel)}</span>` : ""}
-            ${showShipCountry ? `<span class="mini-chip">Paese Ship ${escapeHtml(shipCountry || "Non impostato")}</span>` : ""}
+            <span class="mini-chip mini-chip-muted">Social ${socialsCount}</span>
+            <span class="mini-chip mini-chip-muted">Retro ${hasDetails ? "OK" : "NO"}</span>
+            <span class="mini-chip mini-chip-muted">Media ${mediaLabel}</span>
+            ${hasDeliveryItalia ? `<span class="mini-chip mini-chip-delivery">Delivery Italia</span>` : ""}
+            ${hasShip ? `<span class="mini-chip mini-chip-ship">Ship ${escapeHtml(shipOriginLabel)}</span>` : ""}
+            ${showShipCountry ? `<span class="mini-chip mini-chip-ship">Paese Ship ${escapeHtml(shipCountry || "Non impostato")}</span>` : ""}
           </div>
-          <div class="admin-item-tags">${services || `<span class="mini-chip">Nessun servizio</span>`}</div>
+          <div class="admin-item-tags">${services || `<span class="mini-chip mini-chip-muted">Nessun servizio</span>`}</div>
           <label class="point-select-control" aria-label="Seleziona punto ${escapeHtmlAttr(point.name || point.id || "punto")}">
             <input
               type="checkbox"
@@ -3298,7 +3404,7 @@ function renderPointsList() {
   syncPointsBulkUi(region, filtered);
 }
 
-function handlePointActions(event) {
+async function handlePointActions(event) {
   if (event.target.closest(".point-select-control")) {
     return;
   }
@@ -3343,7 +3449,10 @@ function handlePointActions(event) {
   }
 
   if (action === "delete") {
-    const ok = window.confirm(`Eliminare il punto "${point.name}"?`);
+    const ok = await adminConfirm(`Eliminare il punto "${point.name}"?`, {
+      danger: true,
+      confirmLabel: "Elimina",
+    });
     if (!ok) return;
     region.activePoints = region.activePoints.filter((item) => item.id !== point.id);
     selectedPointIds.delete(point.id);
@@ -4007,9 +4116,9 @@ function updatePointFormDirtyState() {
   els.pointFormDirtyState.textContent = dirty ? "Ci sono modifiche non salvate" : "Nessuna modifica";
 }
 
-function handlePointCancelEdit() {
+async function handlePointCancelEdit() {
   if (isPointFormDirty()) {
-    const ok = window.confirm("Annullare le modifiche non salvate?");
+    const ok = await adminConfirm("Annullare le modifiche non salvate?", { danger: true });
     if (!ok) return;
   }
   const returnPage = otherPointMode.category ? "other" : "points";
@@ -4389,11 +4498,11 @@ function renderPointPreview() {
   const mediaHtml = buildMediaPreviewMarkup(resolvedMediaType, mediaUrl, name || "Punto");
   const starsHtml = stars === 1 ? "★ Platinum" : "";
   const servicesHtml = services
-    .map((service) => `<span class="mini-chip">${escapeHtml(getServiceLabel(service))}</span>`)
+    .map((service) => buildAdminServiceChip(service))
     .join("");
-  const deliveryItaliaHtml = deliveryItalia ? `<span class="mini-chip">Delivery Italia</span>` : "";
+  const deliveryItaliaHtml = deliveryItalia ? `<span class="mini-chip mini-chip-delivery">Delivery Italia</span>` : "";
   const socialsHtml = socials
-    .map((label) => `<span class="mini-chip">${escapeHtml(label)}</span>`)
+    .map((label) => `<span class="mini-chip mini-chip-muted">${escapeHtml(label)}</span>`)
     .join("");
 
   els.pointPreview.innerHTML = `
@@ -4413,8 +4522,8 @@ function renderPointPreview() {
       ${mediaHtml ? `<div class="preview-media">${mediaHtml}</div>` : ""}
       <p class="preview-meta">${escapeHtml(details || "Dettagli retro card non impostati.")}</p>
       ${starsHtml ? `<p class="preview-stars">${starsHtml}</p>` : ""}
-      <div class="preview-chips">${servicesHtml || `<span class="mini-chip">Nessun servizio</span>`}${deliveryItaliaHtml}</div>
-      <div class="preview-chips">${socialsHtml || `<span class="mini-chip">Nessun social</span>`}</div>
+      <div class="preview-chips">${servicesHtml || `<span class="mini-chip mini-chip-muted">Nessun servizio</span>`}${deliveryItaliaHtml}</div>
+      <div class="preview-chips">${socialsHtml || `<span class="mini-chip mini-chip-muted">Nessun social</span>`}</div>
     </article>
   `;
 }
@@ -4828,6 +4937,71 @@ function getServiceLabel(serviceId) {
   return data.serviceLabels?.[serviceId] || defaultServiceLabels[serviceId] || serviceId;
 }
 
+function buildAdminServiceChip(serviceId) {
+  const normalized = String(serviceId || "").trim().toLowerCase();
+  const safeService = POINT_SERVICES.includes(normalized) || normalized === "other" ? normalized : "other";
+
+  return `
+    <span class="mini-chip mini-chip-service mini-chip-${escapeHtmlAttr(safeService)}">
+      ${getAdminServiceIconMarkup(safeService)}
+      <span>${escapeHtml(getServiceLabel(safeService))}</span>
+    </span>
+  `;
+}
+
+function getAdminServiceIconMarkup(serviceId) {
+  const iconClass = `admin-service-icon admin-service-icon-${escapeHtmlAttr(serviceId)}`;
+
+  if (serviceId === "meetup") {
+    return `
+      <i class="${iconClass}" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11Z"></path>
+          <circle cx="12" cy="10" r="2.4"></circle>
+        </svg>
+      </i>
+    `;
+  }
+
+  if (serviceId === "delivery") {
+    return `
+      <i class="${iconClass}" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M3 7h11v9H3z"></path>
+          <path d="M14 10h3.7l3.3 3.4V16h-7z"></path>
+          <circle cx="7" cy="17" r="2"></circle>
+          <circle cx="18" cy="17" r="2"></circle>
+        </svg>
+      </i>
+    `;
+  }
+
+  if (serviceId === "ship") {
+    return `
+      <i class="${iconClass}" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M4 8.2 12 4l8 4.2v8.6L12 21l-8-4.2Z"></path>
+          <path d="m4.5 8.5 7.5 4 7.5-4"></path>
+          <path d="M12 12.5V21"></path>
+        </svg>
+      </i>
+    `;
+  }
+
+  return `
+    <i class="${iconClass}" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M5 6.5h14"></path>
+        <path d="M5 12h14"></path>
+        <path d="M5 17.5h14"></path>
+        <circle cx="8" cy="6.5" r="1.4"></circle>
+        <circle cx="16" cy="12" r="1.4"></circle>
+        <circle cx="11" cy="17.5" r="1.4"></circle>
+      </svg>
+    </i>
+  `;
+}
+
 function normalizeShipOrigin(value) {
   const candidate = String(value || "")
     .trim()
@@ -5073,7 +5247,7 @@ function setStatus(message, tone = "success", sticky = false) {
     if (!els.adminStatus) return;
     els.adminStatus.textContent = "";
     els.adminStatus.dataset.tone = "";
-  }, 5200);
+  }, 3200);
 }
 
 function safeFocus(element) {
